@@ -95,7 +95,6 @@ ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
 title('CFAR')
 display('imagesc plot computation')
-hold on;
 %GET Centroids using Kmeans Algorithm
 %[idx,centr] = kMeans(RDM,2);
 %disp(centr);
@@ -107,6 +106,7 @@ points = [column; row];
 
 [cluster,centr] = kMeans(2,points);
 disp(centr);
+
 hold on;
 %scatter(centr(1,:),centr(2,:),'xk','LineWidth',1.5);
 plot([centr(1,:),centr(2,:)], 'r*', 'MarkerSize', 15, 'LineWidth', 2);

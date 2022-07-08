@@ -20,10 +20,15 @@ s2 = I_Qno;
 initial=1;
 current=500000;
 
+%initialize tracking filter and run every second
+KF_object = kalmanFilter(1/fs, 1, 1, 1, 0.1,0.1);
+
 for i = 1:9
     s1 = I_Qmov(initial:current);
     s2 = I_Qno(initial:current);
-    y = ard_plot(s1,s2,fs,dopp_bins,delay);
+    [y,KF_object_] = ard_plot(s1,s2,fs,dopp_bins,delay,KF_object);
+    
+    KF_object = KF_object_;
     
     initial = current+1;
     current = current + fs;

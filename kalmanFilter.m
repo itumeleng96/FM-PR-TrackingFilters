@@ -16,10 +16,14 @@ classdef kalmanFilter
             % y_std_meas : standard deviation of the measurement in the y-direction
             
             %Control Input Variables
-            obj.U = [u_x,u_y];
+            obj.U = [u_x;
+                     u_y];
 
             %Initial State
-            obj.X= zeros(1,4);
+            obj.X= [1;
+                    1;
+                    0;
+                    0];
 
             %State transition matrix
             obj.A = [1, 0,dt, 0;
@@ -48,42 +52,44 @@ classdef kalmanFilter
                  0, y_std_meas^2];
 
             %Initial covariance matrix -  Identity matrix same shape as A
-            obj.P = eye(size(A));
+            obj.P = eye(size(obj.A,2));
         end
         
-        function X = predict(obj)
+        function [X_pred,KF_obj] = predict(obj)
             %Calculate the predicted time state
 
             %Update time state
             %x_k = Ax_(k-1) + Bu_(k-1) 
-            obj.X= dot(obj.A,obj.X) + dot(obj.B,obj.U);
+            obj.X= obj.A * obj.X + obj.B * obj.U;
 
             %calculate error covariance
             %P= A*P*A' + Q 
-            obj.P = dot(dot(obj.A,obj.P),obj.A.') + obj.Q;
+            obj.P = (obj.A * obj.P) * obj.A.' + obj.Q;
             
-            X = obj.X;
+            X_pred = obj.X;
+            KF_obj  = obj;
         end
         
-        function X = update(obj,z)
+        function [X_est,KF_obj] = update(obj,z)
             %Update stage, compute the Kalman gain
 
             %S = H*P*H'+R
-            S = dot(obj.H,dot(obj.P,obj.H.')) + obj.R ;
+            S = obj.H * (obj.P * obj.H.') + obj.R ;
 
             %Calculate the Kalman Gain 
             %K = P * H'* inv(H*P*H'+R)
 
-            K = dot(dot(obj.P,obj.H.'),S^(-1));
-
-            obj.X = round(obj.X+ dot(K,(z-dot(obj.H,obj.X))));
-
-            I = eye(size(obj.H));
+            K = (obj.P * obj.H.') * S^(-1);
+            
+            obj.X = round(obj.X+ K * (z-obj.H * obj.X));
+            
+            I = eye(size(obj.H,2));
 
             %Update Error Covariance matrix
-            obj.P = (I - (K*obj.H))* obj.P;
+            obj.P = (I - (K * obj.H)) * obj.P;
             
-            X = obj.X;
+            X_est = obj.X;
+            KF_obj = obj;
         end
 
      end

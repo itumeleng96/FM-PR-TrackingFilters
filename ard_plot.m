@@ -1,4 +1,4 @@
-function y = ard_plot(s1,s2,fs,fd_max,td_max)
+function [y,KF_object_final] = ard_plot(s1,s2,fs,fd_max,td_max,KF_object)
 
 %Generates an ARD plot for the reference and scattered signals using the
 %frequency domain implementation.
@@ -72,6 +72,11 @@ max_dB = 10*log10(max(max(abs(y))));
 %toc
 
 tic
+
+%Predict using Kalman Filter
+[X,KF_object_]= predict(KF_object);
+KF_object=KF_object_;
+
 figure(1);
 %figure('Name','2D image');
 imagesc(time,frequency,10*log10(y.'),[max_dB-100 max_dB]);
@@ -82,7 +87,11 @@ ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
 title('Range-Doppler response')
 display('imagesc plot computation')
+
+hold on;
+plot(time(round(X(1,1))),frequency(round(X(2,1))), 'ro', 'MarkerSize', 5);
 drawnow
+
 
 %GET CFAR
 figure(2);
@@ -93,8 +102,9 @@ colorbar;
 xlabel('Bistatic delay [s]','Fontsize',10);
 ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
-title('CFAR')
-display('imagesc plot computation')
+title('CFAR');
+display('imagesc plot computation');
+
 
 %GET Centroids using Kmeans Algorithm
 [row,column] = find(RDM>0);
@@ -102,10 +112,16 @@ row= row.';
 column = column.';
 points = [column; row];
 
-[cluster,centr] = kMeans(2,points);
-
+[cluster,centr] = kMeans(1,points);
 hold on;
 plot(time((round(centr(1,:)))),frequency(round(centr(2,:))), 'r*', 'MarkerSize', 5);
+
+%update Kalman filter
+[X1,KF_object1] = update(KF_object,[centr(1,:);centr(2,:)]);
+hold on;
+plot(time((round(X1(1,1)))),frequency(round(X1(2,1))), 'ro', 'MarkerSize', 5);
+
+KF_object_final = KF_object1;
 
 drawnow
 toc

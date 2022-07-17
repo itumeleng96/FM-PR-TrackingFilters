@@ -21,7 +21,7 @@ classdef kalmanFilter
 
             %Initial State
             obj.X= [17;
-                    318;
+                    388;
                     0;
                     0];
 

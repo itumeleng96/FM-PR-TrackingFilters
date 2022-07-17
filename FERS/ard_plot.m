@@ -1,4 +1,4 @@
-function [y,KF_object_final,X_predict_arr_,Centroids_arr_] = ard_plot(s1,s2,fs,fd_max,td_max,KF_object,X_predict_arr,Centroids_arr,index)
+function [y,KF_object_final,X_predict_arr_,X_estimate_arr_,Centroids_arr_] = ard_plot(s1,s2,fs,fd_max,td_max,KF_object,X_predict_arr,X_estimate_arr,Centroids_arr,index)
 
 c = 3e8;                    %speed of the light
 N=length(s1);               %number of points
@@ -62,6 +62,7 @@ drawnow
 figure(2);
 [RDM] = ca_cfar(10*log10(y.'),0.5);
 imagesc(time,frequency,RDM);
+text(0,0,"Time:" + index+ "s");
 axis xy;
 colorbar;
 xlabel('Bistatic delay [s]','Fontsize',10);
@@ -87,30 +88,34 @@ ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
 title('Target Centroids and Kalman Estimation');
 display('Target Centroids and Kalman Estimation');
+
 %Plot kalman estimates
 hold on;
-plot(time((round(X_predict_arr(:,1)))),frequency(round(X_predict_arr(:,2))), 'b-o ', 'MarkerSize', 5);
+plot(time((round(X_predict_arr(:,1)))),frequency(round(X_predict_arr(:,2))), 'y-o ', 'MarkerSize', 8);
 
 [cluster,centr] = kMeans(1,points);
+
 %Save previous Centroids
-Centroids_arr(index,1) = centr(1,:) ;
-Centroids_arr(index,2) = centr(2,:) ;
+Centroids_arr(1,index) = centr(1,:) ;
+Centroids_arr(2,index) = centr(2,:) ;
 Centroids_arr_ = Centroids_arr;
 
 hold on;
-plot(time((round(Centroids_arr(:,1)))),frequency(round(Centroids_arr(:,2))), '^-', 'MarkerSize', 5);
-
-legend('Kalman prediction','Target Centroid');
+plot(time((round(Centroids_arr(1,:)))),frequency(round(Centroids_arr(2,:))),'^-','MarkerFaceColor','black', 'MarkerSize', 5);
+text(0,0,"Time:" + index+ "s");
 
 %update Kalman filter
 [X1,KF_object1] = update(KF_object,[centr(1,:);centr(2,:)]);
-%hold on;
-%plot(time((round(X1(1,1)))),frequency(round(X1(2,1))), 'ro', 'MarkerSize', 5);
-%legend('centroid','Kalman estimate');
+
+%Save previous Kalman estimates
+X_estimate_arr(1,index) = X1(1,1) ;
+X_estimate_arr(2,index) = X(2,1) ;
+X_estimate_arr_ = X_estimate_arr;
+
+hold on;
+plot(time((round(X_estimate_arr(1,:)))),frequency(round(X_estimate_arr(2,:))), 'r-o', 'MarkerSize', 5);
 KF_object_final = KF_object1;
-
-
-%Plot Centroids and Plot Kalman Filter and History
+legend('Kalman prediction','Target Centroid','Kalman Estimate');
 
 
 drawnow

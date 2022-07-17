@@ -1,4 +1,4 @@
-function [y,KF_object_final,X_predict_arr_,Centroids_arr_] = ard_plot(s1,s2,fs,fd_max,td_max,KF_object,X_predict_arr,Centroids_arr,index)
+function [y,KF_object_final,X_predict_arr_] = ard_plot(s1,s2,fs,fd_max,td_max,KF_object,X_predict_arr,index)
 
 c = 3e8;                    %speed of the light
 N=length(s1);               %number of points
@@ -58,7 +58,7 @@ display('imagesc plot computation')
 drawnow
 
 
-%GET CFAR and PLOT
+%GET CFAR
 figure(2);
 [RDM] = ca_cfar(10*log10(y.'),0.5);
 imagesc(time,frequency,RDM);
@@ -68,8 +68,8 @@ xlabel('Bistatic delay [s]','Fontsize',10);
 ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
 title('CFAR');
-display('CFAR Plot');
-drawnow
+display('imagesc plot computation');
+
 
 %GET Centroids using Kmeans Algorithm
 [row,column] = find(RDM>0);
@@ -77,38 +77,18 @@ row= row.';
 column = column.';
 points = [column; row];
 
-%PLOT Centroids and Kalman Estimate and Prediction
-figure(3);
-imagesc(time,frequency,RDM*0);
-axis xy;
-colorbar;
-xlabel('Bistatic delay [s]','Fontsize',10);
-ylabel('Doppler frequency [Hz]','Fontsize',10);
-grid on;
-title('Target Centroids and Kalman Estimation');
-display('Target Centroids and Kalman Estimation');
-%Plot kalman estimates
-hold on;
-plot(time((round(X_predict_arr(:,1)))),frequency(round(X_predict_arr(:,2))), 'b-o ', 'MarkerSize', 5);
-
+%PLOT Centroids and 
 [cluster,centr] = kMeans(1,points);
-%Save previous Centroids
-Centroids_arr(index,1) = centr(1,:) ;
-Centroids_arr(index,2) = centr(2,:) ;
-Centroids_arr_ = Centroids_arr;
-
 hold on;
-plot(time((round(Centroids_arr(:,1)))),frequency(round(Centroids_arr(:,2))), '^-', 'MarkerSize', 5);
-
-legend('Kalman prediction','Target Centroid');
+plot(time((round(centr(1,:)))),frequency(round(centr(2,:))), 'r*', 'MarkerSize', 5);
 
 %update Kalman filter
 [X1,KF_object1] = update(KF_object,[centr(1,:);centr(2,:)]);
-%hold on;
-%plot(time((round(X1(1,1)))),frequency(round(X1(2,1))), 'ro', 'MarkerSize', 5);
-%legend('centroid','Kalman estimate');
-KF_object_final = KF_object1;
+hold on;
+plot(time((round(X1(1,1)))),frequency(round(X1(2,1))), 'ro', 'MarkerSize', 5);
 
+legend('centroid','Kalman estimate');
+KF_object_final = KF_object1;
 
 %Plot Centroids and Plot Kalman Filter and History
 

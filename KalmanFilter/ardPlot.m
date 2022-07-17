@@ -1,7 +1,14 @@
-function [y,KF_object_final,X_predict_arr_,Centroids_arr_] = ard_plot(s1,s2,fs,fd_max,td_max,KF_object,X_predict_arr,Centroids_arr,index)
+function [y,KF_object_final] = ard_plot(s1,s2,fs,fd_max,td_max,KF_object)
 
-c = 3e8;                    %speed of the light
-N=length(s1);               %number of points
+%Generates an ARD plot for the reference and scattered signals using the
+%frequency domain implementation and Also CFAR, Centroids and Kalman Estimates and Predicted.
+
+% Limits and resolution for computation :
+% Doppler  fd : range  = [-fd_max : fd_max], resolution = fs/N
+% Tau : range  = [0 : td_max], resolution = 1/fs  
+  
+c = 3e8;                     %speed of the light
+N=length(s1);                %number of points
 Ndelay = floor(td_max*fs);   %number of points corresponding to td_max
 Ndop = ceil(N*fd_max/fs);    %number of points corresponding to fd_max
 
@@ -23,7 +30,6 @@ end
 display('Range-Doppler computation')
 toc
 
-
 y = abs(y1).^2;             %Power conversion
 y =y./max(max(abs(y)));     %Normalizing max to 1
 
@@ -33,17 +39,11 @@ range = time*c;
 frequency = -fd_max:1:fd_max;
 Dyn_dB = 40;                %Dynamic range (dB)
 max_dB = 10*log10(max(max(abs(y))));
-
 tic
 
 %Predict using Kalman Filter
 [X,KF_object_]= predict(KF_object);
 KF_object=KF_object_;
-%Save previous Kalman Estimates
-X_predict_arr(index,1) = X(1,1) ;
-X_predict_arr(index,2) = X(2,1) ;
-X_predict_arr_ = X_predict_arr;
-
 
 figure(1);
 %figure('Name','2D image');
@@ -55,10 +55,14 @@ ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
 title('Range-Doppler response')
 display('imagesc plot computation')
+
+hold on;
+plot(time(round(X(1,1))),frequency(round(X(2,1))), 'ro', 'MarkerSize', 5);
+legend('Kalman prediction');
 drawnow
 
 
-%GET CFAR and PLOT
+%GET CFAR and Plot
 figure(2);
 [RDM] = ca_cfar(10*log10(y.'),0.5);
 imagesc(time,frequency,RDM);
@@ -68,47 +72,26 @@ xlabel('Bistatic delay [s]','Fontsize',10);
 ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
 title('CFAR');
-display('CFAR Plot');
-drawnow
+display('imagesc plot computation');
 
-%GET Centroids using Kmeans Algorithm
+
+%GET Centroids using Kmeans Algorithm and Plot
 [row,column] = find(RDM>0);
 row= row.';
 column = column.';
 points = [column; row];
 
-%PLOT Centroids and Kalman Estimate and Prediction
-figure(3);
-imagesc(time,frequency,RDM*0);
-axis xy;
-colorbar;
-xlabel('Bistatic delay [s]','Fontsize',10);
-ylabel('Doppler frequency [Hz]','Fontsize',10);
-grid on;
-title('Target Centroids and Kalman Estimation');
-display('Target Centroids and Kalman Estimation');
-%Plot kalman estimates
-hold on;
-plot(time((round(X_predict_arr(:,1)))),frequency(round(X_predict_arr(:,2))), 'b-o ', 'MarkerSize', 5);
-
 [cluster,centr] = kMeans(1,points);
-%Save previous Centroids
-Centroids_arr(index,1) = centr(1,:) ;
-Centroids_arr(index,2) = centr(2,:) ;
-Centroids_arr_ = Centroids_arr;
-
 hold on;
-plot(time((round(Centroids_arr(:,1)))),frequency(round(Centroids_arr(:,2))), '^-', 'MarkerSize', 5);
-
-legend('Kalman prediction','Target Centroid');
+plot(time((round(centr(1,:)))),frequency(round(centr(2,:))), 'r*', 'MarkerSize', 5);
 
 %update Kalman filter
 [X1,KF_object1] = update(KF_object,[centr(1,:);centr(2,:)]);
-%hold on;
-%plot(time((round(X1(1,1)))),frequency(round(X1(2,1))), 'ro', 'MarkerSize', 5);
-%legend('centroid','Kalman estimate');
-KF_object_final = KF_object1;
+hold on;
+plot(time((round(X1(1,1)))),frequency(round(X1(2,1))), 'ro', 'MarkerSize', 5);
 
+legend('centroid','Kalman estimate');
+KF_object_final = KF_object1;
 
 %Plot Centroids and Plot Kalman Filter and History
 

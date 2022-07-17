@@ -20,8 +20,8 @@ classdef kalmanFilter
                      u_y];
 
             %Initial State
-            obj.X= [1;
-                    1;
+            obj.X= [17;
+                    318;
                     0;
                     0];
 

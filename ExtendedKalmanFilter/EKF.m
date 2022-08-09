@@ -5,7 +5,7 @@ classdef EKF
     end
     
     methods
-        function obj = EKF(dt,u_x,u_y,std_acc,x_std_meas,y_std_meas)
+        function obj = EKF(dt,lambda,u_x,u_y,std_acc,x_std_meas,y_std_meas)
         
             %Init funtion
             %Inputs: 
@@ -26,10 +26,10 @@ classdef EKF
                     0];
 
             %State transition matrix
-            obj.A = [1, 0,dt, 0;
-                 0, 1, 0,dt;
-                 0, 0, 1, 0;
-                 0, 0, 0, 1];
+            obj.A = [1, 0,-lambda*dt, 0;
+                     0, 0, -lambda, -lambda*dt;
+                     0, 0, 1, dt;
+                     0, 0, 0, 1];
 
             %The control input matrix B
             obj.B = [(dt^2)/2, 0;

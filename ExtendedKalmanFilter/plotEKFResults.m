@@ -20,22 +20,27 @@ s2 = I_Qno;
 
 initial=1;
 current=500000;  %based on samples in transmitted signal
-
+lambda = ?;
 %initialize tracking filter and run every second
-EKF_object = EKF(0.1, 1, 1, 1, 0.01,0.01);
+EKF_object = EKF(.1,lambda, 1, 1, 1, 0.01,0.01);
 X_predicted =[];  %Arrary to store kalman predicted values
 X_estimated =[];  %Arrary to store kalman estimated values
 Centroids = [];
+ard = [];
+cfar = [];
 
 for i = 1:10
     s1 = I_Qmov(initial:current);
     s2 = I_Qno(initial:current);
-    [y,EKF_object_,X_predicted_,X_estimated_,Centroids_] = ardPlotKalman(s1,s2,fs,dopp_bins,delay,EKF_object,X_predicted,X_estimated,Centroids,i);
+    [y,EKF_object_,X_predicted_,X_estimated_,Centroids_,ard_,cfar_] = ardPlotEKF(s1,s2,fs,dopp_bins,delay,EKF_object,X_predicted,X_estimated,Centroids,i,ard,cfar);
     
     X_predicted = X_predicted_;
     X_estimated = X_estimated_;
     EKF_object = EKF_object_;
     Centroids = Centroids_;
+    
+    ard = ard_;
+    cfar = cfar_;
     
     initial = current+1;
     current = current + fs;

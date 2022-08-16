@@ -26,11 +26,12 @@ KF_object = kalmanFilter(0.1, 1, 1, 1, 0.01,0.01);
 X_predicted =[];  %Arrary to store kalman predicted values
 X_estimated =[];  %Arrary to store kalman estimated values
 Centroids = [];
+ard = [];
 
 for i = 1:10
     s1 = I_Qmov(initial:current);
     s2 = I_Qno(initial:current);
-    [y,KF_object_,X_predicted_,X_estimated_,Centroids_] = ard_plot(s1,s2,fs,dopp_bins,delay,KF_object,X_predicted,X_estimated,Centroids,i);
+    [y,KF_object_,X_predicted_,X_estimated_,Centroids_] = ardPlotKalman(s1,s2,fs,dopp_bins,delay,KF_object,X_predicted,X_estimated,Centroids,i);
     
     X_predicted = X_predicted_;
     X_estimated = X_estimated_;

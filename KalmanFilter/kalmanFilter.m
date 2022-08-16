@@ -21,15 +21,15 @@ classdef kalmanFilter
 
             %Initial State
             obj.X= [17;
-                    388;
                     0;
+                    388;
                     0];
 
             %State transition matrix
-            obj.A = [1, 0,dt, 0;
-                 0, 1, 0,dt;
-                 0, 0, 1, 0;
-                 0, 0, 0, 1];
+            obj.A = [1,dt, 0, 0;
+                     0, 1, 0, 0;
+                     0, 0, 1, dt;
+                     0, 0, 0, 1];
 
             %The control input matrix B
             obj.B = [(dt^2)/2, 0;
@@ -39,7 +39,7 @@ classdef kalmanFilter
 
             %Measurement Mapping Matrix 
             obj.H = [1,0,0,0;
-                 0,1,0,0];
+                    0,0,1,0];
 
             %Process Noise Covariance
             obj.Q = [(dt^4)/4  , 0, (dt^3)/2, 0;

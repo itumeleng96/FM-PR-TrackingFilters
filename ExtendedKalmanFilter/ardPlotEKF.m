@@ -1,5 +1,10 @@
 function [y,EKF_object_final,X_predict_arr_,X_estimate_arr_,Centroids_arr_,ard_,cfar_] = ardPlotEKF(s1,s2,fs,fd_max,td_max,EKF_object,X_predict_arr,X_estimate_arr,Centroids_arr,index,ard,cfar)
 
+%Parameters to allow zoom in
+xlim_upper = 0.45e-4;
+ylim_upper = 180;
+ylim_lower = 110;
+
 c = 3e8;                    %speed of the light
 N=length(s1);               %number of points
 Ndelay = floor(td_max*fs);   %number of points corresponding to td_max
@@ -37,14 +42,13 @@ max_dB = 10*log10(max(max(abs(y))));
 tic
 
 %Predict using Kalman Filter
+%[Aj,Hj]= recompute(EKF_object);
 [X,EKF_object_]= predict(EKF_object);
 EKF_object=EKF_object_;
 %Save previous Kalman Estimates
-X_predict_arr(index,1) = X(1,1) ;
-X_predict_arr(index,2) = X(2,1) ;
+X_predict_arr(index,1) = X(1,1) ; %1st variable is range
+X_predict_arr(index,2) = X(3,1) ; %3rd variable is doppler shift 
 X_predict_arr_ = X_predict_arr;
-
-
 f=figure(1);
 %figure('Name','2D image');
 if index==1
@@ -68,7 +72,7 @@ display('imagesc plot computation')
 movegui(f,'northwest');
 xlim([0 1e-4]) 
 ylim([0 200])
-text(0,0,"Time:" + index+ "s");
+text(0,10,"Time:" + index+ "s");
 drawnow
 
 
@@ -86,7 +90,7 @@ end
 cfar_ = cfar;
 
 imagesc(time,frequency,cfar);
-text(0,0,"Time:" + index+ "s");
+text(0,10,"Time:" + index+ "s");
 axis xy;
 colorbar;
 xlabel('Bistatic delay [s]','Fontsize',10);
@@ -108,17 +112,18 @@ points = [column; row];
 %PLOT Centroids and Kalman Estimate and Prediction
 f3=figure(3);
 imagesc(time,frequency,RDM*0);
+text(0,ylim_lower+10,"Time:" + index+ "s");
 axis xy;
 colorbar;
 xlabel('Bistatic delay [s]','Fontsize',10);
 ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
-title('Target Centroids and Kalman Prediction');
-display('Target Centroids and Kalman Prediction');
+title('Target Centroids and EKF Prediction');
+display('Target Centroids and EKF Prediction');
 
 %Plot kalman estimates
 hold on;
-plot(time((round(X_predict_arr(:,1)))),frequency(round(X_predict_arr(:,2))), 'y-o ', 'MarkerSize', 8);
+plot(time((round(X_predict_arr(:,1)))),frequency(round(X_predict_arr(:,2))), 'y-o ', 'MarkerSize', 6);
 
 [cluster,centr] = kMeans(1,points);
 
@@ -129,42 +134,40 @@ Centroids_arr_ = Centroids_arr;
 
 hold on;
 plot(time((round(Centroids_arr(1,:)))),frequency(round(Centroids_arr(2,:))),'^-','MarkerFaceColor','black', 'MarkerSize', 5);
-text(0,0,"Time:" + index+ "s");
-legend('Kalman Precition','Target Centroids');
+legend('Kalman Prediction','Target Centroids');
 movegui(f3,'southwest');
-xlim([0 1e-4]) 
-ylim([0 200])
-text(0,0,"Time:" + index+ "s");
+xlim([0 xlim_upper]) 
+ylim([ylim_lower ylim_upper])
 drawnow
 %update Kalman filter
 
 f4=figure(4);
 [X1,EKF_object1] = update(EKF_object,[centr(1,:);centr(2,:)]);
 imagesc(time,frequency,RDM*0);
+text(0,ylim_lower+10,"Time:" + index+ "s");
 axis xy;
 colorbar;
 xlabel('Bistatic delay [s]','Fontsize',10);
 ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
-title('Target Centroids and Kalman Estimation');
-display('Target Centroids and Kalman Estimation');
+title('Target Centroids and EKF Estimation');
+display('Target Centroids and EKF Estimation');
 
 %Save previous Kalman estimates
 X_estimate_arr(1,index) = X1(1,1) ;
-X_estimate_arr(2,index) = X(2,1) ;
+X_estimate_arr(2,index) = X1(3,1) ;
 X_estimate_arr_ = X_estimate_arr;
 
 hold on;
 plot(time((round(Centroids_arr(1,:)))),frequency(round(Centroids_arr(2,:))),'^-','MarkerFaceColor','black', 'MarkerSize', 5);
-text(0,0,"Time:" + index+ "s");
 
 hold on;
 plot(time((round(X_estimate_arr(1,:)))),frequency(round(X_estimate_arr(2,:))), 'r-o', 'MarkerSize', 5);
 EKF_object_final = EKF_object1;
 legend('Target Centroid','Kalman Estimate');
 movegui(f4,'southeast');
-xlim([0 1e-4]) 
-ylim([0 200])
+xlim([0 xlim_upper]) 
+ylim([ylim_lower ylim_upper])
 drawnow
 toc
 

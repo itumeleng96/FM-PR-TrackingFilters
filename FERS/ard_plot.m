@@ -86,8 +86,8 @@ colorbar;
 xlabel('Bistatic delay [s]','Fontsize',10);
 ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
-title('Target Centroids and Kalman Estimation');
-display('Target Centroids and Kalman Estimation');
+title('Target Centroids and Kalman Prediction');
+display('Target Centroids and Kalman Prediction');
 
 %Plot kalman estimates
 hold on;
@@ -103,9 +103,20 @@ Centroids_arr_ = Centroids_arr;
 hold on;
 plot(time((round(Centroids_arr(1,:)))),frequency(round(Centroids_arr(2,:))),'^-','MarkerFaceColor','black', 'MarkerSize', 5);
 text(0,0,"Time:" + index+ "s");
+legend('Kalman Precition','Target Centroids');
 
 %update Kalman filter
+
+figure(4);
 [X1,KF_object1] = update(KF_object,[centr(1,:);centr(2,:)]);
+imagesc(time,frequency,RDM*0);
+axis xy;
+colorbar;
+xlabel('Bistatic delay [s]','Fontsize',10);
+ylabel('Doppler frequency [Hz]','Fontsize',10);
+grid on;
+title('Target Centroids and Kalman Estimation');
+display('Target Centroids and Kalman Estimation');
 
 %Save previous Kalman estimates
 X_estimate_arr(1,index) = X1(1,1) ;
@@ -113,9 +124,13 @@ X_estimate_arr(2,index) = X(2,1) ;
 X_estimate_arr_ = X_estimate_arr;
 
 hold on;
+plot(time((round(Centroids_arr(1,:)))),frequency(round(Centroids_arr(2,:))),'^-','MarkerFaceColor','black', 'MarkerSize', 5);
+text(0,0,"Time:" + index+ "s");
+
+hold on;
 plot(time((round(X_estimate_arr(1,:)))),frequency(round(X_estimate_arr(2,:))), 'r-o', 'MarkerSize', 5);
 KF_object_final = KF_object1;
-legend('Kalman prediction','Target Centroid','Kalman Estimate');
+legend('Target Centroid','Kalman Estimate');
 
 
 drawnow

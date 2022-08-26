@@ -4,7 +4,7 @@ function [I Q scale] = loadfersHDF5(name)
    count = round(size(hinfo.GroupHierarchy.Datasets,2)/2);
    numelements = hinfo.GroupHierarchy.Datasets(1).Dims;
    
-   I = zeros(numelements*count,1);1
+   I = zeros(numelements*count,1);
    Q = zeros(numelements*count,1);
    
    scale = hinfo.GroupHierarchy.Datasets(1).Attributes(3).Value;

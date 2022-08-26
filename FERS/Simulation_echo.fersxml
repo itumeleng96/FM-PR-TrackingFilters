@@ -66,7 +66,7 @@ t = 0s and at (19012m,3197m) and height 5000m at t = 1s-->
   </platform>
  
 
- <platform name="aeroplane">
+  <platform name="aeroplane">
     <motionpath interpolation="linear">
       <positionwaypoint>
         <x>2000</x>
@@ -76,6 +76,35 @@ t = 0s and at (19012m,3197m) and height 5000m at t = 1s-->
       </positionwaypoint>
       <positionwaypoint>
         <x>2000</x>
+        <y>1000</y>
+        <altitude>1600.0</altitude>
+        <time>10</time>
+      </positionwaypoint>   
+    </motionpath>    
+    <fixedrotation>
+      <startazimuth>0.0</startazimuth>
+      <startelevation>0.0</startelevation>
+      <azimuthrate>0</azimuthrate>
+      <elevationrate>0</elevationrate>
+    </fixedrotation>
+    <target name="wings">
+      <rcs type="isotropic">
+        <value>100</value>
+      </rcs>
+    </target>
+  </platform>
+
+
+  <platform name="airplane2">
+    <motionpath interpolation="linear">
+      <positionwaypoint>
+        <x>2500</x>
+        <y>2700</y>
+        <altitude>1600.0</altitude>
+        <time>0</time>
+      </positionwaypoint>
+      <positionwaypoint>
+        <x>1500</x>
         <y>1000</y>
         <altitude>1600.0</altitude>
         <time>10</time>

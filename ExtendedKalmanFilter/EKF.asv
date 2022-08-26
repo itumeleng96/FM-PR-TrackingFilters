@@ -20,7 +20,7 @@ classdef EKF
                      u_y];
 
             %Initial State
-            obj.X= X_initial;
+            obj.X= 
 
             %State transition matrix
             obj.A = [1,dt, 0, 0;

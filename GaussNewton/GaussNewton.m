@@ -1,107 +1,102 @@
 classdef GaussNewton
 
     properties
-        dt,U,X,A,B,H,Q,R,P;
+        fit_function,
+        max_iterations,
+        tol_difference,
+        tolerance,
+        initial_guess,
+        coefficients,
+        x,y;
     end
     
     methods
-        function obj = GaussNewton(dt,u_x,u_y,std_acc,x_std_meas,y_std_meas,X_initial)
-        
-            %Init funtion
-            %Inputs: 
-            % dt : smapling time
-            % u_x : acceleration in the x-direction
-            % u_y : acceleration in the y-direction
-            % x_std_meas : standard deviation of the measurement in the x-direction
-            % y_std_meas : standard deviation of the measurement in the y-direction
-            
-            %Control Input Variables
-            obj.U = [u_x;
-                     u_y];
-
-            %Initial State
-            obj.X= X_initial;
-
-            %State transition matrix
-            obj.A = [1,dt, 0, 0;
-                     0, 1, 0, 0;
-                     0, 0, 1, dt;
-                     0, 0, 0, 1];
-                 
-             
-
-            %The control input matrix B
-            obj.B = [(dt^2)/2, 0;
-                     0, (dt^2)/2;
-                     (dt^2)/2, 0;
-                     0, (dt^2)/2;];
-
-            %Measurement Mapping Matrix -must compute Jacobian
-            obj.H = [1,0,0,0;
-                     0,0,1,0];
-
-            %Process Noise Covariance
-            %obj.Q = [(dt^4)/4  , 0, (dt^3)/2, 0;
-            %         0, (dt^4)/4, 0, (dt^3)/2;
-            %         (dt^3)/2, 0, dt^2, 0;
-            %         0, (dt^3)/2, 0, dt^2] .*std_acc^2;
-            obj.Q = [1,0,0,0;
-                     0,1,0,0;
-                     0,0,1,0;
-                     0,0,0,1].*std_acc^2;
-            
-            %obj.Q = [(dt^4)/2, 0, dt^3, 0;
-            %         0, (dt^4)/2, 0, dt^3;
-            %        (dt^4)/2, 0, dt^3, 0;
-            %         0, (dt^4)/2, 0, dt^3] .*std_acc^2;
-
-            %Initial Measurement Noise Covariance
-            obj.R = [x_std_meas^2,0;
-                 0, y_std_meas^2];
-
-            %Initial covariance matrix -  Identity matrix same shape as A
-            obj.P = eye(size(obj.A,2));
+        function obj = GaussNewton(fit_function,max_iteration,tol_difference,tolerance,initial_guess)
+            obj.fit_function = fit_function;
+            obj.max_iterations = max_iteration;
+            obj.tol_difference = tol_difference;
+            obj.tolerance = tolerance;
+            obj.initial_guess = initial_guess;
         end
         
-        function [X_pred,KF_obj1] = predict(obj)
-            %Calculate the predicted time state
-
-            %Update time state
-            %x_k = Ax_(k-1) + Bu_(k-1) 
-            obj.X= obj.A * obj.X + obj.B * obj.U;
-            %calculate error covariance
-            %P= A*P*A' + Q 
-            obj.P = (obj.A * obj.P) * obj.A.' + obj.Q;
+        function [coefficients]= fit(obj,x,y,initial_guess)
             
-            X_pred = obj.X;
-            KF_obj1  = obj;
+            % param x: independant variable (Bistatic range)
+            % param y: Response vector      (Bistatic Doppler shift)
+            
+            obj.x = x;
+            obj.y = y;
+
+            obj.coefficients = initial_guess;
+            
+            rmse_prev = inf;
+           
+            for i=0:obj.max_iterations
+                residual = obj.getResidual();
+                jacobian = obj.calculateJacobian(obj,obj.coefficients,10^(-6));
+                obj.coefficients = obj.coefficients - obj.calculateInverse(jacobian);
+                rmse = sqrt(sum(residual^2));
+                if(~isnan(obj.tol_difference)) 
+                    diff = abs(rmse_prev-rmse);
+                    if (diff < obj.tol_difference)
+                        coefficients= obj.coefficients;
+                        return
+                    end
+
+                end
+                if rmse < obj.tolerance
+                    coefficients =  obj.coefficients;
+                    return
+                end
+
+                rmse_prev = rmse;
+            end
+
+            coefficients = obj.coefficients;
+
         end
-        
-        function [X_est,KF_obj2] = update(obj,z)
-            %Update stage, compute the Kalman gain
 
-            %S = H*P*H'+R
-            S = obj.H * obj.P * obj.H.' + obj.R ;
-
-            %Calculate the Kalman Gain 
-            %K = P * H'* inv(H*P*H'+R)
-
-            K = (obj.P * obj.H.') * S^(-1);
+        function [y]= predict(obj,x)
             
-            obj.X = round(obj.X + K * (z-obj.H * obj.X));
-                       
-            I = eye(size(obj.H,2));
-
-            %Update Error Covariance matrix
-            obj.P = (I - (K * obj.H)) * obj.P;
-            
-            X_est = obj.X;
-            KF_obj2 = obj;
+            %Predict Bistatic Doppler shift(y) given Bistatic range(x)
+            y=obj.fit_function(x,obj.coefficients);
         end
-        
-        function [Aj,Hj]  = recompute(obj)
-            Aj = jacobian(obj.A,obj.X);
-            Hj = jacobian(obj.H,obj.X);
+
+        function [residual] = getResidual(obj)
+            residual = obj.calculateResidual(obj,obj.coefficients);
+  
+        end
+
+        function [y_estimate] = getEstimate(obj)
+            y_estimate = obj.fit_function(obj.x,obj.coefficients);
+        end
+
+        function [residual] = calculateResidual(obj,coefficients)
+            y_fit = obj.fit_function(obj.x,coefficients);
+            residual = y_fit- obj.y;
+        end
+
+        function [jacobian] =calculateJacobian(obj,x0,step)
+            %Calculate Jacobian Numerically 
+            %J_ij = d(r_i)/d(x_j)
+            
+            y0 = obj.calculateResidual(obj,obj.x0);
+            jacobian =[];
+    
+            for i=len(x0)
+                x  = copy(x0);
+                x(i) = x(i) +step;
+
+                y = obj.calculateResidual(obj);
+                derivative = (y-y0)/step;
+                jacobian(end+1)=derivative;
+            end
+
+            jacobian = jacobian.';
+        end
+
+        function[inverse] = calculateInverse(x)
+            inverse = pinv(x.');
         end
 
      end

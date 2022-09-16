@@ -1,6 +1,6 @@
 function [track_] = trackAssign(track,centroids)
 
-    N = size(centroids,1);
+    N = size(centroids,2);
     %Check if Track is empty
     if isempty(track)
         track_=[];

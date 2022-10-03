@@ -48,7 +48,7 @@ tic
 %Based on the Number of Targets get the predictions
 for j=1:NumberOfTargets
     if index ==1
-        EKF_object = EKF(dt, 0.1, 0.1, 1, 0.01,0.01,initialValues(:,j),[-0.1546    7.5824  286.9892]);
+        EKF_object = EKF(dt, 0.1, 0.1, 1, 0.01,0.01,initialValues(:,j));
         [X,EKF_object_]= predict(EKF_object);
         EKF_objects_(j)=EKF_object_;
         X_predicted(1,index,j) =X(1,1);
@@ -63,6 +63,7 @@ end
 X_predicted_=X_predicted;
 
 f=figure(1);
+f.Position = [4000 10 1000 800]; 
 %figure('Name','2D image');
 
 if index==1
@@ -92,6 +93,8 @@ drawnow
 
 %GET CFAR and PLOT
 f2=figure(2);
+f2.Position = [4000 10 1000 800]; 
+
 [RDM] = ca_cfar(10*log10(y.'),0.5);
 if index==1
     cfar =RDM ;
@@ -126,6 +129,7 @@ points = [column; row];
 %PLOT Centroids and Kalman Estimate and Prediction
 
 f3=figure(3);
+f3.Position = [4000 10 1000 800]; 
 imagesc(time,frequency,RDM*0);
 text(0,ylim_lower+10,"Time:" + index+ "s");
 axis xy;
@@ -143,12 +147,12 @@ display('Target Centroids and EKF Prediction');
 
 for k=1:NumberOfTargets
     hold on;    
-    plot(time((round(tracks_(1,:,k)))),frequency(round(tracks_(2,:,k))),'^-','MarkerFaceColor',	[0 0 0], 'MarkerSize', 5);
+    plot(time((round(tracks_(1,:,k)))),frequency(round(tracks_(2,:,k))),'^-','MarkerFaceColor',	[0 0 0], 'MarkerSize', 7);
     %Plot kalman estimates
     hold on;
-    plot(time((round(X_predicted_(1,:,k)))),frequency(round(X_predicted_(2,:,k))), 'o- ','MarkerFaceColor',[1 0 0], 'MarkerSize', 3); 
+    plot(time((round(X_predicted_(1,:,k)))),frequency(round(X_predicted_(2,:,k))), 'o- ','MarkerFaceColor',[1 0 0], 'MarkerSize', 8); 
 end
-legend('Kalman Prediction','Target Centroids');
+legend('Target Centroids','Kalman Prediction');
 movegui(f3,'southwest');
 xlim([0 xlim_upper]) 
 ylim([ylim_lower ylim_upper])
@@ -156,6 +160,7 @@ drawnow
 %update Kalman filter
 
 f4=figure(4);
+f4.Position = [4000 10 1000 800]; 
 
 imagesc(time,frequency,RDM*0);
 text(0,ylim_lower+10,"Time:" + index+ "s");
@@ -168,7 +173,7 @@ title('Target Centroids and EKF Estimation');
 display('Target Centroids and EKF Estimation');
 
 for n=1:NumberOfTargets
-    [X1,EKF_objects_(n)] = update(EKF_objects_(n),[tracks_(1,index,n);tracks_(2,index,n)],tracks_(1,:,n),tracks_(2,:,n),index); 
+    [X1,EKF_objects_(n)] = update(EKF_objects_(n),[tracks_(1,index,n);tracks_(2,index,n)]); 
     %Save previous Kalman estimates
     X_estimated(1,index,n) = X1(1,1);
     X_estimated(2,index,n) = X1(3,1);    
@@ -185,7 +190,6 @@ for l=1:NumberOfTargets
 end
 
 legend('Target Centroid','Kalman Estimate');
-movegui(f4,'southeast');
 xlim([0 xlim_upper]) 
 ylim([ylim_lower ylim_upper])
 drawnow

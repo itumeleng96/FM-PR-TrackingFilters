@@ -16,7 +16,7 @@ t = 0s and at (19012m,3197m) and height 5000m at t = 1s-->
   </pulse>
 
   <timing name="clock">
-  <frequency>89e6</frequency>
+    <frequency>89e6</frequency>
   </timing>
 
   <antenna name="isotropic" pattern="isotropic">

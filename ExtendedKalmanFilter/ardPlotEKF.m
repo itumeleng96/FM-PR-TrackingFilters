@@ -4,7 +4,7 @@ function [y,ard_,cfar_,tracks_,EKF_objects_,X_predicted_,X_estimated_] = ardPlot
 %Parameters to allow zoom in
 xlim_upper = 0.45e-4;
 ylim_upper = 200;
-ylim_lower = 80;
+ylim_lower = 0;
 
 %Parameters for filter
 NumberOfTargets=1;

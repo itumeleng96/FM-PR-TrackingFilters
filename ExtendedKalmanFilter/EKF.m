@@ -30,27 +30,22 @@ classdef EKF
                      0, 0, 0, 1];
                  
             obj.dt = dt;
-            %The control input matrix B
-            obj.B = [(dt^2)/2, 0;
-                     0, (dt^2)/2;
-                     (dt^2)/2, 0;
-                     0, (dt^2)/2;];
 
-            %Measurement Mapping Matrix -must compute Jacobian
+            %Measurement Mapping Matrix 
             obj.H = [1,0,0,0;
                      0,0,1,0];
 
             %Process Noise Covariance
-            %obj.Q = [(dt^4)/4  , 0, (dt^3)/2, 0;
-            %         0, (dt^4)/4, 0, (dt^3)/2;
-            %         (dt^3)/2, 0, dt^2, 0;
-            %         0, (dt^3)/2, 0, dt^2] .*std_acc^2;
             obj.Q = [1,0,0,0;
                      0,1,0,0;
                      0,0,1,0;
                      0,0,0,1].*std_acc^2;
             
-
+            %The control input matrix B
+            obj.B = [(dt^2)/2, 0;
+                     0, (dt^2)/2;
+                     (dt^2)/2, 0;
+                     0, (dt^2)/2;];
             %Initial Measurement Noise Covariance
             obj.R = [x_std_meas^2,0;
                      0,y_std_meas^2];
@@ -64,9 +59,7 @@ classdef EKF
             %Update time state
             %x_k = Ax_(k-1) + Bu_(k-1) 
             obj.X= obj.A * obj.X + obj.B * obj.U;
-            
-            %For the predict function a non-linear quadratic function is
-            
+                        
             %calculate error covariance
             %P= A*P*A' + Q 
             obj.P = eye(size(obj.A,2));
@@ -79,7 +72,7 @@ classdef EKF
         function [X_est,KF_obj2] = update(obj,z)
             %Update stage, compute the Kalman gain
 
-            %S = H*P*H'+R
+            %S = H*P*H'+R - Total Error 
             S = obj.H * obj.P * obj.H.' + obj.R ;
 
             %Calculate the Kalman Gain 

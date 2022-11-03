@@ -15,42 +15,61 @@ classdef EKF
             % x_std_meas : standard deviation of the measurement in the x-direction
             % y_std_meas : standard deviation of the measurement in the y-direction
             
+            
             %Control Input Variables
             obj.U = [u_x;
                      u_y];
     
             %Initial State
             obj.X= X_initial;
+         
 
             %State transition matrix
-
-            obj.A = [1,dt, 0, 0;
-                     0, 1, 0, 0;
-                     0, 0, 1, dt;
-                     0, 0, 0, 1];
-                 
             obj.dt = dt;
 
+
+            obj.A = [1,dt,(1/2)*dt^2, 0 ,0 ,0;
+                     0, 1, dt,0,0,0;
+                     0, 0, 1, 0,0,0;
+                     0, 0  0, 1,dt,(1/2)*dt^2;
+                     0, 0, 0, 0,1,dt ;
+                     0, 0, 0, 0,0,1;];
+
+
+            %The control input matrix B
+            obj.B = [0,0;
+                     0,0;
+                     0,0;
+                     0,0;
+                     0,0;
+                     0,0;];
+
             %Measurement Mapping Matrix 
-            obj.H = [1,0,0,0;
-                     0,0,1,0];
+            obj.H = [1,0,0,0,0,0;
+                     0,0,0,1,0,0];
 
             %Process Noise Covariance
-            obj.Q = [1,0,0,0;
-                     0,1,0,0;
-                     0,0,1,0;
-                     0,0,0,1].*std_acc^2;
-            
-            %The control input matrix B
-            obj.B = [(dt^2)/2, 0;
-                     0, (dt^2)/2;
-                     (dt^2)/2, 0;
-                     0, (dt^2)/2;];
+            obj.Q = [0, 0, 0, 0,0,0;
+                     0, 0, 0, 0,0,0;
+                     0, 0, 0, 0,0,0;
+                     0, 0, 0, 0,0,0;
+                     0, 0, 0, 0,0,0;
+                     0, 0, 0, 0,0,0];
+
+            %{
+            obj.Q = [(dt^4)/4  , 0, (dt^3)/2, 0;
+                 0, (dt^4)/4, 0, (dt^3)/2;
+                 (dt^3)/2, 0, dt^2, 0;
+                 0, (dt^3)/2, 0, dt^2] .*std_acc^2;
+
+            %}
             %Initial Measurement Noise Covariance
             obj.R = [x_std_meas^2,0;
                      0,y_std_meas^2];
 
             %Initial covariance matrix -  Identity matrix same shape as A
+            obj.P = eye(size(obj.A,2));
+
         end
         
         function [X_pred,KF_obj1] = predict(obj)
@@ -63,6 +82,7 @@ classdef EKF
             %calculate error covariance
             %P= A*P*A' + Q 
             obj.P = eye(size(obj.A,2));
+            
             obj.P = (obj.A * obj.P) * obj.A.' + obj.Q;
             
             X_pred = obj.X;
@@ -72,8 +92,8 @@ classdef EKF
         function [X_est,KF_obj2] = update(obj,z)
             %Update stage, compute the Kalman gain
 
-            %S = H*P*H'+R - Total Error 
-            S = obj.H * obj.P * obj.H.' + obj.R ;
+            %S = H*P*H'+ R - Total Error 
+            S = obj.H * obj.P * obj.H.' + obj.R;
 
             %Calculate the Kalman Gain 
             %K = P * H'* inv(H*P*H'+R)
@@ -81,7 +101,9 @@ classdef EKF
             K = (obj.P * obj.H.') * S^(-1);
             
             obj.X = round(obj.X + K * (z-obj.H * obj.X));
-                       
+            
+            disp(obj.X);
+            
             I = eye(size(obj.H,2));
 
             %Update Error Covariance matrix

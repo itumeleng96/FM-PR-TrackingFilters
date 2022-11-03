@@ -8,7 +8,7 @@ ylim_lower = 0;
 
 %Parameters for filter
 NumberOfTargets=1;
-initialValues = [[16;0;370;0],[14;0;310;0]];
+initialValues = [[17;0;0;340;0;0],[14;0;0;310;0;0]];
 
 c = 3e8;                     %speed of the light
 N=length(s1);                %number of points
@@ -52,12 +52,12 @@ for j=1:NumberOfTargets
         [X,EKF_object_]= predict(EKF_object);
         EKF_objects_(j)=EKF_object_;
         X_predicted(1,index,j) =X(1,1);
-        X_predicted(2,index,j) =X(3,1);
+        X_predicted(2,index,j) =X(4,1);
     else
         [X,EKF_object_]= predict(EKF_objects(j));
         EKF_objects_(j)=EKF_object_;
         X_predicted(1,index,j) =X(1,1);
-        X_predicted(2,index,j) =X(3,1);
+        X_predicted(2,index,j) =X(4,1);
     end
 end
 X_predicted_=X_predicted;
@@ -176,7 +176,7 @@ for n=1:NumberOfTargets
     [X1,EKF_objects_(n)] = update(EKF_objects_(n),[tracks_(1,index,n);tracks_(2,index,n)]); 
     %Save previous Kalman estimates
     X_estimated(1,index,n) = X1(1,1);
-    X_estimated(2,index,n) = X1(3,1);    
+    X_estimated(2,index,n) = X1(4,1);    
 end
 
 X_estimated_ = X_estimated; 

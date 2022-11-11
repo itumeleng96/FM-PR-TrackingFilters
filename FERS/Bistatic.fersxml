@@ -6,7 +6,7 @@ at (19018m,3204m) and height 5000m at t = 0s and at (19012m,3197m) and height 50
 <parameters>
     <starttime>0</starttime>
     <endtime>1</endtime>
-    <rate>500000</rate>
+    <rate>200000</rate>
     <adc_bits>16</adc_bits>
     <export binary="true" csvbinary="false" xml="false"/>
 </parameters>
@@ -66,10 +66,10 @@ at (19018m,3204m) and height 5000m at t = 0s and at (19012m,3197m) and height 50
     </receiver>
 </platform>
 
-<platform name="UCTRecv1">
+<platform name="UCTRecv2">
     <motionpath>
         <positionwaypoint>
-        <x>0.0</x>
+        <x>1.0</x>
         <y>0.0</y>
         <altitude>116.0</altitude>
         <time>0</time>
@@ -93,14 +93,14 @@ at (19018m,3204m) and height 5000m at t = 0s and at (19012m,3197m) and height 50
     <motionpath interpolation="cubic">
       <positionwaypoint>
         <x>2000</x>
-        <y>8900</y>
+        <y>4300</y>
         <altitude>1600.0</altitude>
         <time>0</time>
       </positionwaypoint>
       
       <positionwaypoint>
         <x>2000</x>
-        <y>9000</y>
+        <y>000</y>
         <altitude>1600.0</altitude>
         <time>1</time>
       </positionwaypoint>

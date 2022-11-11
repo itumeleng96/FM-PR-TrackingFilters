@@ -101,9 +101,7 @@ classdef EKF
             K = (obj.P * obj.H.') * S^(-1);
             
             obj.X = round(obj.X + K * (z-obj.H * obj.X));
-            
-            disp(obj.X);
-            
+                        
             I = eye(size(obj.H,2));
 
             %Update Error Covariance matrix

@@ -2,13 +2,13 @@
 function [y,ard_,cfar_,tracks_,EKF_objects_,X_predicted_,X_estimated_] = ardPlotEKF(s1,s2,fs,fd_max,td_max,index,ard,cfar,tracks,EKF_objects,X_predicted,X_estimated)
 
 %Parameters to allow zoom in
-xlim_upper = 0.45e-4;
+xlim_upper = 2e-4;
 ylim_upper = 200;
-ylim_lower = 0;
+ylim_lower = -200;
 
 %Parameters for filter
 NumberOfTargets=1;
-initialValues = [[17;0;0;340;0;0],[14;0;0;310;0;0]];
+initialValues = [[17;0;0;330;0;0],[14;0;0;310;0;0]];
 
 c = 3e8;                     %speed of the light
 N=length(s1);                %number of points
@@ -85,8 +85,8 @@ grid on;
 title('Range-Doppler response')
 display('imagesc plot computation')
 movegui(f,'northwest');
-xlim([0 1e-4]) 
-ylim([0 200])
+xlim([0 xlim_upper]) 
+ylim([ylim_lower ylim_upper])
 text(0,10,"Time:" + index+ "s");
 drawnow
 
@@ -116,8 +116,8 @@ grid on;
 title('CFAR');
 display('CFAR Plot');
 movegui(f2,'northeast');
-xlim([0 1e-4]) 
-ylim([0 200])
+xlim([0 xlim_upper]) 
+ylim([ylim_lower ylim_upper])
 drawnow
 
 %GET Centroids using Kmeans Algorithm
@@ -149,8 +149,8 @@ for k=1:NumberOfTargets
     hold on;    
     plot(time((round(tracks_(1,:,k)))),frequency(round(tracks_(2,:,k))),'^-','MarkerFaceColor',	[0 0 0], 'MarkerSize', 7);
     %Plot kalman estimates
-    hold on;
-    plot(time((round(X_predicted_(1,:,k)))),frequency(round(X_predicted_(2,:,k))), 'o- ','MarkerFaceColor',[1 0 0], 'MarkerSize', 8); 
+    %hold on;
+    %plot(time((round(X_predicted_(1,:,k)))),frequency(round(X_predicted_(2,:,k))), 'o- ','MarkerFaceColor',[1 0 0], 'MarkerSize', 8); 
 end
 legend('Target Centroids','Kalman Prediction');
 movegui(f3,'southwest');

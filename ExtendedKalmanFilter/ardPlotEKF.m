@@ -8,7 +8,7 @@ ylim_lower = -200;
 
 %Parameters for filter
 NumberOfTargets=1;
-initialValues = [[17;0;0;330;0;0],[14;0;0;310;0;0]];
+initialValues = [[17;0;0;380;0;0],[14;0;0;310;0;0]];
 
 c = 3e8;                     %speed of the light
 N=length(s1);                %number of points
@@ -149,8 +149,8 @@ for k=1:NumberOfTargets
     hold on;    
     plot(time((round(tracks_(1,:,k)))),frequency(round(tracks_(2,:,k))),'^-','MarkerFaceColor',	[0 0 0], 'MarkerSize', 7);
     %Plot kalman estimates
-    %hold on;
-    %plot(time((round(X_predicted_(1,:,k)))),frequency(round(X_predicted_(2,:,k))), 'o- ','MarkerFaceColor',[1 0 0], 'MarkerSize', 8); 
+    hold on;
+    plot(time((round(X_predicted_(1,:,k)))),frequency(round(X_predicted_(2,:,k))), 'o- ','MarkerFaceColor',[1 0 0], 'MarkerSize', 8); 
 end
 legend('Target Centroids','Kalman Prediction');
 movegui(f3,'southwest');

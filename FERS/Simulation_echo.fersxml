@@ -5,7 +5,7 @@ t = 0s and at (19012m,3197m) and height 5000m at t = 1s-->
 <simulation name="sim1">
   <parameters>
     <starttime>0</starttime>
-    <endtime>20</endtime>
+    <endtime>60</endtime>
     <rate>200000</rate>
     <export binary="true" csvbinary="false" xml="false"/>
   </parameters>
@@ -38,7 +38,7 @@ t = 0s and at (19012m,3197m) and height 5000m at t = 1s-->
       <elevationrate>0</elevationrate>
     </fixedrotation>
     <transmitter name="Const" type="pulsed" antenna="isotropic" pulse="pulse1" timing="clock">      
-      <prf>0.05</prf> <!-- make this 0.1 for a 10s simulation-->
+      <prf>0.016</prf> <!-- make this 0.1 for a 10s simulation-->
     </transmitter>
   </platform>
 
@@ -59,28 +59,28 @@ t = 0s and at (19012m,3197m) and height 5000m at t = 1s-->
     </fixedrotation>
     <receiver name="echo" type="pulsed" antenna="isotropic" pulse="pulse1" timing="clock">      
       <window_skip>0</window_skip>
-      <window_length>20</window_length> <!-- make this 10 for a 10s simulation--> 
-      <prf>0.05</prf> <!-- make this 0.1 for a 10s simulation-->
+      <window_length>60</window_length> <!-- make this 10 for a 10s simulation--> 
+      <prf>0.016</prf> <!-- make this 0.1 for a 10s simulation-->
       <noise_temp>100</noise_temp>
     </receiver>
   </platform>
  
 
  <platform name="aeroplane">
-    <motionpath interpolation="cubic">
+    <motionpath interpolation="linear">
     
       <positionwaypoint>
-	    <x>4000</x>
-	    <y>4300</y>
-	    <altitude>1600.0</altitude>
+	    <x>8018</x>
+	    <y>8300</y>
+	    <altitude>3600</altitude>
 	    <time>0</time>
       </positionwaypoint>
       
       <positionwaypoint>
-	    <x>2000</x>
-	    <y>2000</y>
-	    <altitude>2600.0</altitude>
-	    <time>20</time>
+	    <x>-15000</x>
+	    <y>-1000</y>
+	    <altitude>15600.0</altitude>
+	    <time>60</time>
       </positionwaypoint>
       
     </motionpath>    
@@ -92,7 +92,7 @@ t = 0s and at (19012m,3197m) and height 5000m at t = 1s-->
     </fixedrotation>
     <target name="wings">
       <rcs type="isotropic">
-        <value>100</value>
+        <value>150</value>
       </rcs>
     </target>
   </platform>

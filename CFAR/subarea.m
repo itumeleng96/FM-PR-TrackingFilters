@@ -6,11 +6,11 @@ function [value, elem_c] = subarea(data, pos_x, pos_y, distance)
     min_y = max([pos_y - distance, 1]); 
     max_y = min([size(data,1), pos_y + distance]);
    
-    %min_x = max([pos_x - distance, 1]);
-    %max_x = min([size(data,2), pos_x + distance]);
+    min_x = max([pos_x - distance, 1]);
+    max_x = min([size(data,2), pos_x + distance]);
 
-    %submatrix = data(min_y:max_y, min_x:max_x);
-    submatrix = data(min_y:max_y,pos_x);
+    submatrix = data(min_y:max_y, min_x:max_x);
+    %submatrix = data(min_y:max_y,pos_x);
     [r , c] = size(submatrix);
     
     newsubmatrix = db2pow(submatrix); % convert to linear space

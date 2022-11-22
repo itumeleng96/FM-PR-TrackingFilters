@@ -1,8 +1,8 @@
 clc; clear all; close all;
 addpath('../FERS/','../CFAR/','../KmeansCentroids');
 
-system("fers ../FERS/Simulation_direct.fersxml");
-system("fers ../FERS/Simulation_echo.fersxml");
+system("fers ../FERS/Simulation_60_direct.fersxml");
+system("fers ../FERS/Simulation_60_echo_2.fersxml");
 
 
 % h5Import from FERS simulation
@@ -37,14 +37,29 @@ Centroids = [];
 ard = [];
 cfar = [];
 tracks =[];
+
 figure('Name','2D image');
+%ARD
+f=figure(1);
+f.Position = [4000 10 1000 800]; 
+
+%CFAR
+f2=figure(2);
+f2.Position = [4000 10 1000 800]; 
+
+%Prediction
+f3=figure(3);
+f3.Position = [4000 10 1000 800];
+
+%Estimation
+f4=figure(4);
+f4.Position = [4000 10 1000 800]; 
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current);
     s2 = I_Qno(initial:current);
-    %[y,EKF_object_,X_predicted_,X_estimated_,Centroids_,ard_,cfar_] = ardPlotEKF(s1,s2,fs,dopp_bins,delay,EKF_object,X_predicted,X_estimated,Centroids,i,ard,cfar);
-    %ard_plot(s1,s2,fs,dopp_bins,delay);
-    [y,ard_,cfar_,tracks_,EKF_objects_,X_predicted_,X_estimated_] = ardPlotEKF(s1,s2,fs,dopp_bins,delay,i,ard,cfar,tracks,EKF_objects,X_predicted,X_estimated);
+
+    [y,ard_,cfar_,tracks_,EKF_objects_,X_predicted_,X_estimated_] = ardPlotEKF(s1,s2,fs,dopp_bins,delay,i,ard,cfar,tracks,EKF_objects,X_predicted,X_estimated,f,f2,f3,f4);
      
     X_predicted = X_predicted_;
     X_estimated = X_estimated_;

@@ -1,5 +1,5 @@
 %function [y,EKF_object_final,X_predict_arr_,X_estimate_arr_,Centroids_arr_,ard_,cfar_] = ardPlotEKF(s1,s2,fs,fd_max,td_max,EKF_object,X_predict_arr,X_estimate_arr,Centroids_arr,index,ard,cfar)
-function [y,ard_,cfar_,tracks_,EKF_objects_,X_predicted_,X_estimated_] = ardPlotEKF(s1,s2,fs,fd_max,td_max,index,ard,cfar,tracks,EKF_objects,X_predicted,X_estimated)
+function [y,ard_,cfar_,tracks_,EKF_objects_,X_predicted_,X_estimated_] = ardPlotEKF(s1,s2,fs,fd_max,td_max,index,ard,cfar,tracks,EKF_objects,X_predicted,X_estimated,f,f2,f3,f4)
 
 %Parameters to allow zoom in
 xlim_upper = 2e-4;
@@ -7,8 +7,8 @@ ylim_upper = 200;
 ylim_lower = -200;
 
 %Parameters for filter
-NumberOfTargets=1;
-initialValues = [[17;0;0;380;0;0],[14;0;0;310;0;0]];
+NumberOfTargets=2;
+initialValues = [[17;0;0;385;0;0],[7;0;0;181;0;0]];
 
 c = 3e8;                     %speed of the light
 N=length(s1);                %number of points
@@ -62,8 +62,7 @@ for j=1:NumberOfTargets
 end
 X_predicted_=X_predicted;
 
-f=figure(1);
-f.Position = [4000 10 1000 800]; 
+
 %figure('Name','2D image');
 
 if index==1
@@ -75,7 +74,7 @@ if index>1
 end
 
 ard_ = ard;
-
+figure(f);
 imagesc(time,frequency,10*log10(ard.'),[max_dB-100 max_dB]);
 axis xy;
 colorbar;
@@ -92,10 +91,8 @@ drawnow
 
 
 %GET CFAR and PLOT
-f2=figure(2);
-f2.Position = [4000 10 1000 800]; 
 
-[RDM] = ca_cfar(10*log10(y.'),0.5);
+[RDM] = ca_cfar(10*log10(y.'),0.35);
 if index==1
     cfar =RDM ;
 end
@@ -105,7 +102,7 @@ if index>1
 end
 
 cfar_ = cfar;
-
+figure(f2);
 imagesc(time,frequency,cfar);
 text(0,10,"Time:" + index+ "s");
 axis xy;
@@ -128,8 +125,7 @@ points = [column; row];
 
 %PLOT Centroids and Kalman Estimate and Prediction
 
-f3=figure(3);
-f3.Position = [4000 10 1000 800]; 
+figure(f3);
 imagesc(time,frequency,RDM*0);
 text(0,ylim_lower+10,"Time:" + index+ "s");
 axis xy;
@@ -139,19 +135,24 @@ ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
 title('Target Centroids and EKF Prediction');
 display('Target Centroids and EKF Prediction');
-
 [cluster,centr] = kMeans(NumberOfTargets,points);
 
 %Assign centroid to track
 [tracks_]=trackAssign(tracks,centr);
 
+%{
 for k=1:NumberOfTargets
     hold on;    
+    disp(time(round(tracks_(1,:,k))));
+    disp(frequency(round(X_predicted_(2,:,k))));
     plot(time((round(tracks_(1,:,k)))),frequency(round(tracks_(2,:,k))),'^-','MarkerFaceColor',	[0 0 0], 'MarkerSize', 7);
     %Plot kalman estimates
     hold on;
+    %disp(time(round(X_predicted_(1,:,k))));
+    %disp(frequency(round(X_predicted_(2,:,k))));
     plot(time((round(X_predicted_(1,:,k)))),frequency(round(X_predicted_(2,:,k))), 'o- ','MarkerFaceColor',[1 0 0], 'MarkerSize', 8); 
 end
+%}
 legend('Target Centroids','Kalman Prediction');
 movegui(f3,'southwest');
 xlim([0 xlim_upper]) 
@@ -159,9 +160,7 @@ ylim([ylim_lower ylim_upper])
 drawnow
 %update Kalman filter
 
-f4=figure(4);
-f4.Position = [4000 10 1000 800]; 
-
+figure(f4);
 imagesc(time,frequency,RDM*0);
 text(0,ylim_lower+10,"Time:" + index+ "s");
 axis xy;
@@ -192,5 +191,6 @@ end
 legend('Target Centroid','Kalman Estimate');
 xlim([0 xlim_upper]) 
 ylim([ylim_lower ylim_upper])
+movegui(f3,'southwest');
 drawnow
 toc

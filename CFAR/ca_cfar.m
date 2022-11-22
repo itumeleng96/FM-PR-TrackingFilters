@@ -10,7 +10,7 @@ function RDM = ca_cfar(RDM,rate_fa)
 %the vicinity of the CUT
 
 
-trc_num = 8;
+trc_num = 2;
 guac_num = 4;
 
 [rows, cols] = size(RDM);

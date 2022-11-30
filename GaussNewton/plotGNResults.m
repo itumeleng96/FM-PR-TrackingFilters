@@ -26,9 +26,8 @@ current=500000;  %based on samples in transmitted signal
 simulation_time = size(I_Qmov,1)/fs ; %Simulation time: number of data points/sampling frequency
 
 %initialize tracking filter and run every second
-EKF_objects =[];
+coefficients =[-0.001, 0.1, 0.1];
 X_predicted =[];  %Arrary to store kalman predicted values
-X_estimated =[];  %Arrary to store kalman estimated values
 Centroids = [];
 ard = [];
 cfar = [];
@@ -38,11 +37,10 @@ for i = 1:simulation_time
     s1 = I_Qmov(initial:current);
     s2 = I_Qno(initial:current);
     %[y,EKF_object_,X_predicted_,X_estimated_,Centroids_,ard_,cfar_] = ardPlotEKF(s1,s2,fs,dopp_bins,delay,EKF_object,X_predicted,X_estimated,Centroids,i,ard,cfar);
-    [y,ard_,cfar_,tracks_,EKF_objects_,X_predicted_,X_estimated_] = ardPlotGN(s1,s2,fs,dopp_bins,delay,i,ard,cfar,tracks,EKF_objects,X_predicted,X_estimated);
+    [y,ard_,cfar_,tracks_,coefficients_,X_predicted_,] = ardPlotGN(s1,s2,fs,dopp_bins,delay,i,ard,cfar,tracks,X_predicted,coefficients);
     
     X_predicted = X_predicted_;
-    X_estimated = X_estimated_;
-    EKF_objects = EKF_objects_;    
+    coefficients = coefficients_;    
     ard = ard_;
     cfar = cfar_;
     tracks = tracks_;

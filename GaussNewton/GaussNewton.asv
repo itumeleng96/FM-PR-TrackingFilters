@@ -1,6 +1,7 @@
 classdef GaussNewton
 
     properties
+        fit_function,
         max_iterations,
         tol_difference,
         tolerance,
@@ -10,7 +11,8 @@ classdef GaussNewton
     end
     
     methods
-        function obj = GaussNewton(max_iteration,tol_difference,tolerance,initial_guess)
+        function obj = GaussNewton(fit_function,max_iteration,tol_difference,tolerance,initial_guess)
+            obj.fit_function = fit_function;
             obj.max_iterations = max_iteration;
             obj.tol_difference = tol_difference;
             obj.tolerance = tolerance;
@@ -21,20 +23,19 @@ classdef GaussNewton
             
             % param x: independant variable (Bistatic range)
             % param y: Response vector      (Bistatic Doppler shift)
-          
+            
             obj.x = x;
             obj.y = y;
 
             obj.coefficients = initial_guess;
             
             rmse_prev = inf;
-
+           
             for i=0:obj.max_iterations
                 residual = obj.getResidual();
-                jacobian = obj.calculateJacobian(obj.coefficients,10^(-6));
-
+                jacobian = obj.calculateJacobian(obj,obj.coefficients,10^(-6));
                 obj.coefficients = obj.coefficients - obj.calculateInverse(jacobian);
-                rmse = sqrt(sum(residual.^2));
+                rmse = sqrt(sum(residual^2));
                 if(~isnan(obj.tol_difference)) 
                     diff = abs(rmse_prev-rmse);
                     if (diff < obj.tol_difference)
@@ -62,7 +63,8 @@ classdef GaussNewton
         end
 
         function [residual] = getResidual(obj)
-            residual = obj.calculateResidual(obj.coefficients);
+            residual = obj.calculateResidual(obj,obj.coefficients);
+  
         end
 
         function [y_estimate] = getEstimate(obj)
@@ -78,31 +80,25 @@ classdef GaussNewton
             %Calculate Jacobian Numerically 
             %J_ij = d(r_i)/d(x_j)
             
-            y0 = obj.calculateResidual(x0);
-            jacobian = [];
+            y0 = obj.calculateResidual(obj,obj.x0);
+            jacobian =[];
     
-            for i=size(x0,1)
-                x_  = x0;
-                x_(i) = x_(i) +step;
+            for i=len(x0)
+                x  = copy(x0);
+                x(i) = x(i) +step;
 
-                y_ = obj.calculateResidual(x_);
-                derivative = (y_-y0)/step;
-                jacobian=[jacobian,derivative];
+                y = obj.calculateResidual(obj);
+                derivative = (y-y0)/step;
+                jacobian(end+1)=derivative;
             end
 
             jacobian = jacobian.';
         end
 
-        function[inverse] = calculateInverse(obj,x)
-            inverse_ = pinv((x.')*x) *(x.');
-            inverse = inverse_.';
-            disp(inverse);
-        end
+        function calculateInverse(x)
 
-        function [y]  = fit_function(obj,x,coeff)
-            y = coeff(1)*x.^2 + coeff(2)*x.^2 + coeff(3);
 
-        end
+
 
      end
  end

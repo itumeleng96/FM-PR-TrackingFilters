@@ -1,5 +1,5 @@
 %function [y,EKF_object_final,X_predict_arr_,X_estimate_arr_,Centroids_arr_,ard_,cfar_] = ardPlotEKF(s1,s2,fs,fd_max,td_max,EKF_object,X_predict_arr,X_estimate_arr,Centroids_arr,index,ard,cfar)
-function [y,ard_,cfar_,tracks_,EKF_objects_,X_predicted_,X_estimated_] = ardPlotGN(s1,s2,fs,fd_max,td_max,index,ard,cfar,tracks,EKF_objects,X_predicted,X_estimated)
+function [y,ard_,cfar_,tracks_,coefficients_,X_predicted_] = ardPlotGN(s1,s2,fs,fd_max,td_max,index,ard,cfar,tracks,X_predicted,coefficients)
 
 %Parameters to allow zoom in
 xlim_upper = 0.45e-4;
@@ -9,6 +9,7 @@ ylim_lower = 80;
 %Parameters for filter
 NumberOfTargets=1;
 initialValues = [[16;0;370;0],[14;0;310;0]];
+
 
 c = 3e8;                     %speed of the light
 N=length(s1);                %number of points
@@ -44,22 +45,6 @@ Dyn_dB = 40;                %Dynamic range (dB)
 max_dB = 10*log10(max(max(abs(y))));
 dt = 1;       
 tic
-%Based on the Number of Targets get the predictions
-for j=1:NumberOfTargets
-    if index ==1
-        EKF_object = GaussNewton(dt, 0.1, 0.1, 1, 0.01,0.01,initialValues(:,j));
-        [X,EKF_object_]= predict(EKF_object);
-        EKF_objects_(j)=EKF_object_;
-        X_predicted(1,index,j) =X(1,1);
-        X_predicted(2,index,j) =X(3,1);
-    else
-        [X,EKF_object_]= predict(EKF_objects(j));
-        EKF_objects_(j)=EKF_object_;
-        X_predicted(1,index,j) =X(1,1);
-        X_predicted(2,index,j) =X(3,1);
-    end
-end
-X_predicted_=X_predicted;
 
 f=figure(1);
 %figure('Name','2D image');
@@ -140,17 +125,14 @@ display('Target Centroids and EKF Prediction');
 %Assign centroid to track
 [tracks_]=trackAssign(tracks,centr);
 
-%A polynomial Fit to the Centroid Tracks 
-if index>2
-    
-    polyCoeff = polyfit(time(round(tracks_(1,:,1))),frequency(round(tracks_(2,:,1))),2);
-    x = linspace(time(round(tracks_(1,1,1))),time(round(tracks_(1,end,1)))); 
-    y = polyval(polyCoeff,x);
+%Based on the Number of Targets get the predictions
+for j=1:NumberOfTargets
+     GN_Object = GaussNewton(100,10^-5,10^-9,coefficients);
+     coefficients_= GN_Object.fit(tracks_(1,:,j),tracks_(2,:,j),coefficients);
+     %Get Predictions
 
-    %Plot Fit curve to target trajectory
-    hold on
-    plot(x,y,'.','MarkerFaceColor','red', 'MarkerSize', 5);
 end
+X_predicted_=X_predicted;
 
 for k=1:NumberOfTargets
     hold on;    
@@ -164,41 +146,5 @@ movegui(f3,'southwest');
 xlim([0 xlim_upper]) 
 ylim([ylim_lower ylim_upper])
 drawnow
-%update Kalman filter
 
-f4=figure(4);
-
-imagesc(time,frequency,RDM*0);
-text(0,ylim_lower+10,"Time:" + index+ "s");
-axis xy;
-colorbar;
-xlabel('Bistatic delay [s]','Fontsize',10);
-ylabel('Doppler frequency [Hz]','Fontsize',10);
-grid on;
-title('Target Centroids and EKF Estimation');
-disp('Target Centroids and EKF Estimation');
-
-for n=1:NumberOfTargets
-    [X1,EKF_objects_(n)] = update(EKF_objects_(n),[tracks_(1,index,n);tracks_(2,index,n)]); 
-    %Save previous Kalman estimates
-    X_estimated(1,index,n) = X1(1,1);
-    X_estimated(2,index,n) = X1(3,1);    
-end
-
-X_estimated_ = X_estimated; 
-
-for l=1:NumberOfTargets
-    hold on;
-    plot(time((round(tracks_(1,:,l)))),frequency(round(tracks_(2,:,l))),'^-','MarkerFaceColor','black', 'MarkerSize', 5);
-
-    hold on;
-    plot(time((round(X_estimated_(1,:,l)))),frequency(round(X_estimated_(2,:,l))), 'y-o ', 'MarkerSize', 6); 
-end
-
-legend('Target Centroid','Kalman Estimate');
-movegui(f4,'southeast');
-xlim([0 xlim_upper]) 
-ylim([ylim_lower ylim_upper])
-drawnow
-toc
 

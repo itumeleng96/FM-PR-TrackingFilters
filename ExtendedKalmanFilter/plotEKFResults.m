@@ -54,8 +54,9 @@ for i = 1:simulation_time
     [targetClusters] = ca_cfarPlot(10*log10(y.'),0.35,fs,dopp_bins,delay,i,f2);                    
      
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids] = meanShiftPlot(targetClusters,10);
+    [clusterCentroids] = meanShiftPlot(targetClusters,10,fs,dopp_bins,delay);
     disp(clusterCentroids);
+
     %Plot tracks from Tracker
     
     ard = ard_;

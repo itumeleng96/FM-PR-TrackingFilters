@@ -1,4 +1,4 @@
-function [clustCent] = meanShiftPlot(dataPoints,bandWidth)
+function [clustCent] = meanShiftPlot(dataPoints,bandWidth,fs,fd_max,td_max)
 %MEANSHIFT Summary of this function goes here
 
 % ---INPUT---
@@ -13,22 +13,22 @@ function [clustCent] = meanShiftPlot(dataPoints,bandWidth)
 numClust        = 0;
 bandSq          = bandWidth^2;
 initPtInds      = 1:numPts;
-maxPos          = max(dataPoints,[],2);                          %biggest size in each dimension
-minPos          = min(dataPoints,[],2);                          %smallest size in each dimension
-boundBox        = maxPos-minPos;                                 %bounding box size
-sizeSpace       = norm(boundBox);                                %indicator of size of data space
 stopThresh      = 1e-3*bandWidth;                                %when mean has converged
 clustCent       = [];                                            %center of clust
 beenVisitedFlag = zeros(1,numPts,'uint8');                       %track if a points been seen already
 numInitPts      = numPts;                                        %number of points to posibaly use as initilization points
 clusterVotes    = zeros(1,numPts,'uint16');                      %used to resolve conflicts on cluster membership
 
+Ndelay = floor(td_max*fs);   %number of points corresponding to td_max
+time = 0:1/fs:Ndelay/fs;
+frequency = -fd_max:1:fd_max;
+
 while numInitPts
-    tempInd         = ceil( (numInitPts-1e-6)*rand);        %pick a random seed point
-    stInd           = initPtInds(tempInd);                  %use this point as start of mean
-    myMean          = dataPoints(:,stInd);                           % intilize mean to this points location
-    myMembers       = [];                                   % points that will get added to this cluster                          
-    thisClusterVotes    = zeros(1,numPts,'uint16');         %used to resolve conflicts on cluster membership
+    tempInd         = ceil( (numInitPts-1e-6)*rand);            %pick a random seed point
+    stInd           = initPtInds(tempInd);                      %use this point as start of mean
+    myMean          = dataPoints(:,stInd);                      % intilize mean to this points location
+    myMembers       = [];                                       % points that will get added to this cluster                          
+    thisClusterVotes    = zeros(1,numPts,'uint16');             %used to resolve conflicts on cluster membership
     while 1     %loop untill convergence
         
         sqDistToAll = sum((repmat(myMean,1,numPts) - dataPoints).^2);    %dist squared from mean to all points still active
@@ -37,7 +37,7 @@ while numInitPts
         
         
         myOldMean   = myMean;                                   %save the old mean
-        myMean      = mean(dataPoints(:,inInds),2);                %compute the new mean
+        myMean      = mean(dataPoints(:,inInds),2);             %compute the new mean
         myMembers   = [myMembers inInds];                       %add any point within bandWidth to the cluster
         beenVisitedFlag(myMembers) = 1;                         %mark that these points have been visited
         
@@ -60,9 +60,9 @@ while numInitPts
                 %clustMembsCell{mergeWith}    = unique([clustMembsCell{mergeWith} myMembers]);   %record which points inside 
                 clusterVotes(mergeWith,:)    = clusterVotes(mergeWith,:) + thisClusterVotes;    %add these votes to the merged cluster
             else    %its a new cluster
-                numClust                    = numClust+1;                   %increment clusters
-                clustCent(:,numClust)       = myMean;                       %record the mean  
-                %clustMembsCell{numClust}    = myMembers;                    %store my members
+                numClust                    = numClust+1;                                           %increment clusters
+                clustCent(:,numClust)       = myMean;                                               %record the mean  
+                %clustMembsCell{numClust}    = myMembers;                                           %store my members
                 clusterVotes(numClust,:)    = thisClusterVotes;
             end
             break;
@@ -76,6 +76,7 @@ end
 
 %Plot centroids on CFAR Plot
 hold on;
+plot(time((round(clustCent(1,:)))),frequency(round(clustCent(2,:))),'^','MarkerFaceColor','black', 'MarkerSize', 5);
 
 end
 

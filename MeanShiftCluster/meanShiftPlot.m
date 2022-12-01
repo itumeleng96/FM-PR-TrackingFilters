@@ -8,8 +8,7 @@ function [clustCent] = meanShiftPlot(dataPoints,bandWidth,fs,fd_max,td_max)
 % ---OUTPUT---
 % clustCent         - is locations of cluster centers (numDim x numClust)
 
-%**** Initialize stuff ***
-[numDim,numPts] = size(dataPoints);
+[~,numPts] = size(dataPoints);
 numClust        = 0;
 bandSq          = bandWidth^2;
 initPtInds      = 1:numPts;
@@ -19,7 +18,7 @@ beenVisitedFlag = zeros(1,numPts,'uint8');                       %track if a poi
 numInitPts      = numPts;                                        %number of points to posibaly use as initilization points
 clusterVotes    = zeros(1,numPts,'uint16');                      %used to resolve conflicts on cluster membership
 
-Ndelay = floor(td_max*fs);   %number of points corresponding to td_max
+Ndelay = floor(td_max*fs);                                       %number of points corresponding to td_max
 time = 0:1/fs:Ndelay/fs;
 frequency = -fd_max:1:fd_max;
 
@@ -56,7 +55,7 @@ while numInitPts
             
             
             if mergeWith > 0    % something to merge
-                clustCent(:,mergeWith)       = 0.5*(myMean+clustCent(:,mergeWith));             %record the max as the mean of the two merged (I know biased twoards new ones)
+                clustCent(:,mergeWith)       = 0.5*(myMean+clustCent(:,mergeWith));             %record the max as the mean of the two merged
                 %clustMembsCell{mergeWith}    = unique([clustMembsCell{mergeWith} myMembers]);   %record which points inside 
                 clusterVotes(mergeWith,:)    = clusterVotes(mergeWith,:) + thisClusterVotes;    %add these votes to the merged cluster
             else    %its a new cluster

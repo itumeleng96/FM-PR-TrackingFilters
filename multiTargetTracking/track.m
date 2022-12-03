@@ -7,13 +7,19 @@ classdef track
        trueTrack,
        predictedTrack,
        trackingFilterObject,
+       trackId,
+       confirmed,
+       numberOfUpdates,
     end
     
     methods
-        function obj = track(trueTrack,predictedTrack,sampleSinceLastUpdate)
+        function obj = track(trueTrack,predictedTrack,trackId,sampleSinceLastUpdate)
             obj.trueTrack = trueTrack;
             obj.predictedTrack = predictedTrack;
             obj.sampleSinceLastUpdate = sampleSinceLastUpdate;
+            obj.trackId = trackId;
+            obj.confirmed = confrimation;
+            obj.numberOfUpdates = numberOfUpdates;
 
             %Initialize Tracker 
             EKF_object = EKF(dt, 0.1, 0.1, 1, 0.01,0.01,[14;0;0;310;0;0]);
@@ -26,10 +32,13 @@ classdef track
             index = size(obj.trueTrack);
             obj.trueTrack(1,index+1) = newTargetObservation(1,1);
             obj.trueTrack(2,index+1) = newTargetObservation(2,1);
-
+             
             %Update Tracking Filter 
             [~,obj.trackingFilterObject] = update(obj.trackingFilterObject,[newTargetObservation(1,1);newTargetObservation(2,1)]); 
 
+            %Update sampleSinceLastUpdate and number Of Updates
+            obj.sampleSinceLastUpdate = 0;
+            obj.numberOfUpdates = obj.numberOfUpdates+1;
 
         end
 
@@ -44,6 +53,9 @@ classdef track
           
         end
 
+        function obj = incrementSampleSinceLastUpdate(obj)
+            obj.sampleSinceLastUpdate = obj.sampleSinceLastUpdate+1;
+        end
 
     end
 end

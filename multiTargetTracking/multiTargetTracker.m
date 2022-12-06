@@ -5,15 +5,17 @@ classdef multiTargetTracker
         tracks,
         confirmationThreshold,
         deletionThreshold,
+        gatingThreshold,       %Radius around the predicted measurement to eliminate other measurements
 
     end
     
     methods
-        function obj = MTT(tracks,confirmationThreshold,deletionThreshold)
+        function obj = MTT(tracks,confirmationThreshold,deletionThreshold,gatingThreshold)
             %MTT Construct an instance of this class
             obj.tracks = tracks;
             obj.confirmationThreshold = confirmationThreshold;
             obj.deletionThreshold = deletionThreshold;
+            obj.gatingThreshold = gatingThreshold;
 
         end
         
@@ -21,17 +23,27 @@ classdef multiTargetTracker
             %This method assigns Detections to the nearest Track, else
             disp("Assigning Detections");
             numberOfDetections=size(detections,2);
-            if isempty(tracks)
-                %create tracks = number of detections
+            if isempty(obj.tracks)
+                %create tracks = number of detections for the first time
                 for i=1:numberOfDetections
                     obj.tracks(i) = track([],[],i,0); 
                 end
 
+            else
+                
+            end
+            %Assign Tracks to Detection using GNN and update filter with new measurements
+            %Get qualifying detections within radius
+            numOfTracks = size(tracks,1);
+
+            for i=1:numOfTracks
+                predictedCoodinate = obj.tracks(i).predictedTrack(end,:);
+                detectionsInRadius = pruneDetections(detections,predictedCoodinate);
+                detection = globalNearestNeighbour(detectionsInRadius,predictedCoodinate);
+                obj.tracks(i).updateTrueTrack(detection);
+
             end
 
-            %Assign Tracks to Detection using GNN and update filter with
-            %new measurements
-            %Create a gating threhold for each track
             %Based on detections inside gate assign and 
             %If detection is unassigned,create new track 
 
@@ -48,7 +60,7 @@ classdef multiTargetTracker
                     obj.tracks(i)=[];
                 end
             end
-            tracks = obj.tracks;
+            tracks = obj.tracks
         end
         
         function tracks = confirmTracks(obj)
@@ -80,7 +92,30 @@ classdef multiTargetTracker
             end
             tracks = obj.tracks;
         end
-        
+
+        function detectionsInRadius = pruneDetections(detections,predictedCoordinate)
+            %For every detection check that it falls within the predicted
+            %Coordinates'radius 
+           numberOfDetections=size(detections,2);
+           for i=1:numberOfDetections
+                if norm(detections(1,:)-(predictedCoodinate)) < gatingThreshold
+                    detectionsInRadius(end+1,:)=detections(1,:);
+                end
+           end
+        end
+
+        function detection = globalNearestNeighbour(detectionsInRadius,predictedCoordinate)
+            numberOfDetections=size(detectionsInRadius,2);
+            distances;
+            for i=1:numberOfDetections
+                distances(i)=norm(detectionsInRadius(i,:)-predictedCoodinate);
+            end
+
+            %Get The index of the detection with min distances
+            [indexOfNeighbour,~] = min(distances);
+            detection = detectionsInRadius(indexOfNeighbour,:); 
+        end
     end
 end
+
 

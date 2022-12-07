@@ -42,6 +42,8 @@ f2=figure(2);
 f2.Position = [4000 10 1000 800]; 
 movegui(f2,'northeast');
 
+%Create MTT object
+multiTargetTracker = MTT([],2,2,4);
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current);
@@ -57,6 +59,7 @@ for i = 1:simulation_time
     [clusterCentroids] = meanShiftPlot(targetClusters,10,fs,dopp_bins,delay);
 
     %Plot tracks from Tracker - Call Multi-target Tracker
+    multiTargetTracker.assignDetectionToTrack(clusterCentroids);
     
     ard = ard_;
     %Counting Variables

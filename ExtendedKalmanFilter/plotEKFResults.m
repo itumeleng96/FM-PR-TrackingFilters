@@ -1,5 +1,5 @@
 clc; clear all; close all;
-addpath('../FERS/','../CFAR/','../MeanShiftCluster/');
+addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/');
 
 system("fers ../FERS/Simulation_60_direct.fersxml");
 system("fers ../FERS/Simulation_60_echo_2.fersxml");
@@ -43,7 +43,7 @@ f2.Position = [4000 10 1000 800];
 movegui(f2,'northeast');
 
 %Create MTT object
-multiTargetTracker = MTT([],2,2,4);
+multiTargetTracker = multiTargetTracker(2,2,30);
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current);
@@ -57,9 +57,12 @@ for i = 1:simulation_time
      
     %Get Coordinates from CFAR using meanShift Algorithm
     [clusterCentroids] = meanShiftPlot(targetClusters,10,fs,dopp_bins,delay);
-
+    
+    disp(clusterCentroids);
     %Plot tracks from Tracker - Call Multi-target Tracker
-    multiTargetTracker.assignDetectionToTrack(clusterCentroids);
+    multiTargetTracker =multiTargetTracker.assignDetectionToTrack(clusterCentroids);
+    multiTargetTracker = multiTargetTracker.maintainTracks();
+    multiTargetTracker = multiTargetTracker.trackingFilter();
     
     ard = ard_;
     %Counting Variables

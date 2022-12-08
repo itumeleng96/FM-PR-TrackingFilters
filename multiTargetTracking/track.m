@@ -39,22 +39,22 @@ classdef track
             %Update sampleSinceLastUpdate and number Of Updates
             obj.sampleSinceLastUpdate = 0;
             obj.numberOfUpdates = obj.numberOfUpdates+1;
+            %disp("true Track");
+            %disp(obj.trueTrack);
 
         end
 
         function obj = predictTrack(obj)
             %Predict using Tracking filter and update predictedTrack
             [X,obj.trackingFilterObject]= predict(obj.trackingFilterObject);
-            [~,num] = size(obj.predictedTrack);
+            
             %Update the predicted track
-            if num==1
-                obj.predictedTrack(1,1)=X(1,1);
-                obj.predictedTrack(2,1)=X(4,1); 
-            else
-                obj.predictedTrack(1,end+1)=X(1,1);
-                obj.predictedTrack(2,end)=X(4,1);
-            end
-          
+            obj.predictedTrack(1,end+1)=X(1,1);
+            obj.predictedTrack(2,end)=X(4,1);
+            obj.sampleSinceLastUpdate = obj.sampleSinceLastUpdate+1;
+
+            %disp("Predicted Track");
+            %disp(obj.predictedTrack);
         end
  
         function obj = incrementSampleSinceLastUpdate(obj) %call function to keep track of 

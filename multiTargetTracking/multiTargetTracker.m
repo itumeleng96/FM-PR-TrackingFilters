@@ -28,10 +28,10 @@ classdef multiTargetTracker
 
                 for i=1:numberOfDetections
                     if i ==1
-                        obj.tracks = [track([detections(1,i);detections(2,i)],[0;0],0,i,0,0)];
+                        obj.tracks = [track([detections(1,i);detections(2,i)],[;],0,i,0,0)];
                     
                     else
-                        obj.tracks(end+1)=track([detections(1,i);detections(2,i)],[0;0],0,i,0,0);
+                        obj.tracks(end+1)=track([detections(1,i);detections(2,i)],[;],0,i,0,0);
                     end
                 end
                         
@@ -45,10 +45,9 @@ classdef multiTargetTracker
                     predictedCoodinate = obj.tracks(i).predictedTrack(:,end);
                     detectionsInRadius = obj.pruneDetections(detections,predictedCoodinate,obj.gatingThreshold);
                     [detection,detections] = obj.globalNearestNeighbour(detectionsInRadius,predictedCoodinate,detections);
-                    %disp(obj.tracks(i).trueTrack);
-                    %disp(detection);
-                    obj.tracks(i)=obj.tracks(i).updateTrueTrack(detection);
-                    
+                    if(detection)
+                        obj.tracks(i)=obj.tracks(i).updateTrueTrack(detection); 
+                    end
                 end   
                 %If detection is unassigned,create new track 
                 
@@ -56,7 +55,7 @@ classdef multiTargetTracker
                     numberOfUnassignedDetections = size(detections,2);
                     
                     for i=1:numberOfUnassignedDetections
-                        obj.tracks(end+1) = track([detections(1,i);detections(2,i)],[0;0],0,0,0,0);  %Still need a workaround TrackIds
+                        obj.tracks(end+1) = track([detections(1,i);detections(2,i)],[;],0,0,0,0);  %Still need a workaround TrackIds
                     end
                 end
             end
@@ -96,15 +95,39 @@ classdef multiTargetTracker
 
             for i=1:numberOfTracks
                 obj.tracks(i)=obj.tracks(i).predictTrack();
-                disp(obj.tracks(i).predictedTrack);
             end
+
+            
+        end
+
+        function plotMultiTargetTracking(obj,fs,fd_max,td_max,index,f,RDM)
+
+            figure(f);
+            Ndelay = floor(td_max*fs);                                 
+            time = 0:1/fs:Ndelay/fs;
+            frequency = -fd_max:1:fd_max;
+            imagesc(time,frequency,RDM*0);
+
+            text(0,10,"Time:" + index+ "s");
+            axis xy;
+            colorbar;
+            xlabel('Bistatic delay [s]','Fontsize',10);
+            ylabel('Doppler frequency [Hz]','Fontsize',10);
+            grid on;
+            title('Targets centroids and EKF Prediction');
+            for i=1:max(size(obj.tracks))
+                hold on;
+                plot(time((round(obj.tracks(i).predictedTrack(1,:)))),frequency(round(obj.tracks(i).predictedTrack(2,:))),'^-','MarkerFaceColor',	[0 0 0], 'MarkerSize', 7);
+
+               
+            end
+
 
         end
     end
     methods(Static)
 
         function [detectionsInRadius] = pruneDetections(detections,predictedCoordinate,gatingThreshold)
-            disp("Prune");
             %For every detection check that it falls within the predicted
             %Coordinates'radius 
            numberOfDetections=size(detections,2);
@@ -117,7 +140,6 @@ classdef multiTargetTracker
         end
 
         function [detection,detections] = globalNearestNeighbour(detectionsInRadius,predictedCoordinate,allDetections)
-            disp("GNN");
             numberOfDetections=size(detectionsInRadius,2);
             distances=[];
 

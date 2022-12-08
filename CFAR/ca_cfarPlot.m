@@ -4,7 +4,7 @@
 %G : Number of Guard cells
 %cut : the magnitiude cells of the Range Doppler map
 
-function targetClusters = ca_cfarPlot(RDM,rate_fa,fs,fd_max,td_max,index,f)
+function [targetClusters,RDM] = ca_cfarPlot(RDM,rate_fa,fs,fd_max,td_max,index,f)
 %Generates a CFAR output map in the range-doppler domain
 %Firstly calculate the interference power from the average of N samples in
 %the vicinity of the CUT

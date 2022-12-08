@@ -42,6 +42,11 @@ f2=figure(2);
 f2.Position = [4000 10 1000 800]; 
 movegui(f2,'northeast');
 
+%Multi-Target Tracking 
+f3=figure(3);
+f3.Position = [4000 10 1000 800]; 
+movegui(f3,'southeast');
+
 %Create MTT object
 multiTargetTracker = multiTargetTracker(2,2,30);
 
@@ -53,16 +58,17 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters] = ca_cfarPlot(10*log10(y.'),0.35,fs,dopp_bins,delay,i,f2);                    
+    [targetClusters,RDM] = ca_cfarPlot(10*log10(y.'),0.35,fs,dopp_bins,delay,i,f2);                    
      
     %Get Coordinates from CFAR using meanShift Algorithm
     [clusterCentroids] = meanShiftPlot(targetClusters,10,fs,dopp_bins,delay);
     
     disp(clusterCentroids);
     %Plot tracks from Tracker - Call Multi-target Tracker
-    multiTargetTracker =multiTargetTracker.assignDetectionToTrack(clusterCentroids);
+    multiTargetTracker = multiTargetTracker.assignDetectionToTrack(clusterCentroids);
     multiTargetTracker = multiTargetTracker.maintainTracks();
     multiTargetTracker = multiTargetTracker.trackingFilter();
+    multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM)
     
     ard = ard_;
     %Counting Variables

@@ -31,11 +31,11 @@ classdef track
         function obj = updateTrueTrack(obj,newTargetObservation)
             %Insert Observations from Target Observations
             disp("Update Track");
-            disp(obj.trueTrack);
-            disp(newTargetObservation);
-            obj.trueTrack(1,end+1) = newTargetObservation(1,1);
-            obj.trueTrack(2,end) = newTargetObservation(2,1);
             
+            disp(newTargetObservation);
+            obj.trueTrack(end+1,1) = newTargetObservation(1,1);
+            obj.trueTrack(end+1,2) = newTargetObservation(2,1);
+             
             %Update Tracking Filter 
             [~,obj.trackingFilterObject] = update(obj.trackingFilterObject,[newTargetObservation(1,1);newTargetObservation(2,1)]); 
 

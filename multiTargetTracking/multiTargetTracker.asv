@@ -61,7 +61,7 @@ classdef multiTargetTracker
                     end
                 end
             end
-            disp("trueTrack");
+            disp("tT");
             disp(obj.tracks(1).trueTrack);
             disp(obj.tracks(2).trueTrack);
             

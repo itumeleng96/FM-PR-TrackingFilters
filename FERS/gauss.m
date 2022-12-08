@@ -1,5 +1,5 @@
 
-sig = randn(1,200000*60)+j*randn(1,200000*60);
+sig = randn(1,200000*60)+1i*randn(1,200000*60);
 I = real(sig);
 Q = imag(sig);
 fprintf('Writing HDF5 data...\n');

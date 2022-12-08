@@ -1,0 +1,66 @@
+classdef track
+    %TRACK 
+    %   This class holds all informations about a Track
+    
+    properties
+       sampleSinceLastUpdate,
+       trueTrack,
+       predictedTrack,
+       trackingFilterObject,
+       trackId,
+       confirmed,
+       numberOfUpdates,
+    end
+    
+    methods
+        function obj = track(trueTrack,predictedTrack,trackId,confirmation,sampleSinceLastUpdate,numberOfUpdates)
+            obj.trueTrack = trueTrack;
+            obj.predictedTrack = predictedTrack;
+            obj.sampleSinceLastUpdate = sampleSinceLastUpdate;
+            obj.trackId = trackId;
+            obj.confirmed = confirmation;
+            obj.numberOfUpdates = numberOfUpdates;
+
+            %Initialize Tracker
+            dt=1;
+            EKF_object = EKF(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+1;0;0;trueTrack(2,1)+1;0;0]); %Make starting point random
+            obj.trackingFilterObject = EKF_object;
+
+        end
+        
+        function obj = updateTrueTrack(obj,newTargetObservation)
+            %Insert Observations from Target Observations
+            obj.trueTrack(1,end+1) = newTargetObservation(1,1);
+            obj.trueTrack(2,end) = newTargetObservation(2,1);
+            
+            %Update Tracking Filter 
+            [~,obj.trackingFilterObject] = update(obj.trackingFilterObject,[newTargetObservation(1,1);newTargetObservation(2,1)]); 
+
+            %Update sampleSinceLastUpdate and number Of Updates
+            obj.sampleSinceLastUpdate = 0;
+            obj.numberOfUpdates = obj.numberOfUpdates+1;
+            %disp("true Track");
+            %disp(obj.trueTrack);
+
+        end
+
+        function obj = predictTrack(obj)
+            %Predict using Tracking filter and update predictedTrack
+            [X,obj.trackingFilterObject]= predict(obj.trackingFilterObject);
+            
+            %Update the predicted track
+            obj.predictedTrack(1,end+1)=X(1,1);
+            obj.predictedTrack(2,end)=X(4,1);
+            obj.sampleSinceLastUpdate = obj.sampleSinceLastUpdate+1;
+
+            %disp("Predicted Track");
+            %disp(obj.predictedTrack);
+        end
+ 
+        function obj = incrementSampleSinceLastUpdate(obj) %call function to keep track of 
+            obj.sampleSinceLastUpdate = obj.sampleSinceLastUpdate+1;
+        end
+
+    end
+end
+

@@ -118,8 +118,10 @@ classdef multiTargetTracker
             for i=1:max(size(obj.tracks))
                 hold on;
                 plot(time((round(obj.tracks(i).predictedTrack(1,:)))),frequency(round(obj.tracks(i).predictedTrack(2,:))),'^-','MarkerFaceColor',	[0 0 0], 'MarkerSize', 7);
+                text(time((round(obj.tracks(i).predictedTrack(1,end)))),frequency(round(obj.tracks(i).predictedTrack(2,end))),{sprintf('T%d',i)},'VerticalAlignment','top','HorizontalAlignment','left')
                 hold on 
                 plot(time((round(obj.tracks(i).trueTrack(1,:)))),frequency(round(obj.tracks(i).trueTrack(2,:))),'y-o','MarkerFaceColor',	[0 0 0], 'MarkerSize', 6);
+                legend('Predicted Track','TrueTrack')
             end
 
 

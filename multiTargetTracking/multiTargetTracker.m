@@ -62,12 +62,12 @@ classdef multiTargetTracker
         end
         function tracks = deleteTracks(obj)
             %Delete Tracks based on deletion Treshold
+            tracks =obj.tracks;
             for i=1:max(size(obj.tracks))
                 if obj.tracks(i).sampleSinceLastUpdate > obj.deletionThreshold
-                    obj.tracks(i)=[];
+                    tracks(:,i)=[];
                 end
             end
-            tracks = obj.tracks;
         end
         
         function tracks = confirmTracks(obj)
@@ -83,7 +83,7 @@ classdef multiTargetTracker
 
         function obj = maintainTracks(obj)
             disp("Maintain Tracks");
-            obj.deleteTracks();
+            obj.tracks =obj.deleteTracks();
             obj.confirmTracks();
 
         end

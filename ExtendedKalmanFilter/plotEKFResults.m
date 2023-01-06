@@ -48,7 +48,7 @@ f3.Position = [4000 10 1000 800];
 movegui(f3,'southeast');
 
 %Create MTT object
-multiTargetTracker = multiTargetTracker(2,2,30);
+multiTargetTracker = multiTargetTracker(2,4,30);
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current);

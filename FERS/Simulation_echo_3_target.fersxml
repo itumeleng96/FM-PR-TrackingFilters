@@ -101,7 +101,7 @@ t = 0s and at (19012m,3197m) and height 5000m at t = 1s-->
         <x>2500</x>
         <y>2700</y>
         <altitude>1600.0</altitude>
-        <time>0</time>
+        <time>30</time>
       </positionwaypoint>
       <positionwaypoint>
         <x>1500</x>

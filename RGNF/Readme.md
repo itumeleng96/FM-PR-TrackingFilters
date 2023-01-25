@@ -7,5 +7,7 @@
 ![image](https://user-images.githubusercontent.com/37007962/214480879-0f32df31-bb27-4b32-8e7f-9bdd459724b6.png)
 ![image](https://user-images.githubusercontent.com/37007962/214480902-12cba58c-1dcd-4853-88a4-b6b278f0447a.png)
 
-###Measurement Model
-![Uploading image.png…]()
+### Measurement Model ###
+
+
+### RGNF steps ###

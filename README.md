@@ -5,15 +5,15 @@
 
 #### The Following Tracking filters have been implemented:
 <li>The Extended Kalman Filter</li>
--The Particle Filter
--The Recursive Gauss Newton Filter - In Progress
+<li>The Particle Filter</li>
+<li>The Recursive Gauss Newton Filter - In Progress</li>
 
 #### Other algorithms implemented
--Constant False Alarm Rate
--Multi-target Tracker
--MeanshiftCluster
+<li>Constant False Alarm Rate</li>
+<li>Multi-target Tracker</li>
+<li>MeanshiftCluster</li>
 
-TODO
--Tracking in the x-y domain and measurements in Doppler-range (Currently Tracking in the Doppler-range Domain)
--Introduce noise to the state and the measurement 
--Implement other tracking filters
+### TODO
+<li>Tracking in the x-y domain and measurements in Doppler-range (Currently Tracking in the Doppler-range Domain) </li>
+<li>Introduce noise to the state and the measurement </li>
+<li>Implement other tracking filters </li>

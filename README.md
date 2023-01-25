@@ -3,12 +3,12 @@
 ### This Repository will consist Code implementations for Tracking Filters for a FM Passive Radar System.<br>
 
 
-The Following Tracking filters have been implemented:
--The Extended Kalman Filter
+#### The Following Tracking filters have been implemented:
+<dib>The Extended Kalman Filter</dib>
 -The Particle Filter
 -The Recursive Gauss Newton Filter - In Progress
 
-Other algorithms implemented
+#### Other algorithms implemented
 -Constant False Alarm Rate
 -Multi-target Tracker
 -MeanshiftCluster

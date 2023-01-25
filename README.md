@@ -4,7 +4,7 @@
 
 
 #### The Following Tracking filters have been implemented:
-<dib>The Extended Kalman Filter</dib>
+<li>The Extended Kalman Filter</li>
 -The Particle Filter
 -The Recursive Gauss Newton Filter - In Progress
 

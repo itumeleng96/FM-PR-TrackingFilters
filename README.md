@@ -15,5 +15,5 @@
 
 ### TODO
 <li>Tracking in the x-y domain and measurements in Doppler-range (Currently Tracking in the Doppler-range Domain) </li>
-<li>Introduce noise to the state and the measurement </li>
+<li>Introduce noise to the state and the measurement model </li>
 <li>Implement other tracking filters </li>

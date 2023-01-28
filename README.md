@@ -8,7 +8,7 @@
 <li>The Particle Filter</li>
 <li>The Extended Kalman Filter In Progress</li>
 <li>The Gauss Newton Filter - In Progress</li>
-<li>The Gauss Newton Filter - Still to be implemented</li>
+<li>The Recursive Gauss Newton Filter - Still to be implemented</li>
 
 #### Other algorithms implemented
 <li>Constant False Alarm Rate</li>

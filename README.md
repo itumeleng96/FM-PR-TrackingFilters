@@ -4,9 +4,11 @@
 
 
 #### The Following Tracking filters have been implemented:
-<li>The Extended Kalman Filter</li>
+<li>The Kalman Filter In Progress</li>
 <li>The Particle Filter</li>
-<li>The Recursive Gauss Newton Filter - In Progress</li>
+<li>The Extended Kalman Filter In Progress</li>
+<li>The Gauss Newton Filter - In Progress</li>
+<li>The Gauss Newton Filter - Still to be implemented</li>
 
 #### Other algorithms implemented
 <li>Constant False Alarm Rate</li>

@@ -1,7 +1,7 @@
 classdef track
     %TRACK 
     %   This class holds all informations about a Track
-    
+    %   still need to find a way to make type of filter configurable
     properties
        sampleSinceLastUpdate,
        trueTrack,
@@ -23,8 +23,8 @@ classdef track
 
             %Initialize Tracker
             dt=1;
-            EKF_object = EKF(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+1;0;0;trueTrack(2,1)+1;0;0]); %Make starting point random
-            obj.trackingFilterObject = EKF_object;
+            KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+1;0;0;trueTrack(2,1)+1;0;0]); %Make starting point random
+            obj.trackingFilterObject = KF_object;
 
         end
         

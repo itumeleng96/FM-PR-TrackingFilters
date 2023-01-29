@@ -65,6 +65,38 @@ classdef GN
             obj.P = eye(size(obj.A,2));
 
         end
+
+        %Function to predict the next state
+        function [X_pred,GN_obj] = predict(obj)
+            %Calculate the predicted time state
+            
+            %Update time state
+            %x_k = Ax_(k-1) + Bu_(k-1) 
+            obj.X= obj.A * obj.X + obj.B * obj.U;
+                        
+            
+            X_pred = obj.X;
+            KF_obj1  = obj;
+        end
+
+        %sum of squared differences
+        function [residual] = objectiveFunction(X_pred,z,obj)
+            residual = (z-obj.H*X_pred)' * (z-obj.H*X_pred);
+        end
+
+        function [J] =jacobian(z,obj)
+            %h(p) = [fn,rn]
+            % p = [fn,fdotn,fdotdotn;rn,rdotn,rdotdotn]
+
+            %J_h(i, j) = ∂h(p)/∂p_j = ∂h_i/∂p_j
+            
+
+            %J = -2 * J_h^T * (z - h(p))
+
+        end
+        
+
+
      end
  end
         

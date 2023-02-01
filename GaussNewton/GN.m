@@ -1,11 +1,11 @@
 classdef GN
 
     properties
-        dt,U,X,A,B,H,Q,R,P,coeff,measured_x,measured_y;
+        dt,U,X,A,B,H,Q,R,P,coeff,measured_x,measured_y,max_iter,tolerance;
     end
     
     methods
-        function obj = GN(dt,u_x,u_y,std_acc,x_std_meas,y_std_meas,X_initial)
+        function obj = GN(dt,u_x,u_y,std_acc,x_std_meas,y_std_meas,X_initial,max_iter,tolerance)
         
             %Init funtion
             %Inputs: 
@@ -15,6 +15,9 @@ classdef GN
             % x_std_meas : standard deviation of the measurement in the x-direction
             % y_std_meas : standard deviation of the measurement in the y-direction
             
+            %variables for Stopping criterion
+            obj.max_iter=max_iter;
+            obj.tolerance = tolerance;
             
             %Control Input Variables
             obj.U = [u_x;
@@ -84,7 +87,7 @@ classdef GN
             residual = (z-obj.H*X_pred)' * (z-obj.H*X_pred);
         end
 
-        function [J] =jacobian(z,obj)
+        function [J] =jacobian(obj,z)
             %h(p) = [fn,rn]
             % p = [fn,fdotn,fdotdotn;rn,rdotn,rdotdotn]
 
@@ -95,8 +98,33 @@ classdef GN
 
         end
         
-        function [GN_obj] = update(obj)
+        function [GN_obj] = update(obj,z)
             
+            iteration = 0;
+            while true
+                %objective function
+                residual = objectiveFunction(obj.X,z);
+
+                %Compute the jacobian matrix
+                J= jacobian(obj,z);
+    
+                %Compute delta ,dx =(J^T * J)^-1 * J^T * r
+                delta = (J' * J)\ J' * residual;
+                
+                %Update state parameters
+                obj.X = obj.X +delta;
+                
+                %stopping criterion
+                if norm(delta) < obj.tolerance || iteration >=obj.max_iter
+                    break;
+                end
+                
+                %increment iterations
+                iteration = iteration+1;
+               
+            end            
+            
+            GN_obj=obj;
         end
 
      end

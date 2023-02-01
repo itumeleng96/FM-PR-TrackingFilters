@@ -76,7 +76,7 @@ classdef GN
                         
             
             X_pred = obj.X;
-            KF_obj1  = obj;
+            GN_obj  = obj;
         end
 
         %sum of squared differences
@@ -95,7 +95,9 @@ classdef GN
 
         end
         
-
+        function [GN_obj] = update(obj)
+            
+        end
 
      end
  end

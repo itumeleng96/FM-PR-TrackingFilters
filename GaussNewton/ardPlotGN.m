@@ -1,5 +1,5 @@
 %function [y,EKF_object_final,X_predict_arr_,X_estimate_arr_,Centroids_arr_,ard_,cfar_] = ardPlotEKF(s1,s2,fs,fd_max,td_max,EKF_object,X_predict_arr,X_estimate_arr,Centroids_arr,index,ard,cfar)
-function [y,ard_,cfar_,tracks_,coefficients_,X_predicted_] = ardPlotGN(s1,s2,fs,fd_max,td_max,index,ard,cfar,tracks,X_predicted,coefficients)
+function [y,ard_,cfar_,tracks_,GN_object_,X_predicted_] = ardPlotGN(s1,s2,fs,fd_max,td_max,index,ard,cfar,tracks,X_predicted,GN_object)
 
 %Parameters to allow zoom in
 xlim_upper = 0.45e-4;
@@ -8,8 +8,6 @@ ylim_lower = 80;
 
 %Parameters for filter
 NumberOfTargets=1;
-initialValues = [[16;0;370;0],[14;0;310;0]];
-
 
 c = 3e8;                     %speed of the light
 N=length(s1);                %number of points
@@ -117,7 +115,7 @@ colorbar;
 xlabel('Bistatic delay [s]','Fontsize',10);
 ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
-title('Target Centroids and EKF Prediction');
+title('Target Centroids and Gauss Newton Prediction');
 display('Target Centroids and EKF Prediction');
 
 [cluster,centr] = kMeans(NumberOfTargets,points);
@@ -125,12 +123,13 @@ display('Target Centroids and EKF Prediction');
 %Assign centroid to track
 [tracks_]=trackAssign(tracks,centr);
 
+
 %Based on the Number of Targets get the predictions
 for j=1:NumberOfTargets
-     GN_Object = GaussNewton(100,10^-5,10^-9,coefficients);
-     coefficients_= GN_Object.fit(tracks_(1,:,j),tracks_(2,:,j),coefficients);
-     %Get Predictions
 
+    %Get Predictions
+    [X_predicted,GN_object]=GN_Object.predict();
+    GN_object_ = GN_object.update();
 end
 X_predicted_=X_predicted;
 

@@ -1,109 +1,129 @@
 classdef GaussNewton
 
     properties
-        max_iterations,
-        tol_difference,
-        tolerance,
-        initial_guess,
-        coefficients,
-        x,y;
+        dt,U,X,A,B,H,Q,R,P,coeff,measured_x,measured_y,max_iter,tolerance;
     end
     
     methods
-        function obj = GaussNewton(max_iteration,tol_difference,tolerance,initial_guess)
-            obj.max_iterations = max_iteration;
-            obj.tol_difference = tol_difference;
+        function obj = GaussNewton(dt,u_x,u_y,std_acc,x_std_meas,y_std_meas,X_initial,max_iter,tolerance)
+        
+            %Init funtion
+            %Inputs: 
+            % dt : smapling time
+            % u_x : acceleration in the x-direction
+            % u_y : acceleration in the y-direction
+            % x_std_meas : standard deviation of the measurement in the x-direction
+            % y_std_meas : standard deviation of the measurement in the y-direction
+            
+            %variables for Stopping criterion
+            obj.max_iter=max_iter;
             obj.tolerance = tolerance;
-            obj.initial_guess = initial_guess;
+            
+            %Control Input Variables
+            obj.U = [u_x;
+                     u_y];
+    
+            %Initial State
+            obj.X= X_initial;
+         
+
+            %State transition matrix
+            obj.dt = dt;
+
+
+            obj.A = [1,dt,(1/2)*dt^2, 0 ,0 ,0;
+                     0, 1, dt,0,0,0;
+                     0, 0, 1, 0,0,0;
+                     0, 0  0, 1,dt,(1/2)*dt^2;
+                     0, 0, 0, 0,1,dt ;
+                     0, 0, 0, 0,0,1;];
+
+
+            %The control input matrix B
+            obj.B = [0,0;
+                     0,0;
+                     0,0;
+                     0,0;
+                     0,0;
+                     0,0;];
+
+            %Measurement Mapping Matrix 
+            obj.H = [1,0,0,0,0,0;
+                     0,0,0,1,0,0];
+
+            %Process Noise Covariance
+            obj.Q = [0, 0, 0, 0,0,0;
+                     0, 0, 0, 0,0,0;
+                     0, 0, 0, 0,0,0;
+                     0, 0, 0, 0,0,0;
+                     0, 0, 0, 0,0,0;
+                     0, 0, 0, 0,0,0];
+
+            
+            %Initial Measurement Noise Covariance
+            obj.R = [x_std_meas^2,0;
+                     0,y_std_meas^2];
+
+            %Initial covariance matrix -  Identity matrix same shape as A
+            obj.P = eye(size(obj.A,2));
+
+        end
+
+        %Function to predict the next state
+        function [X_pred,GN_obj] = predict(obj)
+            %Calculate the predicted time state
+            
+            %Update time state
+            %x_k = Ax_(k-1) + Bu_(k-1) 
+            obj.X= obj.A * obj.X + obj.B * obj.U;
+                        
+            
+            X_pred = obj.X;
+            GN_obj  = obj;
+        end
+
+        %sum of squared differences
+        function [residual] = objectiveFunction(X_pred,z,obj)
+            residual = (z-obj.H*X_pred)' * (z-obj.H*X_pred);
+        end
+
+        function [J] =jacobian(obj)
+            %J_h(i, j) = ∂h(p)/∂p_j = ∂h_i/∂p_j
+
+            % J = -H./(H*x + R);
+            % Jacobian matrix
+            J = -obj.H./(obj.H*obj.X);
+
         end
         
-        function [coefficients]= fit(obj,x,y,initial_guess)
+        function [GN_obj] = update(obj,z)
             
-            % param x: independant variable (Bistatic range)
-            % param y: Response vector      (Bistatic Doppler shift)
-          
-            obj.x = x;
-            obj.y = y;
+            iteration = 0;
+            while true
+                %objective function
+                residual = obj.objectiveFunction(obj.X,z);
 
-            obj.coefficients = initial_guess;
-            
-            rmse_prev = inf;
-
-            for i=0:obj.max_iterations
-                residual = obj.getResidual();
-                jacobian = obj.calculateJacobian(obj.coefficients,10^(-6));
-
-                obj.coefficients = obj.coefficients - obj.calculateInverse(jacobian);
-                rmse = sqrt(sum(residual.^2));
-                if(~isnan(obj.tol_difference)) 
-                    diff = abs(rmse_prev-rmse);
-                    if (diff < obj.tol_difference)
-                        coefficients= obj.coefficients;
-                        return
-                    end
-
-                end
-                if rmse < obj.tolerance
-                    coefficients =  obj.coefficients;
-                    return
-                end
-
-                rmse_prev = rmse;
-            end
-
-            coefficients = obj.coefficients;
-
-        end
-
-        function [y]= predict(obj,x)
-            
-            %Predict Bistatic Doppler shift(y) given Bistatic range(x)
-            y=obj.fit_function(x,obj.coefficients);
-        end
-
-        function [residual] = getResidual(obj)
-            residual = obj.calculateResidual(obj.coefficients);
-        end
-
-        function [y_estimate] = getEstimate(obj)
-            y_estimate = obj.fit_function(obj.x,obj.coefficients);
-        end
-
-        function [residual] = calculateResidual(obj,coefficients)
-            y_fit = obj.fit_function(obj.x,coefficients);
-            residual = y_fit- obj.y;
-        end
-
-        function [jacobian] =calculateJacobian(obj,x0,step)
-            %Calculate Jacobian Numerically 
-            %J_ij = d(r_i)/d(x_j)
-            
-            y0 = obj.calculateResidual(x0);
-            jacobian = [];
+                %Compute the jacobian matrix
+                J= jacobian(obj,z);
     
-            for i=size(x0,1)
-                x_  = x0;
-                x_(i) = x_(i) +step;
-
-                y_ = obj.calculateResidual(x_);
-                derivative = (y_-y0)/step;
-                jacobian=[jacobian,derivative];
-            end
-
-            jacobian = jacobian.';
+                %Compute delta ,dx =(J^T * J)^-1 * J^T * r
+                delta = (J' * J)\ J' * residual;
+                
+                %Update state parameters
+                obj.X = obj.X +delta;
+                
+                %stopping criterion
+                if norm(delta) < obj.tolerance || iteration >=obj.max_iter
+                    break;
+                end
+                
+                %increment iterations
+                iteration = iteration+1;
+               
+            end            
+            
+            GN_obj=obj;
         end
-
-        function[inverse] = calculateInverse(obj,x)
-            inverse_ = pinv((x.')*x) *(x.');
-            inverse = inverse_.';
-            disp(inverse);
-        end
-
-        function [y]  = fit_function(obj,x,coeff)
-            y = coeff(1)*x.^2 + coeff(2)*x.^2 + coeff(3);
-
-        end
-
      end
  end
         

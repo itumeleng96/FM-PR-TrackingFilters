@@ -13,7 +13,7 @@ classdef track
     end
     
     methods
-        function obj = track(trueTrack,predictedTrack,trackId,confirmation,sampleSinceLastUpdate,numberOfUpdates)
+        function obj = track(trueTrack,predictedTrack,trackId,confirmation,sampleSinceLastUpdate,numberOfUpdates,filterType)
             obj.trueTrack = trueTrack;
             obj.predictedTrack = predictedTrack;
             obj.sampleSinceLastUpdate = sampleSinceLastUpdate;
@@ -22,10 +22,17 @@ classdef track
             obj.numberOfUpdates = numberOfUpdates;
 
             %Initialize Tracker
-            dt=1;
-            KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+1;0;0;trueTrack(2,1)+1;0;0]); %Make starting point random
-            obj.trackingFilterObject = KF_object;
-
+            switch filterType
+                case 1
+                    dt=1;
+                    KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+1;0;0;trueTrack(2,1)+1;0;0]); %Make starting point random
+                    obj.trackingFilterObject = KF_object;
+                
+                otherwise
+                    dt=1;
+                    KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+1;0;0;trueTrack(2,1)+1;0;0]); %Make starting point random
+                    obj.trackingFilterObject = KF_object;
+            end
         end
         
         function obj = updateTrueTrack(obj,newTargetObservation)

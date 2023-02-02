@@ -48,7 +48,11 @@ f3.Position = [4000 10 1000 800];
 movegui(f3,'southeast');
 
 %Create MTT object
-multiTargetTracker = multiTargetTracker(2,4,30);
+confirmationThreshold=2;
+deletionThreshold=4;
+gatingThreshold=30;
+filterType=1;           %Kalman Filter 
+multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current);

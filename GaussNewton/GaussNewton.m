@@ -79,6 +79,7 @@ classdef GaussNewton
             
             X_pred = obj.X;
             GN_Obj  = obj;
+            disp(X_pred);
         end
 
         %sum of squared differences
@@ -97,7 +98,7 @@ classdef GaussNewton
         end
         %}
 
-        function [GN_obj] = update(obj,z)
+        function [X_est,GN_obj] = update(obj,z)
             iteration = 0;
             while true
                 %objective function
@@ -109,7 +110,6 @@ classdef GaussNewton
                 %Compute delta ,dx =(J^T * J)^-1 * J^T * r
                 %delta = ((J' * J)^-1) * J' * residual;
                 delta = -pinv(obj.H'*obj.H)*(obj.H'*residual);
-                
                 %Update state parameters
                 obj.X = obj.X +delta;
                 %stopping criterion
@@ -121,7 +121,7 @@ classdef GaussNewton
                 iteration = iteration+1;
                
             end            
-            
+            X_est = obj.X;
             GN_obj=obj;
         end
      end

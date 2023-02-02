@@ -28,6 +28,13 @@ classdef track
                     KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+1;0;0;trueTrack(2,1)+1;0;0]); %Make starting point random
                     obj.trackingFilterObject = KF_object;
                 
+                case 2
+                    dt=1;
+                    max_iterations=100;
+                    tolerance = 100e-6;
+                    GN_object = GaussNewton(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+1;0;0;trueTrack(2,1)+1;0;0],max_iterations,tolerance); %Make starting point random
+                    obj.trackingFilterObject = GN_object;
+                
                 otherwise
                     dt=1;
                     KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+1;0;0;trueTrack(2,1)+1;0;0]); %Make starting point random

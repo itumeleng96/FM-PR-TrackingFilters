@@ -1,5 +1,7 @@
 %function [y,EKF_object_final,X_predict_arr_,X_estimate_arr_,Centroids_arr_,ard_,cfar_] = ardPlotEKF(s1,s2,fs,fd_max,td_max,EKF_object,X_predict_arr,X_estimate_arr,Centroids_arr,index,ard,cfar)
-function [y,ard_,cfar_,tracks_,GN_object_,X_predicted_] = ardPlotGN(s1,s2,fs,fd_max,td_max,index,ard,cfar,tracks,X_predicted,GN_object)
+function [y,ard_,cfar_,tracks_,GN_object_,X_predicted_] = ardPlotGN(s1,s2,fs,fd_max,td_max,index,ard,cfar,tracks,X_predicted,GN_Object)
+
+addpath('FERS/','CFAR/','KmeansCentroids');
 
 %Parameters to allow zoom in
 xlim_upper = 0.45e-4;
@@ -74,7 +76,7 @@ drawnow
 
 %GET CFAR and PLOT
 f2=figure(2);
-[RDM] = ca_cfar(10*log10(y.'),0.5);
+[~,RDM] = ca_cfarPlot(10*log10(y.'),0.35,fs,fd_max,td_max,index,f2);
 if index==1
     cfar =RDM ;
 end
@@ -85,19 +87,6 @@ end
 
 cfar_ = cfar;
 
-imagesc(time,frequency,cfar);
-text(0,10,"Time:" + index+ "s");
-axis xy;
-colorbar;
-xlabel('Bistatic delay [s]','Fontsize',10);
-ylabel('Doppler frequency [Hz]','Fontsize',10);
-grid on;
-title('CFAR');
-disp('CFAR Plot');
-movegui(f2,'northeast');
-xlim([0 1e-4]) 
-ylim([0 200])
-drawnow
 
 %GET Centroids using Kmeans Algorithm
 [row,column] = find(RDM>0);
@@ -126,21 +115,20 @@ display('Target Centroids and EKF Prediction');
 
 %Based on the Number of Targets get the predictions
 for j=1:NumberOfTargets
-
+    disp(GN_Object.X);
     %Get Predictions
-    [X_predicted,GN_object]=GN_Object.predict();
-    GN_object_ = GN_object.update();
+    [X_predicted,GN_Object]=GN_Object.predict();
+    GN_object_ = GN_Object.update([centr(1,:);centr(2,:)]);
 end
 X_predicted_=X_predicted;
-
+disp(X_predicted);
 for k=1:NumberOfTargets
     hold on;    
     plot(time((round(tracks_(1,:,k)))),frequency(round(tracks_(2,:,k))),'^-','MarkerFaceColor','black', 'MarkerSize', 5);
-    %Plot kalman estimates
     %hold on;
     %plot(time((round(X_predicted_(1,:,k)))),frequency(round(X_predicted_(2,:,k))), 'y-o ', 'MarkerSize', 6); 
 end
-legend('Quadratic fit','Target Centroids');
+legend('Target Centroids');
 movegui(f3,'southwest');
 xlim([0 xlim_upper]) 
 ylim([ylim_lower ylim_upper])

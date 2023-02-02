@@ -70,23 +70,23 @@ classdef GaussNewton
         end
 
         %Function to predict the next state
-        function [X_pred,GN_obj] = predict(obj)
+        function [X_pred,GN_Obj] = predict(obj)
             %Calculate the predicted time state
-            
             %Update time state
             %x_k = Ax_(k-1) + Bu_(k-1) 
             obj.X= obj.A * obj.X + obj.B * obj.U;
                         
             
             X_pred = obj.X;
-            GN_obj  = obj;
+            GN_Obj  = obj;
         end
 
         %sum of squared differences
-        function [residual] = objectiveFunction(X_pred,z,obj)
-            residual = (z-obj.H*X_pred)' * (z-obj.H*X_pred);
+        function [residual] = objectiveFunction(obj,X_pred,z)
+            %residual = (z-(obj.H*X_pred))' * (z-(obj.H*X_pred));
+            residual= z-(obj.H*X_pred);
         end
-
+        %{
         function [J] =jacobian(obj)
             %J_h(i, j) = ∂h(p)/∂p_j = ∂h_i/∂p_j
 
@@ -95,23 +95,23 @@ classdef GaussNewton
             J = -obj.H./(obj.H*obj.X);
 
         end
-        
+        %}
+
         function [GN_obj] = update(obj,z)
-            
             iteration = 0;
             while true
                 %objective function
                 residual = obj.objectiveFunction(obj.X,z);
 
                 %Compute the jacobian matrix
-                J= jacobian(obj,z);
+                %J= obj.jacobian();
     
                 %Compute delta ,dx =(J^T * J)^-1 * J^T * r
-                delta = (J' * J)\ J' * residual;
+                %delta = ((J' * J)^-1) * J' * residual;
+                delta = -pinv(obj.H'*obj.H)*(obj.H'*residual);
                 
                 %Update state parameters
                 obj.X = obj.X +delta;
-                
                 %stopping criterion
                 if norm(delta) < obj.tolerance || iteration >=obj.max_iter
                     break;

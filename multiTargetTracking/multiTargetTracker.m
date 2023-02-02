@@ -6,15 +6,17 @@ classdef multiTargetTracker
         confirmationThreshold,
         deletionThreshold,
         gatingThreshold,       %Radius around the predicted measurement to eliminate other measurements
+        filterType,            %KalmanFilter:1 , GaussNewton:2
 
     end
     
     methods
-        function obj = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold)
+        function obj = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType)
             %MTT Construct an instance of this class
             obj.confirmationThreshold = confirmationThreshold;
             obj.deletionThreshold = deletionThreshold;
             obj.gatingThreshold = gatingThreshold;
+            obj.filterType = filterType;
 
         end
         
@@ -28,10 +30,10 @@ classdef multiTargetTracker
 
                 for i=1:numberOfDetections
                     if i ==1
-                        obj.tracks = [track([detections(1,i);detections(2,i)],[;],0,i,0,0)];
+                        obj.tracks = [track([detections(1,i);detections(2,i)],[;],0,i,0,0,obj.filterType)];
                     
                     else
-                        obj.tracks(end+1)=track([detections(1,i);detections(2,i)],[;],0,i,0,0);
+                        obj.tracks(end+1)=track([detections(1,i);detections(2,i)],[;],0,i,0,0,obj.filterType);
                     end
                 end
                         

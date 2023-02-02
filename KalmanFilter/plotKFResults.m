@@ -48,13 +48,11 @@ f3.Position = [4000 10 1000 800];
 movegui(f3,'southeast');
 
 %Create MTT object
-tracks =[];
-confirmationThreshold = 2;
-deletionThreshold = 4;
-gatingThreshold = 30;       %Radius around the predicted measurement to eliminate other measurements
-filterType = 1;             %Kalman Filter
-
-multiTargetTracker = multiTargetTracker(tracks,confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
+confirmationThreshold=2;
+deletionThreshold=4;
+gatingThreshold=30;
+filterType=1;           %Kalman Filter 
+multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current);

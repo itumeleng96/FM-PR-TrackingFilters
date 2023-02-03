@@ -79,6 +79,7 @@ classdef GaussNewton
             
             X_pred = obj.X;
             GN_Obj  = obj;
+            disp("Prediction");
             disp(X_pred);
         end
 
@@ -99,28 +100,33 @@ classdef GaussNewton
         %}
 
         function [X_est,GN_obj] = update(obj,z)
-            iteration = 0;
-            while true
-                %objective function
-                residual = obj.objectiveFunction(obj.X,z);
+            lambda = 0.01;
 
-                %Compute the jacobian matrix
-                %J= obj.jacobian();
-    
-                %Compute delta ,dx =(J^T * J)^-1 * J^T * r
-                %delta = ((J' * J)^-1) * J' * residual;
-                delta = -pinv(obj.H'*obj.H)*(obj.H'*residual);
-                %Update state parameters
-                obj.X = obj.X +delta;
-                %stopping criterion
-                if norm(delta) < obj.tolerance || iteration >=obj.max_iter
+            for i = 1:obj.max_iter
+                r = obj.objectiveFunction(obj.X,z);         % Compute residual
+                HtH = obj.H'*obj.H;                         % Compute approximation of inverse of Jacobian
+
+                while true
+
+                    dx = (HtH + lambda * eye(size(HtH))) \ (obj.H' * r);
+                    
+                    x_new = obj.X + dx;                                % Update state estimate
+                    r_new = z - obj.H*x_new;                           % Compute new residual
+                    if norm(r_new) < norm(r)                           % Check if iteration improved objective function
+                        obj.X = x_new;                                     % Accept new state estimate
+                        break;
+                    end
+                    lambda = lambda * 10; % Increase damping factor
+                end
+                lambda = lambda * 0.1; % Decrease damping factor
+                % Check for convergence
+                if norm(dx) < 1e-6
                     break;
                 end
-                
-                %increment iterations
-                iteration = iteration+1;
-               
-            end            
+            end 
+
+            disp("Estimation");
+            disp(obj.X);
             X_est = obj.X;
             GN_obj=obj;
         end

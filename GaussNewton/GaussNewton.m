@@ -124,9 +124,6 @@ classdef GaussNewton
                     break;
                 end
             end 
-
-            disp("Estimation");
-            disp(obj.X);
             X_est = obj.X;
             GN_obj=obj;
         end

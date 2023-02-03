@@ -57,7 +57,7 @@ classdef multiTargetTracker
                     numberOfUnassignedDetections = size(detections,2);
                     
                     for i=1:numberOfUnassignedDetections
-                        obj.tracks(end+1) = track([detections(1,i);detections(2,i)],[;],0,0,0,0);  %Still need a workaround TrackIds
+                        obj.tracks(end+1) = track([detections(1,i);detections(2,i)],[;],0,0,0,0,obj.filterType);  %Still need a workaround TrackIds
                     end
                 end
             end

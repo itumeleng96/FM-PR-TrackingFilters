@@ -2,7 +2,7 @@ clc; clear all; close all;
 addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/');
 
 system("fers ../FERS/Simulation_60_direct.fersxml");
-system("fers ../FERS/Simulation_60_echo.fersxml");
+system("fers ../FERS/Simulation_60_echo_2.fersxml");
 
 
 % h5 Import from FERS simulation

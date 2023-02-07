@@ -42,7 +42,7 @@ t = 0s and at (19012m,3197m) and height 5000m at t = 1s-->
     </transmitter>
   </platform>
 
-  <platform name="UCTRecv1">
+  <platform name="Reference_Rx">
     <motionpath>
       <positionwaypoint>
         <x>1.0</x>
@@ -65,7 +65,7 @@ t = 0s and at (19012m,3197m) and height 5000m at t = 1s-->
     </receiver>
   </platform>
 
-  <platform name="UCTRecv1">
+  <platform name="Surveilance_Rx">
     <motionpath>
       <positionwaypoint>
         <x>0.0</x>
@@ -92,17 +92,17 @@ t = 0s and at (19012m,3197m) and height 5000m at t = 1s-->
     <motionpath interpolation="cubic">
     
       <positionwaypoint>
-	    <x>8018</x>
+	    <x>4000</x>
 	    <y>8300</y>
-	    <altitude>3600</altitude>
+	    <altitude>1600</altitude>
 	    <time>0</time>
       </positionwaypoint>
       
       <positionwaypoint>
-	    <x>-15000</x>
-	    <y>-1000</y>
-	    <altitude>15600.0</altitude>
-	    <time>60</time>
+	    <x>-2000</x>
+	    <y>-4000</y>
+	    <altitude>1600.0</altitude>
+	    <time>1</time>
       </positionwaypoint>
       
     </motionpath>    
@@ -118,8 +118,4 @@ t = 0s and at (19012m,3197m) and height 5000m at t = 1s-->
       </rcs>
     </target>
   </platform>
-
-
-
-
 </simulation>

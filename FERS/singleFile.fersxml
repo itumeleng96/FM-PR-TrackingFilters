@@ -102,13 +102,13 @@
   <platform name="Target1"> <!-- Target traveling at 210m/s for x seconds -->
     <motionpath interpolation="cubic">
 	<positionwaypoint>
-        <x>55000</x>
+        <x>50000</x>
         <y>-5000</y>
         <altitude>0</altitude><!-- Starting altitude -->
         <time>0</time>
       </positionwaypoint>
       <positionwaypoint>
-        <x>66000</x>
+        <x>65000</x>
         <y>-5000</y>
         <altitude>0</altitude> <!-- End altitude -->
         <time>60</time><!-- Time length of simulation -->

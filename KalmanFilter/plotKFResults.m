@@ -3,7 +3,8 @@ addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/');
 
 system("fers ../FERS/Simulation_60_direct.fersxml");
 system("fers ../FERS/Simulation_60_echo_2.fersxml");
-
+%system("fers ../FERS/Simulation_60_Bistatic.fersxml");
+%system("fers ../FERS/singleFile.fersxml");
 
 % h5 Import from FERS simulation
 [Ino Qno scale_no] = loadfersHDF5('direct.h5');
@@ -63,11 +64,11 @@ for i = 1:simulation_time
 
     %Plot CFAR from Cell-Averaging CFAR 
     [targetClusters,RDM] = ca_cfarPlot(10*log10(y.'),0.35,fs,dopp_bins,delay,i,f2);                    
-     
+    
+    
     %Get Coordinates from CFAR using meanShift Algorithm
     [clusterCentroids] = meanShiftPlot(targetClusters,10,fs,dopp_bins,delay);
     
-    disp(clusterCentroids);
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.assignDetectionToTrack(clusterCentroids);
     multiTargetTracker = multiTargetTracker.maintainTracks();

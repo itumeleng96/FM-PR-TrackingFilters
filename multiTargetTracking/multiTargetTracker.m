@@ -64,12 +64,14 @@ classdef multiTargetTracker
         end
         function tracks = deleteTracks(obj)
             %Delete Tracks based on deletion Treshold
-            tracks =obj.tracks;
+            idx_to_delete =[];
             for i=1:max(size(obj.tracks))
                 if obj.tracks(i).sampleSinceLastUpdate > obj.deletionThreshold
-                    tracks(:,i)=[];
+                   idx_to_delete = [idx_to_delete, i];
                 end
             end
+            obj.tracks(:,idx_to_delete) = [];
+            tracks = obj.tracks;
         end
         
         function tracks = confirmTracks(obj)
@@ -116,17 +118,19 @@ classdef multiTargetTracker
             xlabel('Bistatic delay [s]','Fontsize',10);
             ylabel('Doppler frequency [Hz]','Fontsize',10);
             grid on;
-            title('Targets centroids and EKF Prediction');
-            for i=1:max(size(obj.tracks))
+            title('Targets centroids and  Prediction');
+
+            for i = 1:length(obj.tracks)
                 hold on;
-                plot(time((round(obj.tracks(i).predictedTrack(1,:)))),frequency(round(obj.tracks(i).predictedTrack(2,:))),'^-','MarkerFaceColor',	[0 0 0], 'MarkerSize', 7);
-                text(time((round(obj.tracks(i).predictedTrack(1,end)))),frequency(round(obj.tracks(i).predictedTrack(2,end))),{sprintf('T%d',i)},'VerticalAlignment','top','HorizontalAlignment','left')
+                predicted_track_idx = [min(max(floor(obj.tracks(i).predictedTrack(1,:)), 1), length(time)); 
+                                      min(max(floor(obj.tracks(i).predictedTrack(2,:)), 1), length(frequency))];
+                plot(time(predicted_track_idx(1,:)), frequency(predicted_track_idx(2,:)), '^-', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 7);
+                text(time(predicted_track_idx(1,end)), frequency(predicted_track_idx(2,end)), {sprintf('T%d',i)}, 'VerticalAlignment', 'top', 'HorizontalAlignment', 'left')
                 hold on 
-                plot(time((round(obj.tracks(i).trueTrack(1,:)))),frequency(round(obj.tracks(i).trueTrack(2,:))),'y-o','MarkerFaceColor',	[0 0 0], 'MarkerSize', 6);
-                legend('Predicted Track','TrueTrack')
+                true_track_idx = [min(max(floor(obj.tracks(i).trueTrack(1,:)), 1), length(time)); 
+                                  min(max(floor(obj.tracks(i).trueTrack(2,:)), 1), length(frequency))];
+                plot(time(true_track_idx(1,:)), frequency(true_track_idx(2,:)), 'y-o', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 6);
             end
-
-
         end
     end
     methods(Static)

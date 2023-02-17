@@ -9,7 +9,7 @@ filename = 'Recordings/Malmesbury_1.rcf';
 t_start = 100;
 t_length_Tx = 60;
 t_delay = 0;
-Fs = 200000;
+Fs = 500000;
 
 refORsur = input('Reference [0] or surveillance channel [1]: ');
 name = input('Output file name [RecordedNormalised.h5]: ','s');
@@ -50,6 +50,13 @@ if refORsur == 0
 	fprintf('Complete.\n');
     
 	signalDuration = t_length; % To allow plotting
+    L = length(ref_new);
+    Y = fftshift(fft(ref_new));
+    f = Fs*(-L/2:(L/2-1))/L;
+    plot(f,abs(Y));
+    title('Frequency Domain of the Signal');
+    xlabel('Frequency (Hz)');
+    ylabel('|Y(f)|');
 
 elseif refORsur == 1
 	%Normalise sur data

@@ -1,10 +1,12 @@
 clc; clear all; close all;
 addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/');
 
-system("fers ../FERS/Simulation_60_direct.fersxml");
-system("fers ../FERS/Simulation_60_echo_2.fersxml");
+%system("fers ../FERS/Simulation_60_direct.fersxml");
+%system("fers ../FERS/Simulation_60_echo_2.fersxml");
 %system("fers ../FERS/Simulation_60_Bistatic.fersxml");
 %system("fers ../FERS/singleFile.fersxml");
+system("fers ../FERS/scenario_1_ref.fersxml");
+system("fers ../FERS/scenario_1_surv.fersxml");
 
 % h5 Import from FERS simulation
 [Ino Qno scale_no] = loadfersHDF5('direct.h5');
@@ -31,6 +33,7 @@ simulation_time = size(I_Qmov,1)/fs ;       %Simulation time: number of data poi
 
 
 ard = [];
+rdm =[];
 
 figure('Name','2D image');
 %ARD
@@ -63,7 +66,7 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM] = ca_cfarPlot(10*log10(y.'),0.35,fs,dopp_bins,delay,i,f2);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.20,fs,dopp_bins,delay,i,f2,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
@@ -76,6 +79,7 @@ for i = 1:simulation_time
     multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM)
     
     ard = ard_;
+    rdm= rdm_;
     %Counting Variables
     initial = current+1;
     current = current + fs;

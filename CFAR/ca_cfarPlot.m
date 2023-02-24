@@ -4,7 +4,7 @@
 %G : Number of Guard cells
 %cut : the magnitiude cells of the Range Doppler map
 
-function [targetClusters,RDM] = ca_cfarPlot(RDM,rate_fa,fs,fd_max,td_max,index,f)
+function [targetClusters,RDM,rdm_] = ca_cfarPlot(RDM,rate_fa,fs,fd_max,td_max,index,f,rdm)
 %Generates a CFAR output map in the range-doppler domain
 %Firstly calculate the interference power from the average of N samples in
 %the vicinity of the CUT
@@ -48,8 +48,20 @@ Ndelay = floor(td_max*fs);                                  %number of points co
 time = 0:1/fs:Ndelay/fs;
 frequency = -fd_max:1:fd_max;
 
+
+if index==1
+    rdm = RDM_final ;
+end
+
+if index>1
+    rdm = rdm+RDM_final ;
+end
+
+rdm_ = rdm;
+
 figure(f);
-imagesc(time,frequency,RDM_final);
+imagesc(time,frequency,rdm_);
+%imagesc(time,frequency,RDM_final); no overlay of previous values
 text(0,10,"Time:" + index+ "s");
 axis xy;
 colorbar;
@@ -59,7 +71,7 @@ grid on;
 title('CFAR and Centroids');
 xlim([0 xlim_upper]) 
 ylim([ylim_lower ylim_upper])
-hold on;
+
 
 RDM = RDM_final;
 

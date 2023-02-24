@@ -1,0 +1,82 @@
+<!--
+Simulation input file with Reciever as (0,0) and height of 116m
+Transmitter as (6440m,10760m) and height of 1056m.  
+Flying Target at (-7000m,-7000m) and height 3600m at t = 0s and at (1000m,1000m) and height 15600m at t = 60s
+Antenna with sinc pattern for recievers
+-->
+
+<!DOCTYPE simulation SYSTEM "../../fers-xml.dtd">
+<simulation name="Scenario1">
+  <parameters>
+    <starttime>0</starttime>
+    <endtime>60</endtime>
+    <rate>200000</rate>
+    <adc_bits>16</adc_bits>
+    <interprate>1000</interprate>
+    <oversample>1</oversample>
+    <export binary="true" csvbinary="false" xml="false"/>
+  </parameters>
+
+  <pulse name="pulse1" type="file" filename="../Waveform/direct_waveform.h5">
+    <power>10e3</power>
+    <carrier>89e6</carrier> <!-- VHF Band -->
+  </pulse>
+
+  <timing name="clock">
+    <frequency>89e6</frequency>
+  </timing>
+   
+  <antenna name="YagiAntenna" pattern="sinc">
+    <efficiency>1</efficiency> <!-- Use the matlab "AntennaBeamCalculator" script to modify this -->
+    <alpha>5.2481</alpha><!-- 7.2 dBi -->
+    <beta>2</beta>
+    <gamma>3.6</gamma>
+  </antenna>
+
+  <antenna name="isotropic" pattern="isotropic">
+  </antenna>
+
+  <platform name="Transmitter Tower">
+    <motionpath>
+      <positionwaypoint>
+        <x>6440</x>
+        <y>10760</y>
+        <altitude>1056</altitude>
+        <time>0</time>
+      </positionwaypoint>
+    </motionpath>
+    <fixedrotation>
+      <startazimuth>0.0</startazimuth>
+      <startelevation>0</startelevation>
+      <azimuthrate>0</azimuthrate>
+      <elevationrate>0</elevationrate>
+    </fixedrotation>
+    <transmitter name="Const" type="continuous" antenna="isotropic" pulse="pulse1" timing="clock">      
+      <prf>0.016</prf> <!-- make this 0.1 for a 10s simulation-->
+    </transmitter>
+  </platform>
+
+  <platform name="Reciever 1">
+    <motionpath>
+      <positionwaypoint>
+        <x>0.0</x>
+        <y>0.0</y>
+        <altitude>1000.0</altitude>
+        <time>0</time>
+      </positionwaypoint>
+    </motionpath>
+    <fixedrotation>
+      <startazimuth>0</startazimuth>
+      <startelevation>0</startelevation>
+      <azimuthrate>0</azimuthrate>
+      <elevationrate>0</elevationrate>
+    </fixedrotation>
+    <receiver name="direct" type="continuous" antenna="YagiAntenna" pulse="pulse1" timing="clock">      
+      <window_skip>0</window_skip>
+      <window_length>60</window_length> <!-- make this 10 for a 10s simulation--> 
+      <prf>0.016</prf> <!-- make this 0.1 for a 10s simulation-->
+      <noise_temp>100</noise_temp>
+    </receiver>
+  </platform>
+
+</simulation>

@@ -2,10 +2,11 @@
 Simulation input file with Reciever as (0,0) and height of 116m
 Transmitter as (6440m,10760m) and height of 1056m.  
 Flying Target at (-8000m,-8000m) and height 3600m at t = 0s and at (1000m,1000m) and height 15600m at t = 60s
+Stationery target at (100,100) and height of 3600 near the reciever
 -->
 
 <!DOCTYPE simulation SYSTEM "../../fers-xml.dtd">
-<simulation name="Scenario4">
+<simulation name="Scenario5">
   <parameters>
     <starttime>0</starttime>
     <endtime>60</endtime>
@@ -28,7 +29,7 @@ Flying Target at (-8000m,-8000m) and height 3600m at t = 0s and at (1000m,1000m)
   <antenna name="isotropic" pattern="isotropic">
   </antenna>
 
-  <platform name="TransmitterTower">
+  <platform name="Transmitter Tower">
     <motionpath>
       <positionwaypoint>
         <x>6440</x>
@@ -48,7 +49,7 @@ Flying Target at (-8000m,-8000m) and height 3600m at t = 0s and at (1000m,1000m)
     </transmitter>
   </platform>
 
-  <platform name="Reciever1">
+  <platform name="Reciever 1">
     <motionpath>
       <positionwaypoint>
         <x>0.0</x>

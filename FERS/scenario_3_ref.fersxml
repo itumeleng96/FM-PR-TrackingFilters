@@ -6,7 +6,7 @@ Antenna with sinc pattern for recievers
 -->
 
 <!DOCTYPE simulation SYSTEM "../../fers-xml.dtd">
-<simulation name="Scenario1">
+<simulation name="Scenario3">
   <parameters>
     <starttime>0</starttime>
     <endtime>60</endtime>
@@ -27,7 +27,7 @@ Antenna with sinc pattern for recievers
   </timing>
    
   <antenna name="YagiAntenna" pattern="sinc">
-    <efficiency>1</efficiency> <!-- Use the matlab "AntennaBeamCalculator" script to modify this -->
+    <efficiency>1</efficiency> 
     <alpha>5.2481</alpha><!-- 7.2 dBi -->
     <beta>2</beta>
     <gamma>3.6</gamma>

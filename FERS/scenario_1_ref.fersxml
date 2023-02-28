@@ -1,12 +1,12 @@
 <!--
 Simulation input file with Reciever as (0,0) and height of 116m
 Transmitter as (6440m,10760m) and height of 1056m.  
-Flying Target at (-7000m,-7000m) and height 3600m at t = 0s and at (1000m,1000m) and height 15600m at t = 60s
+Flying Target at (-8000m,-8000m) and height 3600m at t = 0s and at (1000m,1000m) and height 15600m at t = 60s
 Stationery target at (-10000,-10000)
 -->
 
 <!DOCTYPE simulation SYSTEM "../../fers-xml.dtd">
-<simulation name="Scenario1">
+<simulation name="Scenario5">
   <parameters>
     <starttime>0</starttime>
     <endtime>60</endtime>

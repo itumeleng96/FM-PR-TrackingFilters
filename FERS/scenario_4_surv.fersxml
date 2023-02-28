@@ -1,5 +1,5 @@
 <!DOCTYPE simulation SYSTEM "../../fers-xml.dtd">
-<simulation name="Scenario3">
+<simulation name="Scenario1">
   <parameters>
     <starttime>0</starttime>
     <endtime>60</endtime>
@@ -22,14 +22,7 @@
   <antenna name="isotropic" pattern="isotropic">
   </antenna>
 
-  <antenna name="YagiAntenna" pattern="sinc">
-    <efficiency>1</efficiency>
-    <alpha>5.2481</alpha><!-- 7.2 dBi -->
-    <beta>2</beta>
-    <gamma>3.6</gamma>
-  </antenna>
-
-  <platform name="Transmitter Tower">
+  <platform name="TransmitterTower">
     <motionpath>
       <positionwaypoint>
         <x>6440</x>
@@ -49,7 +42,7 @@
     </transmitter>
   </platform>
 
-  <platform name="Reciever 1">
+  <platform name="Reciever1">
     <motionpath>
       <positionwaypoint>
         <x>0.0</x>
@@ -64,16 +57,15 @@
       <azimuthrate>0</azimuthrate>
       <elevationrate>0</elevationrate>
     </fixedrotation>
-    <receiver name="echo" type="continuous" antenna="YagiAntenna" pulse="pulse1" timing="clock">      
+    <receiver name="echo" type="continuous" antenna="isotropic" pulse="pulse1" timing="clock">      
       <window_skip>0</window_skip>
       <window_length>60</window_length> <!-- make this 10 for a 10s simulation--> 
       <prf>0.016</prf> <!-- make this 0.1 for a 10s simulation-->
       <noise_temp>100</noise_temp>
     </receiver>
   </platform>
- 
 
- <platform name="aeroplane">
+  <platform name="aeroplane">
     <motionpath interpolation="cubic">
     
       <positionwaypoint>
@@ -105,4 +97,50 @@
     </target>
   </platform>
 
+  <platform name="aeroplane2">
+      <motionpath interpolation="cubic">
+      
+        <positionwaypoint>
+        <x>-16000</x>
+        <y>-16000</y>
+        <altitude>3600</altitude>
+        <time>0</time>
+        </positionwaypoint>
+        
+        <positionwaypoint>
+        <x>-13000</x>
+        <y>-13000</y>
+        <altitude>15600.0</altitude>
+        <time>20</time>
+        </positionwaypoint>
+        
+        <positionwaypoint>
+        <x>-9000</x>
+        <y>-9000</y>
+        <altitude>15600.0</altitude>
+        <time>40</time>
+        </positionwaypoint>
+
+        <positionwaypoint>
+        <x>-3000</x>
+        <y>-3000</y>
+        <altitude>15600.0</altitude>
+        <time>60</time>
+        </positionwaypoint>
+
+        
+      </motionpath>  
+    
+      <fixedrotation>
+        <startazimuth>0.0</startazimuth>
+        <startelevation>0.0</startelevation>
+        <azimuthrate>0</azimuthrate>
+        <elevationrate>0</elevationrate>
+      </fixedrotation>
+      <target name="wings">
+        <rcs type="isotropic">
+          <value>500</value>
+        </rcs>
+      </target>
+    </platform>
 </simulation>

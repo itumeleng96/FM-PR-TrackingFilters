@@ -10,6 +10,8 @@
 <li>The Extended Kalman Filter In Progress (Non-linear problems)</li>
 <li>The Recursive Gauss Newton Filter - Still to be implemented</li>
 <li>The Polynomial Filters still to be implemented(Uses Least Squares Method as opposed to the other filters)</li>
+<li>The Alpha-Beta Filters still to be implemented</li>
+
 
 #### Other algorithms implemented
 <li>Constant False Alarm Rate Filter </li>

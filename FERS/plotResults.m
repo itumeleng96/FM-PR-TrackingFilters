@@ -1,5 +1,5 @@
 clc; clear all; close all;
-addpath('../FERS/','../CFAR/','../KmeansCentroids','../SuppressionFunction/');
+addpath('../FERS/','../CFAR/','../KmeansCentroids','../DPI_Suppression/');
 
 %system("fers ../FERS/Simulation_60_direct.fersxml");
 %system("fers ../FERS/Simulation_60_echo_2.fersxml");

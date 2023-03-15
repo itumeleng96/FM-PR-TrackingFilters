@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--Simulation using actual postision in UTM, for SKA core site with RSN1-visserskloof and Prieska Tx 94MHz or Canarvon 95.7MHz-->
-<!--Simulation runs for 3 minutes and contains 2 targets-->
 <!--Run 'xmllint --format --recover CleanSingleTarget.fersxml --output CleanSingleTarget.fersxml' to indent file-->
 <!DOCTYPE simulation SYSTEM "../../fers-xml.dtd">
 <simulation name="SKA_RSN1">
+  
   <parameters>
     <starttime>0</starttime>
     <endtime>60</endtime>
@@ -14,33 +14,39 @@
     <oversample>1</oversample>
     <export binary="true" csv="false" xml="false"/>
   </parameters>
-  <pulse name="TxWaveform" type="file" filename="waveform.h5">
+
+  <pulse name="TxWaveform" type="file" filename="../Waveform/waveform.h5">
     <power>14760</power> <!-- 9 kW * 2.15 dB (to create EIRP of dipole type pattern) -->
     <carrier>94e6</carrier> <!-- Prieska Tx -> OFM -->
   </pulse>
+  
   <timing name="TxClock">
     <frequency>200000</frequency>
-      </timing>
- <timing name="RxClock">
+  </timing>
+  
+  <timing name="RxClock">
     <frequency>200000</frequency>
     <random_freq_offset>0.01</random_freq_offset><!-- Approximately 50 ppb, typical for good OCXO -->
   </timing>
+  
   <antenna name="RxYagiAntenna" pattern="sinc">
     <efficiency>1</efficiency> <!-- Use the matlab "AntennaBeamCalculator" script to modify this -->
     <alpha>5.2481</alpha><!-- 7.2 dBi -->
     <beta>2</beta>
     <gamma>3.6</gamma>
   </antenna>
+
   <antenna name="TxIsoAntenna" pattern="isotropic">
     <efficiency>1</efficiency>
   </antenna>
+  
   <!-- TxRxBaseLine is 145 km for VisserskloofRx to PrieskaTx-->
   <platform name="PrieskaTx">
     <motionpath interpolation="static">
       <positionwaypoint>
-        <x>0</x> <!-- Setting visserskloof Rx as the 0,0 point -->
-        <y>0</y>
-        <altitude>0</altitude>
+        <x>6440</x> <!-- Setting visserskloof Rx as the 0,0 point -->
+        <y>10760</y>
+        <altitude>1000</altitude>
         <time>0</time>
       </positionwaypoint>
     </motionpath>
@@ -55,13 +61,14 @@
     </transmitter>
   </platform>
 	<!-- Visserskloof 1070 m high at the center of the environment -->
+  
   <platform name="RefRx">
     <motionpath interpolation="static">
       <positionwaypoint>
         <x>0</x>
-        <y>50000</y>
-        <altitude>0</altitude>
-	<time>0</time>
+        <y>0</y>
+        <altitude>1000</altitude>
+	  <time>0</time>
       </positionwaypoint>
     </motionpath>
     <fixedrotation>
@@ -77,12 +84,13 @@
       <noise_temp>100</noise_temp><!--4 dB NF as per the minimal frontend -->
     </receiver>
   </platform>
+
   <platform name="SurvRx">
     <motionpath interpolation="static">
       <positionwaypoint>
         <x>0</x>
-        <y>50001</y>
-        <altitude>0</altitude> <!-- 1m below reference -->
+        <y>1</y>
+        <altitude>1000</altitude> <!-- 1m below reference -->
         <time>0</time>
       </positionwaypoint>
     </motionpath>
@@ -92,53 +100,30 @@
       <azimuthrate>0</azimuthrate>
       <elevationrate>0</elevationrate>
     </fixedrotation>
-    <receiver name="echo" type="continuous" antenna="RxYagiAntenna" timing="RxClock">
+    <receiver name="echo" type="continuous" antenna="RxYagiAntenna" timing="RxClock" ignoredirectsignals="true">
       <prf>0.0016</prf>
       <window_skip>0</window_skip>
       <window_length>60</window_length> <!-- Time length of simulation -->
       <noise_temp>100</noise_temp> <!-- 4 dB NF as per the minimal frontend -->
+      
     </receiver>
   </platform>
-  <platform name="Target1"> <!-- Target traveling at 210m/s for x seconds -->
+
+
+
+  <platform name="Target1"> <!-- Target traveling at 220m/s for x seconds -->
     <motionpath interpolation="cubic">
 	<positionwaypoint>
-        <x>55000</x>
-        <y>-5000</y>
-        <altitude>0</altitude><!-- Starting altitude -->
+        <x>10000</x>
+        <y>12000</y>
+        <altitude>3600</altitude><!-- Starting altitude -->
         <time>0</time>
       </positionwaypoint>
       <positionwaypoint>
-        <x>65000</x>
-        <y>-5000</y>
-        <altitude>0</altitude> <!-- End altitude -->
+        <x>-2000</x>
+        <y>-2000</y>
+        <altitude>1600</altitude> <!-- End altitude -->
         <time>60</time><!-- Time length of simulation -->
-      </positionwaypoint>
-    </motionpath>
-    <fixedrotation>
-      <startazimuth>0.0</startazimuth>
-      <startelevation>0.0</startelevation>
-      <azimuthrate>0</azimuthrate>
-      <elevationrate>0</elevationrate>
-    </fixedrotation>
-    <target name="Target1">
-      <rcs type="isotropic">
-        <value>1000</value><!-- Target RCS in square meters -->
-      </rcs>
-    </target>
-  </platform>
-  <platform name="Target2"> <!-- Target traveling at 220m/s for x seconds -->
-    <motionpath interpolation="cubic">
-	<positionwaypoint>
-        <x>50000</x>
-        <y>-25000</y>
-        <altitude>0</altitude><!-- Starting altitude -->
-        <time>0</time>
-      </positionwaypoint>
-      <positionwaypoint>
-        <x>20000</x>
-        <y>-40000</y>
-        <altitude>0</altitude> <!-- End altitude -->
-        <time>30</time><!-- Time length of simulation -->
       </positionwaypoint>
     </motionpath>
     <fixedrotation>
@@ -149,7 +134,7 @@
     </fixedrotation>
     <target name="Target2">
       <rcs type="isotropic">
-        <value>500</value><!-- Target RCS in square meters -->
+        <value>100</value><!-- Target RCS in square meters -->
       </rcs>
     </target>
   </platform>

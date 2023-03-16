@@ -100,7 +100,7 @@ classdef kalmanFilter
 
             K = (obj.P * obj.H.') * S^(-1);
             
-            obj.X = round(obj.X + K * (z-obj.H * obj.X));
+            obj.X = obj.X + K * (z-obj.H * obj.X);
                         
             I = eye(size(obj.H,2));
 

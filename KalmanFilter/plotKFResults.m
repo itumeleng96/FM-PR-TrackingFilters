@@ -1,12 +1,12 @@
 clc; clear all; close all;
-addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/');
+addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','../DPI_Suppression');
 
 %system("fers ../FERS/Simulation_60_direct.fersxml");
 %system("fers ../FERS/Simulation_60_echo_2.fersxml");
 %system("fers ../FERS/Simulation_60_Bistatic.fersxml");
-system("fers ../FERS/singleFile.fersxml");
-%system("fers ../FERS/scenario_5_ref.fersxml");
-%system("fers ../FERS/scenario_5_surv.fersxml");
+%system("fers ../FERS/singleFile.fersxml");
+system("fers ../FERS/scenario_1_ref.fersxml");
+system("fers ../FERS/scenario_1_surv.fersxml");
 
 % h5 Import from FERS simulation
 [Ino Qno scale_no] = loadfersHDF5('direct.h5');
@@ -18,13 +18,14 @@ I_Qmov = I_Qmov.*scale_mov;
 I_Qno = Ino + j*Qno;
 I_Qno = I_Qno.*scale_no;
 
-%I_Qmov=I_Qmov-I_Qno;
+I_Qmov=I_Qmov-I_Qno;
 
 
 fs = 200000;
 dopp_bins = 200;
 delay = 233e-6;
 
+%{
 proc = struct('cancellationMaxRange_m', 13850, ...
               'cancellationMaxDoppler_Hz', 4, ...
               'TxToRefRxDistance_m', 13734, ...
@@ -35,7 +36,7 @@ proc = struct('cancellationMaxRange_m', 13850, ...
               'initialAlpha', 0);
 
 I_Qmov = procCGLS(I_Qno, I_Qmov, proc);
-
+%}
 s1 = I_Qmov;
 s2 = I_Qno;
 
@@ -78,7 +79,7 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.20,fs,dopp_bins,delay,i,f2,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.30,fs,dopp_bins,delay,i,f2,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
@@ -96,3 +97,16 @@ for i = 1:simulation_time
     initial = current+1;
     current = current + fs;
 end
+
+
+%CFAR
+f4=figure(4);
+f4.Position = [4000 10 1000 800]; 
+movegui(f4,'northeast');
+
+%Multi-Target Tracking 
+f5=figure(5);
+f5.Position = [4000 10 1000 800]; 
+movegui(f5,'southeast');
+
+multiTargetTracker.plotRMSE(f4,f5,true,true,simulation_time);

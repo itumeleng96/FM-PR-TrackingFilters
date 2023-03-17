@@ -76,8 +76,11 @@ ylim([ylim_lower ylim_upper])
 RDM = RDM_final;
 
 [row,column] = find(RDM>0);
-row= row.';
-column = column.';
+
+%Get target clusters as Bistatic Range and Doppler values
+row= frequency(row.');
+column = time(column.');
 
 targetClusters = [column; row];
+
 end

@@ -86,10 +86,11 @@ for i = 1:simulation_time
     [clusterCentroids] = meanShiftPlot(targetClusters,10,fs,dopp_bins,delay);
     
     %Plot tracks from Tracker - Call Multi-target Tracker
-    multiTargetTracker = multiTargetTracker.assignDetectionToTrack(clusterCentroids);
+    multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
     multiTargetTracker = multiTargetTracker.maintainTracks();
-    multiTargetTracker = multiTargetTracker.trackingFilter();
+    multiTargetTracker = multiTargetTracker.predictionStage();
     multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM)
+    multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
     
     ard = ard_;
     rdm= rdm_;

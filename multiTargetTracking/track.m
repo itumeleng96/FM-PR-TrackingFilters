@@ -32,7 +32,7 @@ classdef track
                     dt=1;
                     max_iterations=10;
                     tolerance = 100e-6;
-                    GN_object = GaussNewton(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+1;0;0;trueTrack(2,1)+1;0;0],max_iterations,tolerance); %Make starting point random
+                    GN_object = GaussNewton(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+0.00003;0;0;trueTrack(2,1)+0.00003;0;0],max_iterations,tolerance); %Make starting point random
                     obj.trackingFilterObject = GN_object;
                 
                 otherwise

@@ -7,6 +7,7 @@ classdef multiTargetTracker
         deletionThreshold,
         gatingThreshold,       %Radius around the predicted measurement to eliminate other measurements
         filterType,            %KalmanFilter:1 , GaussNewton:2
+        newtracksCreated,
 
     end
     
@@ -17,10 +18,11 @@ classdef multiTargetTracker
             obj.deletionThreshold = deletionThreshold;
             obj.gatingThreshold = gatingThreshold;
             obj.filterType = filterType;
+            obj.newtracksCreated = 0;
 
         end
         
-        function obj = assignDetectionToTrack(obj,detections)
+        function obj = createNewTracks(obj,detections)
             %This method assigns Detections to the nearest Track, else
             numberOfDetections=size(detections,2);
             if isempty(obj.tracks)
@@ -30,18 +32,22 @@ classdef multiTargetTracker
                 for i=1:numberOfDetections
                     if i ==1
                         obj.tracks = [track([detections(1,i);detections(2,i)],[;],0,i,0,0,obj.filterType)];
+                        obj.newtracksCreated = 1;
                     
                     else
                         obj.tracks(end+1)=track([detections(1,i);detections(2,i)],[;],0,i,0,0,obj.filterType);
-                    end
-                end
-                        
-            else
-                disp("Adding Detections");
-                %Assign Tracks to Detection using GNN and update filter with new measurements
-                %Get qualifying detections within radius
-                numOfTracks = length(obj.tracks);
+                        obj.newtracksCreated = 1;
 
+                    end
+                end            
+            end
+        end
+        function obj = updateStage(obj,detections)
+            disp("Update Tracks and Add  new tracks if there are tracks already");
+            %Assign Tracks to Detection using GNN and update filter with new measurements
+            %Get qualifying detections within radius
+            if ~isempty(obj.tracks) && ~obj.newtracksCreated
+                numOfTracks = length(obj.tracks);
                 for i=1:numOfTracks
                     predictedCoodinate = obj.tracks(i).predictedTrack(:,end);
                     detectionsInRadius = obj.pruneDetections(detections,predictedCoodinate,obj.gatingThreshold);
@@ -60,7 +66,10 @@ classdef multiTargetTracker
                     end
                 end
             end
+            obj.newtracksCreated = 0;
+
         end
+
         function tracks = deleteTracks(obj)
             %Delete Tracks based on deletion Treshold
             idx_to_delete =[];
@@ -91,9 +100,9 @@ classdef multiTargetTracker
 
         end
 
-        function obj = trackingFilter(obj)
+        function obj = predictionStage(obj)
             %call tracking filter on all tracks
-            disp("Tracking filter");
+            disp("predict For created tracks");
             numberOfTracks = max(size(obj.tracks));
 
             for i=1:numberOfTracks
@@ -140,7 +149,7 @@ classdef multiTargetTracker
                     trueTrack = obj.tracks(i).trueTrack;
                     predictedTrack_interp = interp1(predictedTrack(1,:), time);
                     trueTrack_interp = interp1(trueTrack(1,:), time);
-                    doppler_rms(i,:) = predictedTrack_interp - trueTrack_interp;
+                    doppler_rms(i,:) = abs(predictedTrack_interp - trueTrack_interp);
                 end
                 
                 plot(time, doppler_rms);
@@ -159,7 +168,7 @@ classdef multiTargetTracker
                     trueTrack = obj.tracks(i).trueTrack;
                     predictedTrack_interp = interp1(predictedTrack(2,:), time);
                     trueTrack_interp = interp1(trueTrack(2,:), time);
-                    range_rms(i,:) = predictedTrack_interp - trueTrack_interp;
+                    range_rms(i,:) = abs(predictedTrack_interp - trueTrack_interp);
                 end
         
                 plot(time, range_rms);

@@ -52,12 +52,13 @@ classdef GaussNewton
                      0,0,0,1,0,0];
 
             %Process Noise Covariance
-            obj.Q = [0, 0, 0, 0,0,0;
-                     0, 0, 0, 0,0,0;
-                     0, 0, 0, 0,0,0;
-                     0, 0, 0, 0,0,0;
-                     0, 0, 0, 0,0,0;
-                     0, 0, 0, 0,0,0];
+            %Process Noise Covariance
+            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2, 0,0,0;
+                     (dt^3)/2, dt^2, dt, 0,0,0;
+                     (dt^2)/2, dt, 1, 0,0,0;
+                     0, 0, 0, (dt^4)/4, (dt^3)/2, (dt^2)/2;
+                     0, 0, 0, (dt^3)/2, dt^2, dt;
+                     0, 0, 0, (dt^2)/2, dt,1].*std_acc^2;
 
             
             %Initial Measurement Noise Covariance
@@ -73,14 +74,17 @@ classdef GaussNewton
         function [X_pred,GN_Obj] = predict(obj)
             %Calculate the predicted time state
             %Update time state
-            %x_k = Ax_(k-1) + Bu_(k-1) 
-            obj.X= obj.A * obj.X + obj.B * obj.U;
-                        
-            
+            %x_k = Ax_(k-1) + Bu_(k-1)
+            obj.X = obj.A * obj.X + obj.B * obj.U;
+        
+            % Update the covariance matrix based on process noise
+            obj.P = obj.A * obj.P * obj.A' + obj.Q;
+        
             X_pred = obj.X;
             GN_Obj  = obj;
             disp("Prediction");
             disp(X_pred);
+
         end
 
         %sum of squared differences
@@ -100,34 +104,40 @@ classdef GaussNewton
         %}
 
         function [X_est,GN_obj] = update(obj,z)
-            lambda = 0.01;
+
+            lambda = 0.1;
 
             for i = 1:obj.max_iter
-                r = obj.objectiveFunction(obj.X,z);         % Compute residual
-                HtH = obj.H'*obj.H;                         % Compute approximation of inverse of Jacobian
-
+                r = obj.objectiveFunction(obj.X, z);  % Compute residual
+                HtH = obj.H' * obj.H;  % Compute approximation of inverse of Jacobian
+        
                 while true
-
+        
                     dx = (HtH + lambda * eye(size(HtH))) \ (obj.H' * r);
-                    
-                    x_new = obj.X + dx;                                % Update state estimate
-                    r_new = z - obj.H*x_new;                           % Compute new residual
-                    if norm(r_new) < norm(r)                           % Check if iteration improved objective function
-                        obj.X = x_new;                                     % Accept new state estimate
+        
+                    % Update state estimate and covariance matrix
+                    x_new = obj.X + dx;
+                    P_new = obj.A * obj.P * obj.A' + obj.Q;
+                    K = P_new * obj.H' / (obj.H * P_new * obj.H' + obj.R);
+                    obj.X = x_new + K * (z - obj.H * x_new);
+                    obj.P = (eye(size(obj.A, 2)) - K * obj.H) * P_new;
+        
+                    r_new = z - obj.H * obj.X;  % Compute new residual
+                    if norm(r_new) < norm(r)  % Check if iteration improved objective function
                         break;
                     end
-                    lambda = lambda * 10; % Increase damping factor
+                    lambda = lambda * 10;  % Increase damping factor
                 end
-                lambda = lambda * 0.1; % Decrease damping factor
+                lambda = lambda * 0.1;  % Decrease damping factor
                 % Check for convergence
-                if norm(dx) < 1e-6
+                if norm(dx) < obj.tolerance
                     break;
                 end
-            end 
+            end
             X_est = obj.X;
-            GN_obj=obj;
+            GN_obj = obj;
         end
-     end
+    end
  end
         
     

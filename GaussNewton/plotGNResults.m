@@ -1,9 +1,8 @@
 clc; clear all; close all;
 addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/');
 
-system("fers ../FERS/Simulation_60_direct.fersxml");
-system("fers ../FERS/Simulation_60_echo_2.fersxml");
-
+system("fers ../FERS/scenario_1_ref.fersxml");
+system("fers ../FERS/scenario_1_surv.fersxml");
 
 % h5 Import from FERS simulation
 [Ino Qno scale_no] = loadfersHDF5('direct.h5');
@@ -71,10 +70,11 @@ for i = 1:simulation_time
     
     disp(clusterCentroids);
     %Plot tracks from Tracker - Call Multi-target Tracker
-    multiTargetTracker = multiTargetTracker.assignDetectionToTrack(clusterCentroids);
+    multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
     multiTargetTracker = multiTargetTracker.maintainTracks();
-    multiTargetTracker = multiTargetTracker.trackingFilter();
+    multiTargetTracker = multiTargetTracker.predictionStage();
     multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM)
+    multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
     
     ard = ard_;
     rdm = rdm_;
@@ -82,3 +82,14 @@ for i = 1:simulation_time
     initial = current+1;
     current = current + fs;
 end
+
+f4=figure(4);
+f4.Position = [4000 10 1000 800]; 
+movegui(f4,'northeast');
+
+%Multi-Target Tracking 
+f5=figure(5);
+f5.Position = [4000 10 1000 800]; 
+movegui(f5,'southeast');
+
+multiTargetTracker.plotRMSE(f4,f5,true,true,simulation_time);

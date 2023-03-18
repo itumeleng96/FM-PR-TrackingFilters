@@ -49,20 +49,14 @@ classdef kalmanFilter
                      0,0,0,1,0,0];
 
             %Process Noise Covariance
-            obj.Q = [0, 0, 0, 0,0,0;
-                     0, 0, 0, 0,0,0;
-                     0, 0, 0, 0,0,0;
-                     0, 0, 0, 0,0,0;
-                     0, 0, 0, 0,0,0;
-                     0, 0, 0, 0,0,0];
+            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2, 0,0,0;
+                     (dt^3)/2, dt^2, dt, 0,0,0;
+                     (dt^2)/2, dt, 1, 0,0,0;
+                     0, 0, 0, (dt^4)/4, (dt^3)/2, (dt^2)/2;
+                     0, 0, 0, (dt^3)/2, dt^2, dt;
+                     0, 0, 0, (dt^2)/2, dt,1].*std_acc^2;
 
-            %{
-            obj.Q = [(dt^4)/4  , 0, (dt^3)/2, 0;
-                 0, (dt^4)/4, 0, (dt^3)/2;
-                 (dt^3)/2, 0, dt^2, 0;
-                 0, (dt^3)/2, 0, dt^2] .*std_acc^2;
-
-            %}
+            
             %Initial Measurement Noise Covariance
             obj.R = [x_std_meas^2,0;
                      0,y_std_meas^2];

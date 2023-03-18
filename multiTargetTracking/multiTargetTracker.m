@@ -149,7 +149,8 @@ classdef multiTargetTracker
                     trueTrack = obj.tracks(i).trueTrack;
                     predictedTrack_interp = interp1(predictedTrack(1,:), time);
                     trueTrack_interp = interp1(trueTrack(1,:), time);
-                    doppler_rms(i,:) = abs(predictedTrack_interp - trueTrack_interp);
+                    doppler_rms(i,:) = mean((predictedTrack_interp - trueTrack_interp).^2,1);
+                    disp(doppler_rms(i,:));
                 end
                 
                 plot(time, doppler_rms);
@@ -168,7 +169,8 @@ classdef multiTargetTracker
                     trueTrack = obj.tracks(i).trueTrack;
                     predictedTrack_interp = interp1(predictedTrack(2,:), time);
                     trueTrack_interp = interp1(trueTrack(2,:), time);
-                    range_rms(i,:) = abs(predictedTrack_interp - trueTrack_interp);
+                    range_rms(i,:) = mean((predictedTrack_interp - trueTrack_interp).^2,1);
+
                 end
         
                 plot(time, range_rms);

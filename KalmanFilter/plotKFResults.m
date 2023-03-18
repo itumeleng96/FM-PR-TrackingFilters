@@ -4,9 +4,9 @@ addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','
 %system("fers ../FERS/Simulation_60_direct.fersxml");
 %system("fers ../FERS/Simulation_60_echo_2.fersxml");
 %system("fers ../FERS/Simulation_60_Bistatic.fersxml");
-%system("fers ../FERS/singleFile.fersxml");
-system("fers ../FERS/scenario_1_ref.fersxml");
-system("fers ../FERS/scenario_1_surv.fersxml");
+system("fers ../FERS/singleFile.fersxml");
+%system("fers ../FERS/scenario_1_ref.fersxml");
+%system("fers ../FERS/scenario_1_surv.fersxml");
 
 % h5 Import from FERS simulation
 [Ino Qno scale_no] = loadfersHDF5('direct.h5');
@@ -18,14 +18,14 @@ I_Qmov = I_Qmov.*scale_mov;
 I_Qno = Ino + j*Qno;
 I_Qno = I_Qno.*scale_no;
 
-I_Qmov=I_Qmov-I_Qno;
+%I_Qmov=I_Qmov-I_Qno;
 
 
 fs = 200000;
 dopp_bins = 200;
 delay = 233e-6;
 
-%{
+
 proc = struct('cancellationMaxRange_m', 13850, ...
               'cancellationMaxDoppler_Hz', 4, ...
               'TxToRefRxDistance_m', 13734, ...
@@ -36,7 +36,7 @@ proc = struct('cancellationMaxRange_m', 13850, ...
               'initialAlpha', 0);
 
 I_Qmov = procCGLS(I_Qno, I_Qmov, proc);
-%}
+
 s1 = I_Qmov;
 s2 = I_Qno;
 

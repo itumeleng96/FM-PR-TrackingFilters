@@ -154,8 +154,8 @@ classdef multiTargetTracker
                 end
                 
                 plot(time, doppler_rms);
-                xlabel('Time');
-                ylabel('Doppler RMS Error');
+                xlabel('Time(s)');
+                ylabel('Doppler RMS Error(Hz)');
                 title('Doppler RMS Error vs Time');
                 legend('Track 1','Track 2','Track 3','Track 4','Track 5','Track 6','Track 7','Track 8','Track 9','Track 10');
             end 
@@ -174,8 +174,8 @@ classdef multiTargetTracker
                 end
         
                 plot(time, range_rms);
-                xlabel('Time');
-                ylabel('Range RMS Error');
+                xlabel('Time(s)');
+                ylabel('Range RMS Error(m)');
                 title('Range RMS Error vs Time');
                 legend('Track 1','Track 2','Track 3','Track 4','Track 5','Track 6','Track 7','Track 8','Track 9','Track 10');
             end

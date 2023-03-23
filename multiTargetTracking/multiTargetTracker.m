@@ -150,7 +150,6 @@ classdef multiTargetTracker
                     predictedTrack_interp = interp1(predictedTrack(1,:), time);
                     trueTrack_interp = interp1(trueTrack(1,:), time);
                     doppler_rms(i,:) = sqrt(mean((predictedTrack_interp - trueTrack_interp).^2,1));
-                    disp(doppler_rms(i,:));
                 end
                 
                 plot(time, doppler_rms);

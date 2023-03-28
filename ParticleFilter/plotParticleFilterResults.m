@@ -73,7 +73,9 @@ for i = 1:simulation_time
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
     multiTargetTracker = multiTargetTracker.maintainTracks();
     multiTargetTracker = multiTargetTracker.predictionStage();
-    
+    multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM)
+    multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
+
     
     ard = ard_;
     rdm= rdm_;

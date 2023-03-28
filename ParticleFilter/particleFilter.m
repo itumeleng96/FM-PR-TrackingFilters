@@ -1,7 +1,7 @@
 classdef particleFilter
 
     properties
-        dt,U,X,A,B,H,Q,R,P,coeff,measured_x,measured_y,particles;
+        dt,U,X,A,B,H,Q,R,P,coeff,measured_x,measured_y,particles,weights;
     end
     
     methods
@@ -23,7 +23,9 @@ classdef particleFilter
            %Initial State of the particles
             %Create Gaussian or uniformly distributed particles on Initialization
             obj.X= [0;0;0;0;0;0];
-            obj.particles = createGaussianParticles(initialCentroid,[10,10],N);
+            obj.particles = createGaussianParticles(initialCentroid,[1,10],N);
+
+            obj.weights = ones(N,1)/N;
 
             %State transition matrix
             obj.dt = dt;
@@ -45,7 +47,7 @@ classdef particleFilter
                      0,0;
                      0,0;];
 
-            %Measurement Mapping Matrix 
+            %Measure ment Mapping Matrix 
             obj.H = [1,0,0,0,0,0;
                      0,0,0,1,0,0];
 
@@ -79,20 +81,55 @@ classdef particleFilter
             X_pred = obj.A * obj.particles';
             obj.particles = X_pred';
 
-            
+            X_pred = mean(obj.particles,1)';
+
+            %Get mean of particles (Prediction centroid)
+
             %calculate error covariance
             %P= A*P*A' + Q 
             obj.P = eye(size(obj.A,2));
             
             obj.P = (obj.A * obj.P) * obj.A.' + obj.Q;
             
-            X_pred = obj.X;
             PF_obj  = obj;
+        end  
+        
+        function [X_est,PF_obj] = update(obj,z)
+            %Update stage
+            obj.weights(:)= 1;
+            meas_err = 1;
+
+            %Get distance between particles and the measured values
+            distance =  sqrt((obj.particles(:,1)- z(1)).^2 + (obj.particles(:,4)- z(2)).^2);
+            
+            %Get the shortest distance and weigh
+            mean = min(distance);
+            obj.weights =  obj.weights .* normpdf(distance,mean,meas_err);
+            
+            obj.weights = obj.weights + 1.e-300;
+            obj.weights = obj.weights/(sum(obj.weights));
+            
+            %resample if too few effective particles,duplicate useful particles
+            neff = NEFF(obj.weights);
+            if neff< N/2 
+                indexes = resampleSystematic(obj.weights);
+                [obj.particles,obj.weights]= resampleFromIndex(obj.particles,indexes);
+            end        
+            
+            [mean,var] = estimate(obj.particles,obj.weights);
+
+
+            I = eye(size(obj.H,2));
+
+            %Update Error Covariance matrix
+            obj.P = (I - (K * obj.H)) * obj.P;
+            
+            X_est = obj.X;
+            PF_obj = obj;
         end
-
-
-                
      end
+
+
  end
         
     

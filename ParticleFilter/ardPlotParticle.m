@@ -58,7 +58,7 @@ drawnow
 
 %GET CFAR and Plot
 figure(2);
-[RDM] = ca_cfar(10*log10(y.'),0.5);
+[RDM] = ca_cfar(10*log10(y.'),0.3);
 if index==1
     cfar =RDM ;
 end
@@ -100,6 +100,10 @@ meas_err = 1;
 %Predict and Plot
 particles =predict(particles,U,std,dt);
 
+particles_mean = sum(particles) / size(particles, 1);
+
+disp("Prediction");
+disp(particles_mean);
 
 figure(3);
 imagesc(time,frequency,RDM*0);
@@ -153,11 +157,11 @@ title('Target Centroids and Particle Filter Estimation');
 display('Target Centroids and Particle Filter  Estimation');
 
 hold on
-plot(time((round(Centroids_arr(1,:)))),frequency(round(Centroids_arr(2,:))),'^-','MarkerFaceColor','black', 'MarkerSize', 5);
+plot(time(round(Centroids_arr(1,:))),frequency(round(Centroids_arr(2,:))),'^-','MarkerFaceColor','black', 'MarkerSize', 5);
 text(0,0,"Time:" + index+ "s");
 
 hold on;
-plot(time((round(X_estimate_arr(1,:)))),frequency(round(X_estimate_arr(2,:))), 'r-o', 'MarkerSize', 5);
+plot(time(round(X_estimate_arr(1,:))),frequency(round(X_estimate_arr(2,:))), 'r-o', 'MarkerSize', 5);
 legend('Target Centroid','Particle Filter Estimate');
 
 drawnow

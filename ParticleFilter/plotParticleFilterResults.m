@@ -1,5 +1,5 @@
 clc; clear all; close all;
-addpath('FERS/','CFAR/','KmeansCentroids');
+addpath('../FERS/','../CFAR/','../KmeansCentroids');
 
 % h5Import from FERS simulation
 [Ino Qno scale_no] = loadfersHDF5('direct.h5');

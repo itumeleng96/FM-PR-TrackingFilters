@@ -1,4 +1,5 @@
 clc; clear all; close all;
+
 addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','../DPI_Suppression');
 
 system("fers ../FERS/scenario_1_ref.fersxml");

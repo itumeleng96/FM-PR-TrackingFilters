@@ -64,7 +64,7 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.20,fs,dopp_bins,delay,i,f2,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.10,fs,dopp_bins,delay,i,f2,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
@@ -77,10 +77,22 @@ for i = 1:simulation_time
     multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM)
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
 
-    
     ard = ard_;
     rdm= rdm_;
     %Counting Variables
     initial = current+1;
     current = current + fs;
 end
+
+%CFAR
+f4=figure(4);
+f4.Position = [4000 10 1000 800]; 
+movegui(f4,'northeast');
+
+%Multi-Target Tracking 
+f5=figure(5);
+f5.Position = [4000 10 1000 800]; 
+movegui(f5,'southeast');
+
+multiTargetTracker.plotRMSE(f4,f5,true,true,simulation_time);
+

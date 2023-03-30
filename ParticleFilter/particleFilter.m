@@ -1,36 +1,26 @@
 classdef particleFilter
 
     properties
-        dt,U,X,A,B,H,Q,R,P,coeff,measured_x,measured_y,particles,weights,N;
+        dt,A,Q,particles,weights,N,scaling_factor;
     end
     
     methods
-        function obj = particleFilter(dt,u_x,u_y,std_acc,initialCentroid,N)
+        function obj = particleFilter(dt,std_acc,initialCentroid,N)
         
             %Init funtion
             %Inputs: 
             % dt : sampling time
-            % u_x : acceleration in the x-direction
-            % u_y : acceleration in the y-direction
-            % x_std_meas : standard deviation of the measurement in the x-direction
-            % y_std_meas : standard deviation of the measurement in the y-direction
-            
-            
-            %Control Input Variables
-            obj.U = [u_x;
-                     u_y];
-    
-           %Initial State of the particles
+                
+            obj.scaling_factor = 100e4;
+            %Initial State of the particles
             %Create Gaussian or uniformly distributed particles on Initialization
-            obj.X= [0;0;0;0;0;0];
-            obj.particles = obj.createUniformParticles([0,1e-4],[0,150],N);
+            obj.particles = obj.createUniformParticles([0,1e-4]*obj.scaling_factor,[0,150],N);
 
             obj.weights = ones(N,1)/N;
 
-            %State transition matrix
             obj.dt = dt;
 
-
+            %State Transition Matrix 
             obj.A = [1,dt,(1/2)*dt^2, 0 ,0 ,0;
                      0, 1, dt,0,0,0;
                      0, 0, 1, 0,0,0;
@@ -45,9 +35,9 @@ classdef particleFilter
                      (dt^2)/2, dt, 1, 0,0,0;
                      0, 0, 0, (dt^4)/4, (dt^3)/2, (dt^2)/2;
                      0, 0, 0, (dt^3)/2, dt^2, dt;
-                     0, 0, 0, (dt^2)/2, dt,1];
+                     0, 0, 0, (dt^2)/2, dt,1].*std_acc;
 
-        
+            %Number or Particles to use
             obj.N = N;
 
         end
@@ -60,15 +50,14 @@ classdef particleFilter
             %obj.X= obj.A * obj.X + obj.B * obj.U;
             
             %particles : 6XN matrix where N is number of particles
-            % Predict new particle states by adding Gaussian noise to each particle
+            %Predict new particle states by adding Gaussian noise to each particle
             noise = mvnrnd(zeros(size(obj.Q,1),1), obj.Q, obj.N);
             obj.particles = obj.A * obj.particles' + noise';
             obj.particles = obj.particles';
             
-            X_pred = mean(double(obj.particles),1)';
-            disp("Prediction");
-            disp(X_pred);
-            %Get mean of particles (Prediction centroid)
+            X_pred_scaled = mean(obj.particles,1)';
+            X_pred = X_pred_scaled;
+            X_pred(1,1) = X_pred_scaled(1,1)/obj.scaling_factor;
 
             PF_obj  = obj;
         end  
@@ -76,10 +65,10 @@ classdef particleFilter
         function [X_est,PF_obj] = update(obj,z)
             %Update stage
             obj.weights(:)= 1;
-            meas_err = 0.01;
+            meas_err = 5;
 
             %Get distance between particles and the measured values
-            distance =  sqrt((obj.particles(:,1)- z(1)).^2 + (obj.particles(:,4)- z(2)).^2);
+            distance =  sqrt((obj.particles(:,1)- z(1)*obj.scaling_factor).^2 + (obj.particles(:,4)- z(2)).^2);
             
             %Get the shortest distance and weigh
             mean = min(distance);
@@ -95,8 +84,9 @@ classdef particleFilter
                 [obj.particles,obj.weights]= obj.resampleFromIndex(obj.particles,indexes);
             end        
             
-            [mean,var] = obj.estimate(obj.particles,obj.weights);
-            disp(mean);
+            [mean,~] = obj.estimate(obj.particles,obj.weights);
+            mean(1) = mean(1)/obj.scaling_factor;
+
             %Update Error Covariance matrix            
             X_est = mean;
             PF_obj = obj;
@@ -126,8 +116,7 @@ classdef particleFilter
                 particles(:,1) = unifrnd(x_range(1),x_range(2),[N 1]);
                 particles(:,4) = unifrnd(y_range(1),y_range(2),[N 1]);
         end
-            
-            
+                
         function [particles] = createGaussianParticles(mean,std,N)
             %Create a Gaussian Distribution of particles over a region
             % N : number of particles
@@ -173,18 +162,11 @@ classdef particleFilter
                 var(2) = sum(var_particles(:, 2).*weights)/sum(weights);
         end
             
-
         function [neff] = NEFF(weights)
             %NEFF Summary of this function goes here
             %   Detailed explanation goes here
                 neff = 1./ sum(weights.^2) ;
-        end
-            
+        end    
      end
-
-
  end
-        
-    
-
 

@@ -19,7 +19,7 @@ I_Qmov=I_Qmov-I_Qno;
 
 fs = 200000;
 dopp_bins = 200;
-delay = 233e-6;
+delay = 233e-6; 
 
 s1 = I_Qmov;
 s2 = I_Qno;
@@ -63,7 +63,7 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.30,fs,dopp_bins,delay,i,f2,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.20,fs,dopp_bins,delay,i,f2,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm

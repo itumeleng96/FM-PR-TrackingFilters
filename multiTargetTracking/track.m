@@ -35,6 +35,13 @@ classdef track
                     GN_object = GaussNewton(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+0.00003;0;0;trueTrack(2,1)+0.00003;0;0],max_iterations,tolerance); %Make starting point random
                     obj.trackingFilterObject = GN_object;
                 
+                case 3
+                    dt=1;
+                    N=5000;  %Number of particles
+                    PF_object = particleFilter(dt,1,[trueTrack(1,1);trueTrack(2,1)],N);
+                    obj.trackingFilterObject = PF_object;
+                
+                
                 otherwise
                     dt=1;
                     KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+1;0;0;trueTrack(2,1)+1;0;0]); %Make starting point random
@@ -47,6 +54,8 @@ classdef track
             obj.trueTrack(1,end+1) = newTargetObservation(1,1);
             obj.trueTrack(2,end) = newTargetObservation(2,1);
             
+            disp("True Track");
+            disp(newTargetObservation);
             %Update Tracking Filter 
             [~,obj.trackingFilterObject] = update(obj.trackingFilterObject,[newTargetObservation(1,1);newTargetObservation(2,1)]); 
 

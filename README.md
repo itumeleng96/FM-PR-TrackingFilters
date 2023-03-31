@@ -6,7 +6,7 @@
 #### The Following Tracking filters and code have been implemented:
 <li>The Kalman Filter</li>
 <li>The Gauss Newton Filter</li>
-<li>The Particle Filter - Multi-target tracking in progress </li>
+<li>The Particle Filter  </li>
 <li>The Recursive Gauss Newton Filter - Still to be implemented</li>
 <li>The Polynomial Filters still to be implemented(Uses Least Squares Method as opposed to the other filters)</li>
 

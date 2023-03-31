@@ -1,13 +1,13 @@
 classdef particleFilter
 
     properties
-        dt,            %%Sampling Time
-        A,             %The state transition matrix
-        Q,             %The Process Noise Covariance Matrix
-        particles,     %Matrix containing the current State of the Particles
-        weights,       %A vector containig the current weights of the particles
-        N,             %Number of particles to use 
-        scaling_factor;
+        dt,             %%Sampling Time
+        A,              %The state transition matrix
+        Q,              %The Process Noise Covariance Matrix
+        particles,      %Matrix containing the current State of the Particles
+        weights,        %A vector containig the current weights of the particles
+        N,              %Number of particles to use 
+        scaling_factor; % 
     end
     
     methods
@@ -82,7 +82,6 @@ classdef particleFilter
             [mean,~] = obj.estimate(obj.particles,obj.weights);
             mean(1) = mean(1)/obj.scaling_factor;
 
-            %Update Error Covariance matrix            
             X_est = mean;
             PF_obj = obj;
         end

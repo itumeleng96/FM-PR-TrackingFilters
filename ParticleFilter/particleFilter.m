@@ -1,26 +1,32 @@
 classdef particleFilter
 
     properties
-        dt,A,Q,particles,weights,N,scaling_factor;
+        dt,            %%Sampling Time
+        A,             %The state transition matrix
+        Q,             %The Process Noise Covariance Matrix
+        particles,     %Matrix containing the current State of the Particles
+        weights,       %A vector containig the current weights of the particles
+        N,             %Number of particles to use 
+        scaling_factor;
     end
     
     methods
         function obj = particleFilter(dt,std_acc,initialCentroid,N)
         
             %Init funtion
-            %Inputs: 
-            % dt : sampling time
-                
+            obj.N = N;
             obj.scaling_factor = 100e4;
-            %Initial State of the particles
-            %Create Gaussian or uniformly distributed particles on Initialization
-            obj.particles = obj.createUniformParticles([0,1e-4]*obj.scaling_factor,[0,150],N);
 
+            %Create  uniformly distributed particles on Initialization
+            obj.particles = obj.createUniformParticles([0,2e-4]*obj.scaling_factor,[0,150],N);
+           
+            %Create  Gaussian  distributed particles on Initialization
+            %obj.particles = obj.createGaussianParticles(initialCentroid,[2e-4*obj.scale,10],N);
+            
+            %Set Equal weights
             obj.weights = ones(N,1)/N;
-
             obj.dt = dt;
-
-            %State Transition Matrix 
+ 
             obj.A = [1,dt,(1/2)*dt^2, 0 ,0 ,0;
                      0, 1, dt,0,0,0;
                      0, 0, 1, 0,0,0;
@@ -28,28 +34,17 @@ classdef particleFilter
                      0, 0, 0, 0,1,dt ;
                      0, 0, 0, 0,0,1;];
 
-
-            %Process Noise Covariance
             obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2, 0,0,0;
                      (dt^3)/2, dt^2, dt, 0,0,0;
                      (dt^2)/2, dt, 1, 0,0,0;
                      0, 0, 0, (dt^4)/4, (dt^3)/2, (dt^2)/2;
                      0, 0, 0, (dt^3)/2, dt^2, dt;
                      0, 0, 0, (dt^2)/2, dt,1].*std_acc;
-
-            %Number or Particles to use
-            obj.N = N;
-
+                   
         end
         
         function [X_pred,PF_obj] = predict(obj)
-            %Calculate the predicted time state
 
-            %Update time state
-            %x_k = Ax_(k-1) + Bu_(k-1) 
-            %obj.X= obj.A * obj.X + obj.B * obj.U;
-            
-            %particles : 6XN matrix where N is number of particles
             %Predict new particle states by adding Gaussian noise to each particle
             noise = mvnrnd(zeros(size(obj.Q,1),1), obj.Q, obj.N);
             obj.particles = obj.A * obj.particles' + noise';
@@ -65,12 +60,12 @@ classdef particleFilter
         function [X_est,PF_obj] = update(obj,z)
             %Update stage
             obj.weights(:)= 1;
-            meas_err = 5;
+            meas_err = 1;
 
-            %Get distance between particles and the measured values
+            %Get distance between particles (range,doppler) and the measured (range,dopplelr) values
             distance =  sqrt((obj.particles(:,1)- z(1)*obj.scaling_factor).^2 + (obj.particles(:,4)- z(2)).^2);
             
-            %Get the shortest distance and weigh
+            %Get the shortest distance and Distribute around it
             mean = min(distance);
             obj.weights =  obj.weights .* normpdf(distance,mean,meas_err);
             

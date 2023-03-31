@@ -37,8 +37,8 @@ classdef track
                 
                 case 3
                     dt=1;
-                    N=1000;  %Number of particles
-                    PF_object = particleFilter(dt,1,[trueTrack(1,1);trueTrack(2,1)+0.0001],N);
+                    N=5000;  %Number of particles
+                    PF_object = particleFilter(dt,1,[trueTrack(1,1);trueTrack(2,1)],N);
                     obj.trackingFilterObject = PF_object;
                 
                 

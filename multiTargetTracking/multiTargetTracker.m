@@ -137,41 +137,36 @@ classdef multiTargetTracker
             end
         end
 
-        function plotRMSE(obj,f,f1,plotDoppler_RMS,plotRange_RMS,simulationTime)
+        function [doppler_rms,range_rms] = plotRMSE(obj,f,f1,plotDoppler_RMS,plotRange_RMS,simulationTime)
             time = 0:1:simulationTime;
-        
+            
+            doppler_rms=zeros(length(obj.tracks),length(time));
+            range_rms=zeros(length(obj.tracks),length(time));
+
+            %Calculate the Range and Doppler RMS
+            for i = 1:length(obj.tracks)
+                predictedTrack = obj.tracks(i).predictedTrack;
+                trueTrack = obj.tracks(i).trueTrack;
+                predictedTrack_interp = interp1(predictedTrack(1,:), time);
+                trueTrack_interp = interp1(trueTrack(1,:), time);
+                doppler_rms(i,:) = sqrt(mean((predictedTrack_interp - trueTrack_interp).^2,1));
+                predictedTrack_interp2 = interp1(predictedTrack(2,:), time);
+                trueTrack_interp2 = interp1(trueTrack(2,:), time);
+                range_rms(i,:) = sqrt(mean((predictedTrack_interp2 - trueTrack_interp2).^2,1));
+
+            end
+            
             if(plotDoppler_RMS)
                 figure(f);
-                doppler_rms=zeros(length(obj.tracks),length(time));
-        
-                for i = 1:length(obj.tracks)
-                    predictedTrack = obj.tracks(i).predictedTrack;
-                    trueTrack = obj.tracks(i).trueTrack;
-                    predictedTrack_interp = interp1(predictedTrack(1,:), time);
-                    trueTrack_interp = interp1(trueTrack(1,:), time);
-                    doppler_rms(i,:) = sqrt(mean((predictedTrack_interp - trueTrack_interp).^2,1));
-                end
-                
                 plot(time, doppler_rms);
                 xlabel('Time(s)');
                 ylabel('Doppler RMS Error(Hz)');
                 title('Doppler RMS Error vs Time');
                 legend('Track 1','Track 2','Track 3','Track 4','Track 5','Track 6','Track 7','Track 8','Track 9','Track 10');
             end 
-        
+            
             if(plotRange_RMS)
                 figure(f1);
-                range_rms=zeros(length(obj.tracks),length(time));
-        
-                for i = 1:length(obj.tracks)
-                    predictedTrack = obj.tracks(i).predictedTrack;
-                    trueTrack = obj.tracks(i).trueTrack;
-                    predictedTrack_interp = interp1(predictedTrack(2,:), time);
-                    trueTrack_interp = interp1(trueTrack(2,:), time);
-                    range_rms(i,:) = sqrt(mean((predictedTrack_interp - trueTrack_interp).^2,1));
-
-                end
-        
                 plot(time, range_rms);
                 xlabel('Time(s)');
                 ylabel('Range RMS Error(m)');

@@ -92,4 +92,4 @@ f5=figure(5);
 f5.Position = [4000 10 1000 800]; 
 movegui(f5,'southeast');
 
-multiTargetTracker.plotRMSE(f4,f5,true,true,simulation_time);
+[~,~]= multiTargetTracker.plotRMSE(f4,f5,true,true,simulation_time);

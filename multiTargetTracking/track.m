@@ -25,7 +25,7 @@ classdef track
             switch filterType
                 case 1
                     dt=1;
-                    KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+0.00001;0;0;trueTrack(2,1)+1;0;0]); %Make starting point random
+                    KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+0.00003;0;0;trueTrack(2,1)+00003;0;0]); %Make starting point random
                     obj.trackingFilterObject = KF_object;
                 
                 case 2

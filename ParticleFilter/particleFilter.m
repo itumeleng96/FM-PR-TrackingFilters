@@ -45,7 +45,7 @@ classdef particleFilter
         
         function [X_pred,PF_obj] = predict(obj)
 
-            %Predict new particle states by adding Gaussian noise to each particle
+            %Predict new particle states
             noise = mvnrnd(zeros(size(obj.Q,1),1), obj.Q, obj.N);
             obj.particles = obj.A * obj.particles' + noise';
             obj.particles = obj.particles';

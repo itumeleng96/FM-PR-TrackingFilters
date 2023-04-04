@@ -157,8 +157,8 @@ classdef particleFilter
         end
             
         function [neff] = NEFF(weights)
-            %NEFF Summary of this function goes here
-            %   Detailed explanation goes here
+            %NEFF : Effective particle sample size
+            % To measure degeneracy of the  particles
                 neff = 1./ sum(weights.^2) ;
         end    
      end

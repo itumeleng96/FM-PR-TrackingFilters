@@ -2,8 +2,8 @@ clc; clear all; close all;
 
 addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','../DPI_Suppression');
 
-system("fers ../FERS/scenario_1_ref.fersxml");
-system("fers ../FERS/scenario_1_surv.fersxml");
+system("fers ../FERS/scenario_4_ref.fersxml");
+system("fers ../FERS/scenario_4_surv.fersxml");
 
 % h5 Import from FERS simulation
 [Ino Qno scale_no] = loadfersHDF5('direct.h5');
@@ -64,7 +64,7 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.1,fs,dopp_bins,delay,i,f2,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.2,fs,dopp_bins,delay,i,f2,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm

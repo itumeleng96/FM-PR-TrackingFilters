@@ -21,7 +21,7 @@ classdef particleFilter
             obj.particles = obj.createUniformParticles([0,2e-4]*obj.scaling_factor,[0,150],N);
            
             %Create  Gaussian  distributed particles on Initialization
-            %obj.particles = obj.createGaussianParticles(initialCentroid,[2e-4*obj.scale,10],N);
+            %obj.particles = obj.createGaussianParticles(initialCentroid,[1e-4*obj.scaling_factor,10],N);
             
             %Set Equal weights
             obj.weights = ones(N,1)/N;

@@ -101,33 +101,18 @@
       <motionpath interpolation="cubic">
       
         <positionwaypoint>
-        <x>-16000</x>
-        <y>-16000</y>
-        <altitude>3600</altitude>
+        <x>1000</x>
+        <y>1000</y>
+        <altitude>15600</altitude>
         <time>0</time>
         </positionwaypoint>
         
         <positionwaypoint>
-        <x>-13000</x>
-        <y>-13000</y>
-        <altitude>15600.0</altitude>
-        <time>20</time>
-        </positionwaypoint>
-        
-        <positionwaypoint>
-        <x>-9000</x>
-        <y>-9000</y>
-        <altitude>15600.0</altitude>
-        <time>40</time>
-        </positionwaypoint>
-
-        <positionwaypoint>
-        <x>-3000</x>
-        <y>-3000</y>
-        <altitude>15600.0</altitude>
+        <x>-12000</x>
+        <y>-12000</y>
+        <altitude>3600.0</altitude>
         <time>60</time>
         </positionwaypoint>
-
         
       </motionpath>  
     
@@ -139,7 +124,7 @@
       </fixedrotation>
       <target name="wings">
         <rcs type="isotropic">
-          <value>500</value>
+          <value>100</value>
         </rcs>
       </target>
     </platform>

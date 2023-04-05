@@ -37,14 +37,14 @@ classdef track
                 
                 case 3
                     dt=1;
-                    N=5000;  %Number of particles
+                    N=10000;  %Number of particles
                     PF_object = particleFilter(dt,1,[trueTrack(1,1);trueTrack(2,1)],N);
                     obj.trackingFilterObject = PF_object;
                 
                 
                 otherwise
                     dt=1;
-                    KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+1;0;0;trueTrack(2,1)+1;0;0]); %Make starting point random
+                    KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+0.00003;0;0;trueTrack(2,1)+0.00003;0;0]); %Make starting point random
                     obj.trackingFilterObject = KF_object;
             end
         end

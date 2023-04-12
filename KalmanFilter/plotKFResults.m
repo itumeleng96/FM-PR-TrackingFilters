@@ -41,7 +41,7 @@ s1 = I_Qmov;
 s2 = I_Qno;
 
 initial=1;
-current=fs;                                 %based on samples in transmitted signal
+current=fs;                                 %Based on samples in transmitted signal
 simulation_time = size(I_Qmov,1)/fs ;       %Simulation time: number of data points/sampling frequency
 
 
@@ -68,7 +68,9 @@ movegui(f3,'southeast');
 confirmationThreshold=2;
 deletionThreshold=4;
 gatingThreshold=30;
-filterType=1;           %Kalman Filter 
+filterType=1;           
+
+%Kalman Filter 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
 for i = 1:simulation_time

@@ -1,7 +1,7 @@
 classdef kalmanFilter
 
     properties
-        dt,U,X,A,B,H,Q,R,P,coeff,measured_x,measured_y;
+        dt,U,X,F,B,H,Q,R,P,coeff,measured_x,measured_y;
     end
     
     methods
@@ -26,43 +26,27 @@ classdef kalmanFilter
 
             %State transition matrix
             obj.dt = dt;
+            lambda = 1e-9;
 
+            obj.F = [1,0,-lambda*dt,0;
+                     0, 0,-lambda,-lambda*dt;
+                     0, 0, 1, dt;
+                     0, 0  0, 1;];
+                    
+            obj.H = [1,0,0,0;
+                     0,0,1,0];
 
-            obj.A = [1,dt,(1/2)*dt^2, 0 ,0 ,0;
-                     0, 1, dt,0,0,0;
-                     0, 0, 1, 0,0,0;
-                     0, 0  0, 1,dt,(1/2)*dt^2;
-                     0, 0, 0, 0,1,dt ;
-                     0, 0, 0, 0,0,1;];
+            obj.Q = [0.01,0,0,0;
+                     0, 0.02, 0,0;
+                     0, 0, 0.2, 0;
+                     0, 0  0, 0.05;];
 
-
-            %The control input matrix B
-            obj.B = [0,0;
-                     0,0;
-                     0,0;
-                     0,0;
-                     0,0;
-                     0,0;];
-
-            %Measurement Mapping Matrix 
-            obj.H = [1,0,0,0,0,0;
-                     0,0,0,1,0,0];
-
-            %Process Noise Covariance
-            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2, 0,0,0;
-                     (dt^3)/2, dt^2, dt, 0,0,0;
-                     (dt^2)/2, dt, 1, 0,0,0;
-                     0, 0, 0, (dt^4)/4, (dt^3)/2, (dt^2)/2;
-                     0, 0, 0, (dt^3)/2, dt^2, dt;
-                     0, 0, 0, (dt^2)/2, dt,1].*std_acc^2;
-
-            
             %Initial Measurement Noise Covariance
             obj.R = [x_std_meas^2,0;
                      0,y_std_meas^2];
 
             %Initial covariance matrix -  Identity matrix same shape as A
-            obj.P = eye(size(obj.A,2));
+            obj.P = eye(size(obj.F,2));
 
         end
         
@@ -70,14 +54,14 @@ classdef kalmanFilter
             %Calculate the predicted time state
             
             %Update time state
-            %x_k = Ax_(k-1) + Bu_(k-1) 
-            obj.X= obj.A * obj.X + obj.B * obj.U;
+            %x_k = F.x_(k-1) + B.u_(k-1) 
+            obj.X= obj.F * obj.X ;
                         
             %calculate error covariance
-            %P= A*P*A' + Q 
-            obj.P = eye(size(obj.A,2));
+            %P= F*P*F' + Q 
+            obj.P = eye(size(obj.F,2));
             
-            obj.P = (obj.A * obj.P) * obj.A.' + obj.Q;
+            obj.P = (obj.F * obj.P) * obj.F.' + obj.Q;
             
             X_pred = obj.X;
             KF_obj1  = obj;

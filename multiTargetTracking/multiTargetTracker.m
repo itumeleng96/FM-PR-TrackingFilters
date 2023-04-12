@@ -130,10 +130,10 @@ classdef multiTargetTracker
             
             for i = 1:length(obj.tracks)
                 hold on;
-                plot(obj.tracks(i).predictedTrack(1,:),obj.tracks(i).predictedTrack(2,:), '^-', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 7);
+                plot(obj.tracks(i).predictedTrack(1,:),obj.tracks(i).predictedTrack(2,:), '-^', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 7);
                 text(obj.tracks(i).predictedTrack(1,end), obj.tracks(i).predictedTrack(2,end), {sprintf('T%d',i)}, 'VerticalAlignment', 'top', 'HorizontalAlignment', 'left')
                 hold on 
-                plot(obj.tracks(i).trueTrack(1,:),obj.tracks(i).trueTrack(2,:), 'y-o', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 6);
+                plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'ro', 'MarkerFaceColor', 'none', 'MarkerSize', 6);
             end
         end
 

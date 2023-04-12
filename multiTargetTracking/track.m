@@ -22,17 +22,19 @@ classdef track
             obj.numberOfUpdates = numberOfUpdates;
 
             %Initialize Tracker
+            %Create random initial points
+            x_initial = [0.1e-4+(1e-4)*rand,(200) * rand];
             switch filterType
                 case 1
                     dt=1;
-                    KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+0.00003;0;0;trueTrack(2,1)+00003;0;0]); %Make starting point random
+                    KF_object = kalmanFilter(dt, 0.1, 0.1, 0.5, 0.01,0.01,[x_initial(1);0;x_initial(2);0]); %Make starting point random
                     obj.trackingFilterObject = KF_object;
                 
                 case 2
                     dt=1;
                     max_iterations=10;
                     tolerance = 100e-6;
-                    GN_object = GaussNewton(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+0.00003;0;0;trueTrack(2,1)+0.00003;0;0],max_iterations,tolerance); %Make starting point random
+                    GN_object = GaussNewton(dt, 0.1, 0.1, 1, 0.01,0.001,[trueTrack(1,1)+0.00003;0;0;trueTrack(2,1)+0.00003;0;0],max_iterations,tolerance); %Make starting point random
                     obj.trackingFilterObject = GN_object;
                 
                 case 3
@@ -73,7 +75,7 @@ classdef track
             
             %Update the predicted track
             obj.predictedTrack(1,end+1)=X(1,1);
-            obj.predictedTrack(2,end)=X(4,1);
+            obj.predictedTrack(2,end)=X(3,1);
             obj.sampleSinceLastUpdate = obj.sampleSinceLastUpdate+1;
 
             %disp("Predicted Track");

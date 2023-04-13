@@ -59,20 +59,24 @@ end
 
 rdm_ = rdm;
 
+
 figure(f);
-imagesc(time,frequency,rdm_);
-%imagesc(time,frequency,RDM_final); no overlay of previous values
-text(0,10,"Time:" + index+ "s");
+imagesc(time, frequency, rdm_);
+colormap(gca, 'gray'); % Set the colormap to 'gray'
+caxis([min(rdm_(:)), max(rdm_(:))]); % Set the color axis to the minimum and maximum values of rdm_
+c = colorbar;
+c.Label.String = 'Intensity';
+c.FontSize = 10;
+c.Color = 'black'; % Set colorbar label color to white
+set(gca, 'Color', 'black'); % Set background color to black
+text(0, 10, "Time: " + index + "s", 'Color', 'white'); % Set text color to white
 axis xy;
-colorbar;
-xlabel('Bistatic delay [s]','Fontsize',10);
-ylabel('Doppler frequency [Hz]','Fontsize',10);
+xlabel('Bistatic delay [s]', 'FontSize', 10, 'Color', 'black'); % Set xlabel color to white
+ylabel('Doppler frequency [Hz]', 'FontSize', 10, 'Color', 'black'); % Set ylabel color to white
 grid on;
-title('CFAR and Centroids');
-xlim([0 xlim_upper]) 
-ylim([ylim_lower ylim_upper])
-
-
+title('CFAR and Centroids', 'Color', 'black'); % Set title color to white
+xlim([0 xlim_upper]);
+ylim([ylim_lower ylim_upper]);
 RDM = RDM_final;
 
 [row,column] = find(RDM>0);

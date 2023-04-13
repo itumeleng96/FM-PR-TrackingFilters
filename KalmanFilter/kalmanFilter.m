@@ -1,7 +1,7 @@
 classdef kalmanFilter
 
     properties
-        dt,U,X,A,B,H,Q,R,P,coeff,measured_x,measured_y;
+        dt,U,X,F,B,H,Q,R,P,coeff,measured_x,measured_y;
     end
     
     methods
@@ -28,7 +28,7 @@ classdef kalmanFilter
             obj.dt = dt;
 
 
-            obj.A = [1,dt,(1/2)*dt^2, 0 ,0 ,0;
+            obj.F = [1,dt,(1/2)*dt^2, 0 ,0 ,0;
                      0, 1, dt,0,0,0;
                      0, 0, 1, 0,0,0;
                      0, 0  0, 1,dt,(1/2)*dt^2;
@@ -62,7 +62,7 @@ classdef kalmanFilter
                      0,y_std_meas^2];
 
             %Initial covariance matrix -  Identity matrix same shape as A
-            obj.P = eye(size(obj.A,2));
+            obj.P = eye(size(obj.F,2));
 
         end
         
@@ -71,13 +71,13 @@ classdef kalmanFilter
             
             %Update time state
             %x_k = Ax_(k-1) + Bu_(k-1) 
-            obj.X= obj.A * obj.X + obj.B * obj.U;
+            obj.X= obj.F * obj.X + obj.B * obj.U;
                         
             %calculate error covariance
             %P= A*P*A' + Q 
-            obj.P = eye(size(obj.A,2));
+            obj.P = eye(size(obj.F,2));
             
-            obj.P = (obj.A * obj.P) * obj.A.' + obj.Q;
+            obj.P = (obj.F * obj.P) * obj.F.' + obj.Q;
             
             X_pred = obj.X;
             KF_obj1  = obj;

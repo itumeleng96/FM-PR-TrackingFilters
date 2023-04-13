@@ -119,10 +119,10 @@ classdef multiTargetTracker
             time = 0:1/fs:Ndelay/fs;
             frequency = -fd_max:1:fd_max;
             imagesc(time,frequency,RDM*0);
+            colormap(gca, 'white'); % Set the colormap to 'gray'
 
             text(0,10,"Time:" + index+ "s");
             axis xy;
-            colorbar;
             xlabel('Bistatic delay [s]','Fontsize',10);
             ylabel('Doppler frequency [Hz]','Fontsize',10);
             grid on;
@@ -130,10 +130,10 @@ classdef multiTargetTracker
             
             for i = 1:length(obj.tracks)
                 hold on;
-                plot(obj.tracks(i).predictedTrack(1,:),obj.tracks(i).predictedTrack(2,:), '^-', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 7);
+                plot(obj.tracks(i).predictedTrack(1,:),obj.tracks(i).predictedTrack(2,:), 'r--', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 7);
                 text(obj.tracks(i).predictedTrack(1,end), obj.tracks(i).predictedTrack(2,end), {sprintf('T%d',i)}, 'VerticalAlignment', 'top', 'HorizontalAlignment', 'left')
                 hold on 
-                plot(obj.tracks(i).trueTrack(1,:),obj.tracks(i).trueTrack(2,:), 'y-o', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 6);
+                plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'bo', 'MarkerFaceColor', 'none', 'MarkerSize', 6);
             end
         end
 

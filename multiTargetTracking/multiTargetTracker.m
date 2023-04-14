@@ -135,6 +135,7 @@ classdef multiTargetTracker
                 hold on 
                 plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'bo', 'MarkerFaceColor', 'none', 'MarkerSize', 6);
             end
+            legend('Predicted Track', 'True Track');
         end
 
         function [doppler_rms,range_rms] = plotRMSE(obj,f,f1,plotDoppler_RMS,plotRange_RMS,simulationTime)
@@ -160,8 +161,8 @@ classdef multiTargetTracker
                 figure(f);
                 plot(time, doppler_rms);
                 xlabel('Time(s)');
-                ylabel('Doppler RMS Error(Hz)');
-                title('Doppler RMS Error vs Time');
+                ylabel('Bistatic Doppler RMS Error(Hz)');
+                title('Bistatic Doppler RMS Error vs Time');
                 legend('Track 1','Track 2','Track 3','Track 4','Track 5','Track 6','Track 7','Track 8','Track 9','Track 10');
             end 
             
@@ -169,8 +170,8 @@ classdef multiTargetTracker
                 figure(f1);
                 plot(time, range_rms);
                 xlabel('Time(s)');
-                ylabel('Range RMS Error(m)');
-                title('Range RMS Error vs Time');
+                ylabel('Bistatic Delay RMS Error(m)');
+                title('Bistatic Delay  RMS Error vs Time');
                 legend('Track 1','Track 2','Track 3','Track 4','Track 5','Track 6','Track 7','Track 8','Track 9','Track 10');
             end
         end

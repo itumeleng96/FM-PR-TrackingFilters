@@ -29,7 +29,7 @@ classdef track
             switch filterType
                 case 1
                     U=[0,0];                           %Input values x(Delay) and y(Doppler shift) 
-                    std_acc=[0.1e-7,0.01];              %Standard Deviation of the acceleration in ms^2
+                    std_acc=[0.1e-6,0.01];              %Standard Deviation of the acceleration in ms^2
                     std_meas=[0.1e-4, 0.1];            %Standard Deviation of the measurements in the x and y
                     
                     KF_object = kalmanFilter(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);0;0;x_initial(2);0;0]);

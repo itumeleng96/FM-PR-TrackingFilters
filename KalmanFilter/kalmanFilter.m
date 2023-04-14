@@ -1,7 +1,7 @@
 classdef kalmanFilter
 
     properties
-        dt,U,X,F,B,H,Q,R,P,coeff,measured_x,measured_y;
+        dt,U,X,F,B,H,Q,R,P,coeff,measured_x,measured_y,std_acc;
     end
     
     methods
@@ -48,54 +48,56 @@ classdef kalmanFilter
             obj.H = [1,0,0,0,0,0;
                      0,0,0,1,0,0];
 
-            %Process Noise Covariance
-            obj.Q = [(dt^5)/20, (dt^4)/8, (dt^3)/6, 0,0,0;
-                     (dt^4)/8, dt^3/3, dt^2/2, 0,0,0;
-                     (dt^3)/6, dt^2/2, dt, 0,0,0;
-                     0, 0, 0, (dt^5)/20, (dt^4)/8, (dt^3)/6;
-                     0, 0, 0, (dt^4)/8, dt^3/3, dt^2/2;
-                     0, 0, 0, (dt^3)/6, dt^2/2, dt].*0.5;
+            %Process Noise Covariance Matrix 
+            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2, 0,0,0;
+                     (dt^3)/2, dt^2, dt, 0,0,0;
+                     (dt^2)/2, dt, 1, 0,0,0;
+                     0, 0, 0, (dt^4)/4, (dt^3)/2, (dt^2)/2;
+                     0, 0, 0, (dt^3)/2, dt^2, dt;
+                     0, 0, 0, (dt^2)/2, dt, 1];
 
-            
-            %Initial Measurement Noise Covariance
+            obj.Q(1:3,1:3) = obj.Q(1:3,1:3) * std_acc(1)^2;
+            obj.Q(4:6,4:6) = obj.Q(4:6,4:6) * std_acc(2)^2;
+
+            %Initial Measurement Noise Covariance Matrix
+            %Standard deviation of measurement in doppler shift and delay
             obj.R = [x_std_meas^2,0;
                      0,y_std_meas^2];
 
-            %Initial covariance matrix -  Identity matrix same shape as A
-            obj.P = eye(size(obj.F,2));
+            %Initial covariance Matrix
+            %High estimate uncertainty
+            obj.P = eye(size(obj.F,2))*10;
 
         end
         
         function [X_pred,KF_obj1] = predict(obj)
-            %Calculate the predicted time state
+            %Prediction stage
             
-            %Update time state
-            %x_k = Ax_(k-1) + Bu_(k-1) 
-            obj.X= obj.F * obj.X ;
+            %PREDICT NEXT STATE
+            %x_k = A*x_(k-1) + B*u_(k-1)
+            obj.X = obj.F*obj.X ;
                         
-            %calculate error covariance
-            %P= A*P*A' + Q 
-            obj.P = eye(size(obj.F,2));
-            
+            %COVARIANCE UPDATE
+            %P= A*P*A' + Q             
             obj.P = (obj.F * obj.P) * obj.F.' + obj.Q;
-            
+
             X_pred = obj.X;
             KF_obj1  = obj;
         end
         
         function [X_est,KF_obj2] = update(obj,z)
-            %Update stage, compute the Kalman gain
+            %Update stage
 
+            %COMPUTE KALMAN GAIN 
+
+            %K = P * H'* inv(H*P*H'+R)
             %S = H*P*H'+ R - Total Error 
             S = obj.H * obj.P * obj.H.' + obj.R;
-
-            %Calculate the Kalman Gain 
-            %K = P * H'* inv(H*P*H'+R)
-
             K = (obj.P * obj.H.') * S^(-1);
             
+            %GET KALMAN ESTIMATE 
             obj.X = obj.X + K * (z-obj.H * obj.X);
-                        
+            
             I = eye(size(obj.H,2));
 
             %Update Error Covariance matrix

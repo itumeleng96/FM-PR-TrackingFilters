@@ -49,12 +49,12 @@ classdef kalmanFilter
                      0,0,0,1,0,0];
 
             %Process Noise Covariance
-            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2, 0,0,0;
-                     (dt^3)/2, dt^2, dt, 0,0,0;
-                     (dt^2)/2, dt, 1, 0,0,0;
-                     0, 0, 0, (dt^4)/4, (dt^3)/2, (dt^2)/2;
-                     0, 0, 0, (dt^3)/2, dt^2, dt;
-                     0, 0, 0, (dt^2)/2, dt,1].*std_acc^2;
+            obj.Q = [(dt^5)/20, (dt^4)/8, (dt^3)/6, 0,0,0;
+                     (dt^4)/8, dt^3/3, dt^2/2, 0,0,0;
+                     (dt^3)/6, dt^2/2, dt, 0,0,0;
+                     0, 0, 0, (dt^5)/20, (dt^4)/8, (dt^3)/6;
+                     0, 0, 0, (dt^4)/8, dt^3/3, dt^2/2;
+                     0, 0, 0, (dt^3)/6, dt^2/2, dt].*0.5;
 
             
             %Initial Measurement Noise Covariance
@@ -71,7 +71,7 @@ classdef kalmanFilter
             
             %Update time state
             %x_k = Ax_(k-1) + Bu_(k-1) 
-            obj.X= obj.F * obj.X + obj.B * obj.U;
+            obj.X= obj.F * obj.X ;
                         
             %calculate error covariance
             %P= A*P*A' + Q 

@@ -22,21 +22,26 @@ classdef track
             obj.numberOfUpdates = numberOfUpdates;
 
             %Initialize Tracker
+            %Create random initial points within observation space
+            x_initial = [0.1e-4+(1e-4)*rand,(200) * rand];
+            dt=1;                           %Time step between samples(update time)
+            
             switch filterType
                 case 1
-                    dt=1;
-                    KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+0.00003;0;0;trueTrack(2,1)+00003;0;0]); %Make starting point random
-                    obj.trackingFilterObject = KF_object;
+                    U=[0,0];                %Input values x(Delay) and y(Doppler shift) 
+                    std_acc=0.1;            %Standard Deviation of the acceleration in ms^2
+                    std_meas=[0.1e-4, 0.1]; %Standard Deviation of the measurements in the x and y
+                    
+                    KF_object = kalmanFilter(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);0;0;x_initial(2);0;0]);
+                    obj.trackingFilterObject = KF_object; 
                 
                 case 2
-                    dt=1;
                     max_iterations=10;
                     tolerance = 100e-6;
                     GN_object = GaussNewton(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+0.00003;0;0;trueTrack(2,1)+0.00003;0;0],max_iterations,tolerance); %Make starting point random
                     obj.trackingFilterObject = GN_object;
                 
                 case 3
-                    dt=1;
                     N=10000;  %Number of particles
                     PF_object = particleFilter(dt,1,[trueTrack(1,1);trueTrack(2,1)],N);
                     obj.trackingFilterObject = PF_object;

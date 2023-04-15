@@ -170,7 +170,7 @@ classdef multiTargetTracker
                 figure(f1);
                 plot(time, range_rms);
                 xlabel('Time(s)');
-                ylabel('Bistatic Delay RMS Error(m)');
+                ylabel('Bistatic Delay RMS Error(s)');
                 title('Bistatic Delay  RMS Error vs Time');
                 legend('Track 1','Track 2','Track 3','Track 4','Track 5','Track 6','Track 7','Track 8','Track 9','Track 10');
             end

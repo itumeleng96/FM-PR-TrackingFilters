@@ -9,7 +9,7 @@ classdef GaussNewton
         
             %Init funtion
             %Inputs: 
-            % dt : smapling time
+            % dt : sampling time
             % u_x : acceleration in the x-direction
             % u_y : acceleration in the y-direction
             % x_std_meas : standard deviation of the measurement in the x-direction
@@ -51,15 +51,16 @@ classdef GaussNewton
             obj.H = [1,0,0,0,0,0;
                      0,0,0,1,0,0];
 
-            %Process Noise Covariance
-            %Process Noise Covariance
+            %Process Noise Covariance Matrix 
             obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2, 0,0,0;
                      (dt^3)/2, dt^2, dt, 0,0,0;
                      (dt^2)/2, dt, 1, 0,0,0;
                      0, 0, 0, (dt^4)/4, (dt^3)/2, (dt^2)/2;
                      0, 0, 0, (dt^3)/2, dt^2, dt;
-                     0, 0, 0, (dt^2)/2, dt,1].*std_acc^2;
+                     0, 0, 0, (dt^2)/2, dt, 1];
 
+            obj.Q(1:3,1:3) = obj.Q(1:3,1:3) * std_acc(1)^2;
+            obj.Q(4:6,4:6) = obj.Q(4:6,4:6) * std_acc(2)^2;
             
             %Initial Measurement Noise Covariance
             obj.R = [x_std_meas^2,0;
@@ -75,15 +76,13 @@ classdef GaussNewton
             %Calculate the predicted time state
             %Update time state
             %x_k = Ax_(k-1) + Bu_(k-1)
-            obj.X = obj.A * obj.X + obj.B * obj.U;
+            obj.X = obj.A * obj.X ;
         
             % Update the covariance matrix based on process noise
             obj.P = obj.A * obj.P * obj.A' + obj.Q;
         
             X_pred = obj.X;
             GN_Obj  = obj;
-            disp("Prediction");
-            disp(X_pred);
 
         end
 

@@ -23,10 +23,10 @@ classdef track
 
             %Initialize Tracker
             %Create random initial points within observation space
-            x_initial = [0.1e-4+(1e-4)*rand,(200) * rand];
+            x_initial = [2e4+(1e4)*rand,(200) * rand];
             dt=1;                              %Time step between samples(update time)
             U=[0,0];                           %Input values x(Delay) and y(Doppler shift) 
-            std_meas=[0.1e-4, 0.1];            %Standard Deviation of the measurements in the x and y
+            std_meas=[0.1, 0.1];            %Standard Deviation of the measurements in the x and y
             
             switch filterType
                 case 1     

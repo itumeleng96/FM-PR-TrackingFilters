@@ -67,7 +67,7 @@ movegui(f3,'southeast');
 %Create MTT object
 confirmationThreshold=2;
 deletionThreshold=4;
-gatingThreshold=30;
+gatingThreshold=40;
 filterType=1;           %Kalman Filter 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -83,7 +83,7 @@ for i = 1:simulation_time
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids] = meanShiftPlot(targetClusters,10,fs,dopp_bins,delay);
+    [clusterCentroids] = meanShiftPlot(targetClusters,0.1e6,fs,dopp_bins,delay);
     
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);

@@ -18,9 +18,6 @@ beenVisitedFlag = zeros(1,numPts,'uint8');                       %track if a poi
 numInitPts      = numPts;                                        %number of points to posibaly use as initilization points
 clusterVotes    = zeros(1,numPts,'uint16');                      %used to resolve conflicts on cluster membership
 
-Ndelay = floor(td_max*fs);                                       %number of points corresponding to td_max
-time = 0:1/fs:Ndelay/fs;
-frequency = -fd_max:1:fd_max;
 
 while numInitPts
     tempInd         = ceil( (numInitPts-1e-6)*rand);            %pick a random seed point

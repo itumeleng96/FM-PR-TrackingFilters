@@ -52,15 +52,15 @@ end
 
 ard_ = ard;
 figure(f);
-imagesc(time,frequency,10*log10(ard.'),[max_dB-100 max_dB]);
+imagesc(range,frequency,10*log10(ard.'),[max_dB-100 max_dB]);
 axis xy;
 colorbar;
-xlabel('Bistatic delay [s]','Fontsize',10);
+xlabel('Bistatic range [m]','Fontsize',10);
 ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
 title('Range-Doppler response')
 display('imagesc plot computation')
-xlim([0 xlim_upper]) 
+%xlim([0 xlim_upper]) 
 ylim([ylim_lower ylim_upper])
 text(0,10,"Time:" + index+ "s");
 drawnow

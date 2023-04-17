@@ -44,8 +44,10 @@ for r=1:rows
     end
 end
 
+c=3e8;
 Ndelay = floor(td_max*fs);                                  %number of points corresponding to td_max
 time = 0:1/fs:Ndelay/fs;
+range = time*c;
 frequency = -fd_max:1:fd_max;
 
 
@@ -61,7 +63,7 @@ rdm_ = rdm;
 
 
 figure(f);
-imagesc(time, frequency, rdm_);
+imagesc(range, frequency, rdm_);
 colormap(gca, 'gray'); % Set the colormap to 'gray'
 caxis([min(rdm_(:)), max(rdm_(:))]); % Set the color axis to the minimum and maximum values of rdm_
 c = colorbar;
@@ -71,20 +73,20 @@ c.Color = 'black'; % Set colorbar label color to white
 set(gca, 'Color', 'black'); % Set background color to black
 text(0, 10, "Time: " + index + "s", 'Color', 'white'); % Set text color to white
 axis xy;
-xlabel('Bistatic delay [s]', 'FontSize', 10, 'Color', 'black'); % Set xlabel color to white
+xlabel('Bistatic range [m]', 'FontSize', 10, 'Color', 'black'); % Set xlabel color to white
 ylabel('Doppler frequency [Hz]', 'FontSize', 10, 'Color', 'black'); % Set ylabel color to white
 grid on;
 title('CFAR and Centroids', 'Color', 'black'); % Set title color to white
-xlim([0 xlim_upper]);
+%xlim([0 xlim_upper]);
 ylim([ylim_lower ylim_upper]);
 RDM = RDM_final;
 
-[row,column] = find(RDM>0);
+[row, column] = find(RDM > 0);
+% Get target clusters as Bistatic Range and Doppler values
 
-%Get target clusters as Bistatic Range and Doppler values
-row= frequency(row.');
-column = time(column.');
+range_values = range(column.'); % convert time values to range values
+frequency_values = frequency(row.'); % get frequency values
 
-targetClusters = [column; row];
+targetClusters = [range_values; frequency_values]; % store centroids as range and frequency
 
 end

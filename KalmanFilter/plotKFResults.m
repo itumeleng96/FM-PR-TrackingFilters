@@ -67,7 +67,7 @@ movegui(f3,'southeast');
 %Create MTT object
 confirmationThreshold=2;
 deletionThreshold=4;
-gatingThreshold=40;
+gatingThreshold=5000;
 filterType=1;           %Kalman Filter 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 

@@ -50,7 +50,7 @@ movegui(f3,'southeast');
 %Create MTT object
 confirmationThreshold = 2;
 deletionThreshold = 4;
-gatingThreshold = 30;       %Radius around the predicted measurement to eliminate other measurements
+gatingThreshold = 5000;       %Radius around the predicted measurement to eliminate other measurements
 filterType = 2;             %Gauss Newton
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
@@ -66,7 +66,7 @@ for i = 1:simulation_time
     [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.35,fs,dopp_bins,delay,i,f2,rdm);                    
      
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids] = meanShiftPlot(targetClusters,10,fs,dopp_bins,delay);
+    [clusterCentroids] = meanShiftPlot(targetClusters,0.1e6,fs,dopp_bins,delay);
     
     disp(clusterCentroids);
     %Plot tracks from Tracker - Call Multi-target Tracker

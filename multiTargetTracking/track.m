@@ -35,7 +35,7 @@ classdef track
                     obj.trackingFilterObject = KF_object; 
                 
                 case 2
-                    std_acc=[0.1e-4,0.01];             %Standard Deviation of the acceleration in ms^2
+                    std_acc=[1e-6,1e-4];             %Standard Deviation of the acceleration in ms^2
 
                     max_iterations=10;
                     tolerance = 100e-6;
@@ -44,7 +44,7 @@ classdef track
                 
                 case 3
                     N=10000;  %Number of particles
-                    PF_object = particleFilter(dt,1,[trueTrack(1,1);trueTrack(2,1)],N);
+                    PF_object = particleFilter(dt,1,[x_initial(1);0;0;x_initial(2);0;0],N);
                     obj.trackingFilterObject = PF_object;
                 
                 

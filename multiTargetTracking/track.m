@@ -60,8 +60,6 @@ classdef track
             obj.trueTrack(1,end+1) = newTargetObservation(1,1);
             obj.trueTrack(2,end) = newTargetObservation(2,1);
             
-            disp("True Track");
-            disp(newTargetObservation);
             %Update Tracking Filter 
             [~,obj.trackingFilterObject] = update(obj.trackingFilterObject,[newTargetObservation(1,1);newTargetObservation(2,1)]); 
 

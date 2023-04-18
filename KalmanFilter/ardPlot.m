@@ -24,7 +24,7 @@ for k = 1:Ndelay+1
     temp2 = fftshift(fft(temp,N));                          %FFT of the above dot-product
     y1(k,:) = temp2(floor(N/2)+1-Ndop:floor(N/2)+1+Ndop);   %Discarding frequency bins not of interest
 end
-display('Range-Doppler computation')
+%display('Range-Doppler computation')
 toc
 
 
@@ -59,7 +59,7 @@ xlabel('Bistatic range [m]','Fontsize',10);
 ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
 title('Range-Doppler response')
-display('imagesc plot computation')
+%display('imagesc plot computation')
 %xlim([0 xlim_upper]) 
 ylim([ylim_lower ylim_upper])
 text(0,10,"Time:" + index+ "s");

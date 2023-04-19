@@ -104,7 +104,7 @@ classdef GaussNewton
 
         function [X_est,GN_obj] = update(obj,z)
 
-            lambda = 0.1;
+            lambda = 0.01;
 
             for i = 1:obj.max_iter
                 r = obj.objectiveFunction(obj.X, z);  % Compute residual

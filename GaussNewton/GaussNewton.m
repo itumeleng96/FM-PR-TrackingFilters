@@ -116,11 +116,11 @@ classdef GaussNewton
         
                     % Update state estimate and covariance matrix
                     x_new = obj.X + dx;
-                    P_new = obj.A * obj.P * obj.A' + obj.Q;
-                    K = P_new * obj.H' / (obj.H * P_new * obj.H' + obj.R);
-                    obj.X = x_new + K * (z - obj.H * x_new);
-                    obj.P = (eye(size(obj.A, 2)) - K * obj.H) * P_new;
-        
+                    %P_new = obj.A * obj.P * obj.A' + obj.Q;
+                    %K = P_new * obj.H' / (obj.H * P_new * obj.H' + obj.R);
+                    %obj.X = x_new + K * (z - obj.H * x_new);
+                    %obj.P = (eye(size(obj.A, 2)) - K * obj.H) * P_new;
+                    obj.X = x_new;        
                     r_new = z - obj.H * obj.X;  % Compute new residual
                     if norm(r_new) < norm(r)  % Check if iteration improved objective function
                         break;

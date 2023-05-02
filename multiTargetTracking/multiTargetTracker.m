@@ -26,7 +26,7 @@ classdef multiTargetTracker
             %This method assigns Detections to the nearest Track, else
             numberOfDetections=size(detections,2);
             if isempty(obj.tracks)
-                disp("Assigning Detections");
+                %disp("Assigning Detections");
                 %create tracks = number of detections for the first time
 
                 for i=1:numberOfDetections
@@ -43,9 +43,10 @@ classdef multiTargetTracker
             end
         end
         function obj = updateStage(obj,detections)
-            disp("Update Tracks and Add  new tracks if there are tracks already");
+            %disp("UpdateStage");
             %Assign Tracks to Detection using GNN and update filter with new measurements
-            %Get qualifying detections within radius
+            %Get qualifying detections within radius if not create new tracks
+
             if ~isempty(obj.tracks) && ~obj.newtracksCreated
                 numOfTracks = length(obj.tracks);
                 for i=1:numOfTracks
@@ -94,7 +95,7 @@ classdef multiTargetTracker
         end
 
         function obj = maintainTracks(obj)
-            disp("Maintain Tracks");
+            %disp("Maintain Tracks");
             obj.tracks =obj.deleteTracks();
             obj.confirmTracks();
 
@@ -102,7 +103,7 @@ classdef multiTargetTracker
 
         function obj = predictionStage(obj)
             %call tracking filter on all tracks
-            disp("predict For created tracks");
+            %disp("Prediction Stage");
             numberOfTracks = max(size(obj.tracks));
 
             for i=1:numberOfTracks
@@ -115,15 +116,17 @@ classdef multiTargetTracker
         function plotMultiTargetTracking(obj,fs,fd_max,td_max,index,f,RDM)
 
             figure(f);
+            c=3e8;
             Ndelay = floor(td_max*fs);                                 
             time = 0:1/fs:Ndelay/fs;
+            range = time *c;
             frequency = -fd_max:1:fd_max;
-            imagesc(time,frequency,RDM*0);
+            imagesc(range,frequency,RDM*0);
             colormap(gca, 'white'); % Set the colormap to 'gray'
 
             text(0,10,"Time:" + index+ "s");
             axis xy;
-            xlabel('Bistatic delay [s]','Fontsize',10);
+            xlabel('Bistatic Range [m]','Fontsize',10);
             ylabel('Doppler frequency [Hz]','Fontsize',10);
             grid on;
             title('Targets centroids and  Prediction');
@@ -150,11 +153,10 @@ classdef multiTargetTracker
                 trueTrack = obj.tracks(i).trueTrack;
                 predictedTrack_interp = interp1(predictedTrack(1,:), time);
                 trueTrack_interp = interp1(trueTrack(1,:), time);
-                doppler_rms(i,:) = sqrt(mean((predictedTrack_interp - trueTrack_interp).^2,1));
+                range_rms(i,:) = sqrt(mean((predictedTrack_interp - trueTrack_interp).^2,1));
                 predictedTrack_interp2 = interp1(predictedTrack(2,:), time);
                 trueTrack_interp2 = interp1(trueTrack(2,:), time);
-                range_rms(i,:) = sqrt(mean((predictedTrack_interp2 - trueTrack_interp2).^2,1));
-
+                doppler_rms(i,:) = sqrt(mean((predictedTrack_interp2 - trueTrack_interp2).^2,1));
             end
             
             if(plotDoppler_RMS)
@@ -170,8 +172,8 @@ classdef multiTargetTracker
                 figure(f1);
                 plot(time, range_rms);
                 xlabel('Time(s)');
-                ylabel('Bistatic Delay RMS Error(s)');
-                title('Bistatic Delay  RMS Error vs Time');
+                ylabel('Bistatic Range RMS Error(m)');
+                title('Bistatic Range  RMS Error vs Time');
                 legend('Track 1','Track 2','Track 3','Track 4','Track 5','Track 6','Track 7','Track 8','Track 9','Track 10');
             end
         end

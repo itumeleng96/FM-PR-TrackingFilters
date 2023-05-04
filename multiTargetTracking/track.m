@@ -36,9 +36,9 @@ classdef track
                 
                 case 2
                     std_acc=[1e-6,1e-4];                 %Standard Deviation of the acceleration in ms^2
-                    std_meas=[0.01,0.001];               %Standard Deviation of the measurements in the x and y
+                    std_meas=[1,0.001];                  %Standard Deviation of the measurements in the x and y
                     max_iterations=10;
-                    tolerance = 0.1;
+                    tolerance = 1;
                     GN_object = GaussNewton(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);0;0;x_initial(2);0;0],max_iterations,tolerance);
                     obj.trackingFilterObject = GN_object;
                 

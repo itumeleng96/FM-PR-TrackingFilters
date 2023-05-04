@@ -68,7 +68,7 @@ for i = 1:simulation_time
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids] = meanShiftPlot(targetClusters,0.1e6,fs,dopp_bins,delay);
+    [clusterCentroids] = meanShiftPlot(targetClusters,1e4,10,fs,dopp_bins,delay);
     
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);

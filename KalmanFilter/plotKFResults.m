@@ -18,14 +18,13 @@ I_Qmov = I_Qmov.*scale_mov;
 I_Qno = Ino + j*Qno;
 I_Qno = I_Qno.*scale_no;
 
-I_Qmov=I_Qmov-I_Qno;
+%I_Qmov=I_Qmov-I_Qno;
 
 
 fs = 200000;
 dopp_bins = 200;
 delay = 233e-6;
 
-%{
 proc = struct('cancellationMaxRange_m', 13850, ...
               'cancellationMaxDoppler_Hz', 4, ...
               'TxToRefRxDistance_m', 13734, ...
@@ -36,7 +35,7 @@ proc = struct('cancellationMaxRange_m', 13850, ...
               'initialAlpha', 0);
 
 I_Qmov = procCGLS(I_Qno, I_Qmov, proc);
-%}
+
 s1 = I_Qmov;
 s2 = I_Qno;
 
@@ -83,7 +82,7 @@ for i = 1:simulation_time
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids] = meanShiftPlot(targetClusters,0.1e6,fs,dopp_bins,delay);
+    [clusterCentroids] = meanShiftPlot(targetClusters,1e4,10,fs,dopp_bins,delay);
     
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);

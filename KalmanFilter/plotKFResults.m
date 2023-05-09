@@ -4,9 +4,9 @@ addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','
 %system("fers ../FERS/Simulation_60_direct.fersxml");
 %system("fers ../FERS/Simulation_60_echo_2.fersxml");
 %system("fers ../FERS/Simulation_60_Bistatic.fersxml");
-%system("fers ../FERS/singleFile.fersxml");
-system("fers ../FERS/scenario_1_ref.fersxml");
-system("fers ../FERS/scenario_1_surv.fersxml");
+system("fers ../FERS/singleFile.fersxml");
+%system("fers ../FERS/scenario_1_ref.fersxml");
+%system("fers ../FERS/scenario_1_surv.fersxml");
 
 % h5 Import from FERS simulation
 [Ino Qno scale_no] = loadfersHDF5('direct.h5');

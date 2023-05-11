@@ -4,7 +4,7 @@ addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','
 %system("fers ../FERS/Simulation_60_direct.fersxml");
 %system("fers ../FERS/Simulation_60_echo_2.fersxml");
 %system("fers ../FERS/Simulation_60_Bistatic.fersxml");
-system("fers ../FERS/singleFile.fersxml");
+system("fers ../FERS/scenario_6_singleFile.fersxml");
 %system("fers ../FERS/scenario_1_ref.fersxml");
 %system("fers ../FERS/scenario_1_surv.fersxml");
 
@@ -27,7 +27,7 @@ delay = 233e-6;
 
 proc = struct('cancellationMaxRange_m', 13850, ...
               'cancellationMaxDoppler_Hz', 4, ...
-              'TxToRefRxDistance_m', 13734, ...
+              'TxToRefRxDistance_m', 13700, ...
               'nSegments', 16, ...
               'nIterations', 30, ...
               'Fs', fs, ...
@@ -78,7 +78,7 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.25,fs,dopp_bins,delay,i,f2,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.35,fs,dopp_bins,delay,i,f2,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm

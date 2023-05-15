@@ -4,7 +4,7 @@ addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','
 %system("fers ../FERS/Simulation_60_direct.fersxml");
 %system("fers ../FERS/Simulation_60_echo_2.fersxml");
 %system("fers ../FERS/Simulation_60_Bistatic.fersxml");
-system("fers ../FERS/scenario_6_singleFile.fersxml");
+system("fers ../FERS/scenario_8_singleFile.fersxml");
 %system("fers ../FERS/scenario_1_ref.fersxml");
 %system("fers ../FERS/scenario_1_surv.fersxml");
 
@@ -25,9 +25,9 @@ fs = 200000;
 dopp_bins = 200;
 delay = 233e-6;
 
-proc = struct('cancellationMaxRange_m', 13850, ...
+proc = struct('cancellationMaxRange_m', 12650, ...
               'cancellationMaxDoppler_Hz', 4, ...
-              'TxToRefRxDistance_m', 13700, ...
+              'TxToRefRxDistance_m', 12540, ...
               'nSegments', 16, ...
               'nIterations', 30, ...
               'Fs', fs, ...
@@ -41,7 +41,7 @@ s2 = I_Qno;
 
 initial=1;
 current=fs;                                 %based on samples in transmitted signal
-simulation_time = size(I_Qmov,1)/fs ;       %Simulation time: number of data points/sampling frequency
+simulation_time = size(I_Qmov,1)/fs;       %Simulation time: number of data points/sampling frequency
 
 
 ard = [];
@@ -78,7 +78,7 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.35,fs,dopp_bins,delay,i,f2,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.25,fs,dopp_bins,delay,i,f2,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm

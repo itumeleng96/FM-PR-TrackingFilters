@@ -70,8 +70,8 @@
     <motionpath interpolation="cubic">
     
       <positionwaypoint>
-	    <x>-7000</x>
-	    <y>-7000</y>
+	    <x>-8000</x>
+	    <y>-8000</y>
 	    <altitude>3600</altitude>
 	    <time>0</time>
       </positionwaypoint>

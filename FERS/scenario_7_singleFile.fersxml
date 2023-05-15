@@ -19,11 +19,6 @@
     <power>14760</power> <!-- 9 kW * 2.15 dB (to create EIRP of dipole type pattern) -->
     <carrier>94e6</carrier> <!-- Prieska Tx -> OFM -->
   </pulse>
-    
-  <pulse name="NoiseWaveform" type="file" filename="../Waveform/noise_waveform.h5">
-    <power>3</power> <!-- 9 kW * 2.15 dB (to create EIRP of dipole type pattern) -->
-    <carrier>94e6</carrier> <!-- Prieska Tx -> OFM -->
-  </pulse>
   
   <timing name="TxClock">
     <frequency>200000</frequency>
@@ -31,7 +26,6 @@
   
   <timing name="RxClock">
     <frequency>200000</frequency>
-    <random_freq_offset>0.01</random_freq_offset><!-- Approximately 50 ppb, typical for good OCXO -->
   </timing>
   
   <antenna name="RxYagiAntenna" pattern="sinc">
@@ -51,7 +45,7 @@
       <positionwaypoint>
         <x>6440</x> <!-- Setting visserskloof Rx as the 0,0 point -->
         <y>10760</y>
-        <altitude>1000</altitude>
+        <altitude>1056</altitude>
         <time>0</time>
       </positionwaypoint>
     </motionpath>
@@ -65,44 +59,23 @@
       <prf>0.0016</prf>
     </transmitter>
   </platform>
-
- <!-- Noise Transmitter-->
-  <platform name="PrieskaTx">
-    <motionpath interpolation="static">
+	<!-- Visserskloof 1070 m high at the center of the environment -->
+  
+  <platform name="RefRx">
+    <motionpath>
       <positionwaypoint>
-        <x>12440</x> <!-- Setting visserskloof Rx as the 0,0 point -->
-        <y>16760</y>
-        <altitude>1600</altitude>
-        <time>0</time>
+       <x>1.0</x>
+       <y>0.0</y>
+       <altitude>116.0</altitude>
+       <time>0</time>
       </positionwaypoint>
-    </motionpath>
-    <fixedrotation> <!-- Omni directional transmit antenna therefore no rotation -->
+     </motionpath>
+     <fixedrotation>
       <startazimuth>0</startazimuth>
       <startelevation>0</startelevation>
       <azimuthrate>0</azimuthrate>
       <elevationrate>0</elevationrate>
-    </fixedrotation>
-    <transmitter name="Tx" type="continuous" antenna="TxIsoAntenna" pulse="NoiseWaveform" timing="TxClock">
-      <prf>0.0016</prf>
-    </transmitter>
-  </platform>
-	<!-- Visserskloof 1070 m high at the center of the environment -->
-  
-  <platform name="RefRx">
-    <motionpath interpolation="static">
-      <positionwaypoint>
-        <x>0</x>
-        <y>0</y>
-        <altitude>1000</altitude>
-	  <time>0</time>
-      </positionwaypoint>
-    </motionpath>
-    <fixedrotation>
-      <startazimuth>42</startazimuth><!-- heading of 42 degrees towards Prieska -->
-      <startelevation>0</startelevation><!-- horizontal -->
-      <azimuthrate>0</azimuthrate>
-      <elevationrate>0</elevationrate>
-    </fixedrotation>
+     </fixedrotation>
     <receiver name="direct" type="continuous" antenna="RxYagiAntenna" timing="RxClock">
       <prf>0.0016</prf>
       <window_skip>0</window_skip>
@@ -112,21 +85,21 @@
   </platform>
 
   <platform name="SurvRx">
-    <motionpath interpolation="static">
+    <motionpath>
       <positionwaypoint>
-        <x>0</x>
-        <y>1</y>
-        <altitude>1000</altitude> <!-- 1m below reference -->
-        <time>0</time>
+       <x>0.0</x>
+       <y>0.0</y>
+       <altitude>116.0</altitude>
+       <time>0</time>
       </positionwaypoint>
-    </motionpath>
-    <fixedrotation>
-      <startazimuth>180</startazimuth><!-- towards middle of core site - 180 degrees from PrieskaTx -->
-      <startelevation>10</startelevation><!-- 10 degrees slight upwards tilt-->
+     </motionpath>
+     <fixedrotation>
+      <startazimuth>0</startazimuth>
+      <startelevation>0</startelevation>
       <azimuthrate>0</azimuthrate>
       <elevationrate>0</elevationrate>
-    </fixedrotation>
-    <receiver name="echo" type="continuous" antenna="RxYagiAntenna" timing="RxClock" ignoredirectsignals="true">
+     </fixedrotation>
+    <receiver name="echo" type="continuous" antenna="RxYagiAntenna" timing="RxClock">
       <prf>0.0016</prf>
       <window_skip>0</window_skip>
       <window_length>60</window_length> <!-- Time length of simulation -->
@@ -137,21 +110,21 @@
 
 
 
-  <platform name="Target1"> <!-- Target traveling at 220m/s for x seconds -->
+  <platform name="Target1"> 
     <motionpath interpolation="cubic">
-	<positionwaypoint>
-        <x>16000</x>
-        <y>14000</y>
-        <altitude>1600</altitude><!-- Starting altitude -->
-        <time>0</time>
+      <positionwaypoint>
+       <x>20000</x>
+       <y>14300</y>
+       <altitude>1600.0</altitude>
+       <time>0</time>
       </positionwaypoint>
       <positionwaypoint>
-        <x>2000</x>
-        <y>2000</y>
-        <altitude>1600</altitude> <!-- End altitude -->
-        <time>60</time><!-- Time length of simulation -->
+       <x>2000</x>
+       <y>1400</y>
+       <altitude>1600.0</altitude>
+       <time>60</time>
       </positionwaypoint>
-    </motionpath>
+     </motionpath> 
     <fixedrotation>
       <startazimuth>0.0</startazimuth>
       <startelevation>0.0</startelevation>

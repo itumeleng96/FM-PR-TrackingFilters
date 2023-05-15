@@ -1,10 +1,8 @@
 clc; clear all; close all;
 addpath('../FERS/','../CFAR/','../KmeansCentroids','../DPI_Suppression/');
 
-%system("fers ../FERS/Simulation_60_direct.fersxml");
-%system("fers ../FERS/Simulation_60_echo_2.fersxml");
-%system("fers ../FERS/Simulation_60_Bistatic.fersxml");
-system("fers ../FERS/singleFile.fersxml");
+
+system("fers ../FERS/scenario_8_singleFile.fersxml");
 
 
 % h5Import from FERS simulation
@@ -25,9 +23,9 @@ delay = 133e-6;
 %I_Qmov=I_Qmov-I_Qno;
 %Use the cancellation Function
 %Parameters for the cancellation function
-proc = struct('cancellationMaxRange_m', 13850, ...
+proc = struct('cancellationMaxRange_m', 12650, ...
               'cancellationMaxDoppler_Hz', 4, ...
-              'TxToRefRxDistance_m', 13734, ...
+              'TxToRefRxDistance_m', 12540, ...
               'nSegments', 16, ...
               'nIterations', 30, ...
               'Fs', fs, ...
@@ -35,7 +33,7 @@ proc = struct('cancellationMaxRange_m', 13850, ...
               'initialAlpha', 0);
 
 
-I_Qmov = procCGLS(I_Qno, I_Qmov, proc);
+I_Qmov = procECA(I_Qno, I_Qmov, proc);
 
 
 s1 = I_Qmov;

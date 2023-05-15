@@ -31,7 +31,6 @@
   
   <timing name="RxClock">
     <frequency>200000</frequency>
-    <random_freq_offset>0.01</random_freq_offset><!-- Approximately 50 ppb, typical for good OCXO -->
   </timing>
   
   <antenna name="RxYagiAntenna" pattern="sinc">

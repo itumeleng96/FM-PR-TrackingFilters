@@ -56,7 +56,7 @@ if index==1
 end
 
 if index>1
-    rdm = rdm+RDM_final ;
+    rdm =rdm+RDM_final ;
 end
 
 rdm_ = rdm;

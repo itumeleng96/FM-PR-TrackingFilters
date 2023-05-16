@@ -45,7 +45,7 @@
       <positionwaypoint>
         <x>6440</x> <!-- Setting visserskloof Rx as the 0,0 point -->
         <y>10760</y>
-        <altitude>1000</altitude>
+        <altitude>1056</altitude>
         <time>0</time>
       </positionwaypoint>
     </motionpath>
@@ -103,20 +103,19 @@
       <window_skip>0</window_skip>
       <window_length>60</window_length> <!-- Time length of simulation -->
       <noise_temp>100</noise_temp> <!-- 4 dB NF as per the minimal frontend -->
-      
     </receiver>
   </platform>
 
   <platform name="Target1"> <!-- Target traveling at 220m/s for x seconds -->
     <motionpath interpolation="cubic">
 	<positionwaypoint>
-        <x>16000</x>
-        <y>14000</y>
-        <altitude>1600</altitude><!-- Starting altitude -->
+        <x>4000</x>
+        <y>18000</y>
+        <altitude>3600</altitude><!-- Starting altitude -->
         <time>0</time>
       </positionwaypoint>
       <positionwaypoint>
-        <x>2000</x>
+        <x>-4000</x>
         <y>2000</y>
         <altitude>1600</altitude> <!-- End altitude -->
         <time>60</time><!-- Time length of simulation -->

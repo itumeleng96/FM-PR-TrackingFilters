@@ -21,7 +21,7 @@
   </pulse>
   
   <pulse name="noiseWaveform" type="file" filename="../Waveform/noise_waveform.h5">
-    <power>1760</power> 
+    <power>10</power> 
     <carrier>94e6</carrier>
   </pulse>
   
@@ -70,8 +70,8 @@
   <platform name="NoiseTx">
     <motionpath interpolation="static">
       <positionwaypoint>
-        <x>30000</x> 
-        <y>30000</y>
+        <x>28000</x> 
+        <y>28000</y>
         <altitude>1600</altitude>
         <time>0</time>
       </positionwaypoint>
@@ -133,23 +133,21 @@
     </receiver>
   </platform>
 
-
-
-  <platform name="Target1"> 
+  <platform name="Target1"> <!-- Target traveling at 220m/s for x seconds -->
     <motionpath interpolation="cubic">
-      <positionwaypoint>
-       <x>16000</x>
-       <y>14300</y>
-       <altitude>1600.0</altitude>
-       <time>0</time>
+	<positionwaypoint>
+        <x>4000</x>
+        <y>18000</y>
+        <altitude>3600</altitude><!-- Starting altitude -->
+        <time>0</time>
       </positionwaypoint>
       <positionwaypoint>
-       <x>2000</x>
-       <y>1400</y>
-       <altitude>1600.0</altitude>
-       <time>60</time>
+        <x>-4000</x>
+        <y>2000</y>
+        <altitude>1600</altitude> <!-- End altitude -->
+        <time>60</time><!-- Time length of simulation -->
       </positionwaypoint>
-     </motionpath> 
+    </motionpath>
     <fixedrotation>
       <startazimuth>0.0</startazimuth>
       <startelevation>0.0</startelevation>

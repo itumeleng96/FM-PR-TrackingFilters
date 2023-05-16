@@ -134,7 +134,7 @@ classdef multiTargetTracker
             for i = 1:length(obj.tracks)
                 hold on;
                 plot(obj.tracks(i).predictedTrack(1,:),obj.tracks(i).predictedTrack(2,:), 'r--', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 7);
-                text(obj.tracks(i).predictedTrack(1,end), obj.tracks(i).predictedTrack(2,end), {sprintf('T%d',i)}, 'VerticalAlignment', 'top', 'HorizontalAlignment', 'left')
+                %text(obj.tracks(i).predictedTrack(1,end), obj.tracks(i).predictedTrack(2,end), {sprintf('T%d',i)}, 'VerticalAlignment', 'top', 'HorizontalAlignment', 'left')
                 hold on 
                 plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'bo', 'MarkerFaceColor', 'none', 'MarkerSize', 6);
             end
@@ -177,6 +177,40 @@ classdef multiTargetTracker
                 legend('Track 1','Track 2','Track 3','Track 4','Track 5','Track 6','Track 7','Track 8','Track 9','Track 10');
             end
         end
+        function [doppler_ll, range_ll] = calculateLogLikelihood(obj, f, f1, simulationTime)
+            time = 0:1:simulationTime;
+
+            doppler_ll = zeros(length(obj.tracks), length(time));
+            range_ll = zeros(length(obj.tracks), length(time));
+
+            % Calculate the Range and Doppler log-likelihood
+            for i = 1:length(obj.tracks)
+                predictedTrack = obj.tracks(i).predictedTrack;
+                trueTrack = obj.tracks(i).trueTrack;
+                predictedTrack_interp = interp1(predictedTrack(1, :), time);
+                trueTrack_interp = interp1(trueTrack(1, :), time);
+                range_residuals = predictedTrack_interp - trueTrack_interp;
+                range_ll(i, :) = -0.5 * log(2 * pi) - 0.5 * log(var(range_residuals)) - 0.5 * (range_residuals.^2) / var(range_residuals);
+
+                predictedTrack_interp2 = interp1(predictedTrack(2, :), time);
+                trueTrack_interp2 = interp1(trueTrack(2, :), time);
+                doppler_residuals = predictedTrack_interp2 - trueTrack_interp2;
+                doppler_ll(i, :) = -0.5 * log(2 * pi) - 0.5 * log(var(doppler_residuals)) - 0.5 * (doppler_residuals.^2) / var(doppler_residuals);
+            end
+            
+            figure(f);
+            plot(time, doppler_ll);
+            xlabel('Time(s)');
+            ylabel('Bistatic Doppler Log-likelihood(Hz)');
+            title('Bistatic Doppler Log-likelihood vs Time');
+            
+            figure(f1);
+            plot(time, range_ll);
+            xlabel('Time(s)');
+            ylabel('Bistatic Range Log-likelihood (m)');
+            title('Bistatic Range  Log-likelihood vs Time');
+        end
+        
     end
     methods(Static)
 

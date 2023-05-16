@@ -21,7 +21,7 @@
   </pulse>
   
   <pulse name="noiseWaveform" type="file" filename="../Waveform/noise_waveform.h5">
-    <power>10760</power> 
+    <power>1760</power> 
     <carrier>94e6</carrier>
   </pulse>
   
@@ -70,8 +70,8 @@
   <platform name="NoiseTx">
     <motionpath interpolation="static">
       <positionwaypoint>
-        <x>10440</x> 
-        <y>10760</y>
+        <x>30000</x> 
+        <y>30000</y>
         <altitude>1600</altitude>
         <time>0</time>
       </positionwaypoint>
@@ -138,7 +138,7 @@
   <platform name="Target1"> 
     <motionpath interpolation="cubic">
       <positionwaypoint>
-       <x>20000</x>
+       <x>16000</x>
        <y>14300</y>
        <altitude>1600.0</altitude>
        <time>0</time>

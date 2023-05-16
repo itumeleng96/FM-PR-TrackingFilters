@@ -4,7 +4,7 @@ addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','
 %system("fers ../FERS/Simulation_60_direct.fersxml");
 %system("fers ../FERS/Simulation_60_echo_2.fersxml");
 %system("fers ../FERS/Simulation_60_Bistatic.fersxml");
-system("fers ../FERS/scenario_8_singleFile.fersxml");
+system("fers ../FERS/scenario_7_singleFile.fersxml");
 %system("fers ../FERS/scenario_1_ref.fersxml");
 %system("fers ../FERS/scenario_1_surv.fersxml");
 
@@ -65,7 +65,7 @@ movegui(f3,'southeast');
 
 %Create MTT object
 confirmationThreshold=2;
-deletionThreshold=4;
+deletionThreshold=6;
 gatingThreshold=5000;
 filterType=1;           %Kalman Filter 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);

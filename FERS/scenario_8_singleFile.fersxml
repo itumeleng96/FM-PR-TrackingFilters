@@ -15,7 +15,7 @@
     <export binary="true" csv="false" xml="false"/>
   </parameters>
 
-  <pulse name="TxWaveform" type="file" filename="../Waveform/FM_waveform.h5">
+  <pulse name="TxWaveform" type="file" filename="../Waveform/FM_waveform_120.h5">
     <power>14760</power> <!-- 9 kW * 2.15 dB (to create EIRP of dipole type pattern) -->
     <carrier>94e6</carrier> <!-- Prieska Tx -> OFM -->
   </pulse>
@@ -118,8 +118,8 @@
         <time>0</time>
       </positionwaypoint>
       <positionwaypoint>
-        <x>1000</x>
-        <y>900</y>
+        <x>2000</x>
+        <y>2000</y>
         <altitude>1600</altitude> <!-- End altitude -->
         <time>120</time><!-- Time length of simulation -->
       </positionwaypoint>

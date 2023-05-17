@@ -50,9 +50,12 @@ if index>1
     ard = ard+ y ;
 end
 
+ard = min(ard, 1);  % Set maximum value to 1
 ard_ = ard;
+
+max_ard = max(max(ard_));
 figure(f);
-imagesc(range,frequency,10*log10(ard.'),[max_dB-100 max_dB]);
+imagesc(range, frequency, 10*log10(ard.'), [max_dB-100, max_ard]);
 axis xy;
 colorbar;
 xlabel('Bistatic range [m]','Fontsize',10);

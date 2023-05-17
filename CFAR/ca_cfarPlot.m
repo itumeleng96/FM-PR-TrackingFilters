@@ -58,6 +58,7 @@ end
 if index>1
     rdm =rdm+RDM_final ;
 end
+rdm = min(rdm, 1);  % Set maximum value to 1
 
 rdm_ = rdm;
 
@@ -65,7 +66,6 @@ rdm_ = rdm;
 figure(f);
 imagesc(range, frequency, rdm_);
 colormap(gca, 'gray'); % Set the colormap to 'gray'
-caxis([min(rdm_(:)), max(rdm_(:))]); % Set the color axis to the minimum and maximum values of rdm_
 c = colorbar;
 c.Label.String = 'Intensity';
 c.FontSize = 10;

@@ -133,10 +133,11 @@ classdef multiTargetTracker
             
             for i = 1:length(obj.tracks)
                 hold on;
-                plot(obj.tracks(i).predictedTrack(1,:),obj.tracks(i).predictedTrack(2,:), 'r--', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 7);
-                %text(obj.tracks(i).predictedTrack(1,end), obj.tracks(i).predictedTrack(2,end), {sprintf('T%d',i)}, 'VerticalAlignment', 'top', 'HorizontalAlignment', 'left')
-                hold on 
-                plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'bo', 'MarkerFaceColor', 'none', 'MarkerSize', 6);
+                % Plot predicted track as a line connected by open triangles
+                plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'r--^', 'MarkerFaceColor', 'none', 'MarkerSize', 7);
+                
+                % Plot true track as open circles joined by a line
+                plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'bo-', 'MarkerFaceColor', 'none', 'MarkerSize', 6);
             end
             legend('Predicted Track', 'True Track');
         end
@@ -187,15 +188,21 @@ classdef multiTargetTracker
             for i = 1:length(obj.tracks)
                 predictedTrack = obj.tracks(i).predictedTrack;
                 trueTrack = obj.tracks(i).trueTrack;
-                predictedTrack_interp = interp1(predictedTrack(1, :), time);
-                trueTrack_interp = interp1(trueTrack(1, :), time);
-                range_residuals = predictedTrack_interp - trueTrack_interp;
-                range_ll(i, :) = -0.5 * log(2 * pi) - 0.5 * log(var(range_residuals)) - 0.5 * (range_residuals.^2) / var(range_residuals);
-
-                predictedTrack_interp2 = interp1(predictedTrack(2, :), time);
-                trueTrack_interp2 = interp1(trueTrack(2, :), time);
-                doppler_residuals = predictedTrack_interp2 - trueTrack_interp2;
-                doppler_ll(i, :) = -0.5 * log(2 * pi) - 0.5 * log(var(doppler_residuals)) - 0.5 * (doppler_residuals.^2) / var(doppler_residuals);
+    
+                for t = 1:length(time)
+                    % Interpolate predicted and true values at each time step
+                    predictedTrack_interp = interp1(predictedTrack(1, :), time(t));
+                    trueTrack_interp = interp1(trueTrack(1, :), time(t));
+                    range_residual = predictedTrack_interp - trueTrack_interp;
+                    range_ll(t) = -0.5 * log(2 * pi) - 0.5 * log(var(range_residual)) - 0.5 * (range_residual^2) / var(range_residual);
+        
+                    predictedTrack_interp2 = interp1(predictedTrack(2, :), time(t));
+                    trueTrack_interp2 = interp1(trueTrack(2, :), time(t));
+                    doppler_residual = predictedTrack_interp2 - trueTrack_interp2;
+                    doppler_ll(t) = -0.5 * log(2 * pi) - 0.5 * log(var(doppler_residual)) - 0.5 * (doppler_residual^2) / var(doppler_residual);
+                end
+                disp(range_ll);
+                disp(doppler_ll);
             end
             
             figure(f);
@@ -210,7 +217,8 @@ classdef multiTargetTracker
             ylabel('Bistatic Range Log-likelihood (m)');
             title('Bistatic Range  Log-likelihood vs Time');
         end
-        
+
+
     end
     methods(Static)
 

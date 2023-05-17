@@ -69,10 +69,12 @@ function y = ard_plot(s1,s2,fs,fd_max,td_max)
     %}
   tic
   %figure('Name','2D image');
-  imagesc(time,frequency,10*log10(y.'),[max_dB-100 max_dB]);
+  imagesc(range,frequency,10*log10(y.'),[max_dB-100 max_dB]);
   axis xy;
   colorbar;
-  xlabel('Bistatic delay [s]','Fontsize',10);
+  %xlabel('Bistatic delay [s]','Fontsize',10);
+  xlabel('Bistatic range [m]','Fontsize',10);
+
   ylabel('Doppler frequency [Hz]','Fontsize',10);
   grid on;
   title('Range-Doppler response')

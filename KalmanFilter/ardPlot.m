@@ -6,7 +6,7 @@ ylim_upper = 200;
 ylim_lower = -200;
 
 
-c = 3e8;                                                    %speed of the light
+c = 299792458;                                                    %speed of the light
 N=length(s1);                                               %number of points
 Ndelay = floor(td_max*fs);                                  %number of points corresponding to td_max
 Ndop = ceil(N*fd_max/fs);                                   %number of points corresponding to fd_max
@@ -20,7 +20,7 @@ y1=zeros(Ndelay+1,2*fd_max+1);
 tic
 for k = 1:Ndelay+1
     temp = s1.*conj(s2_pad(Ndelay+2-k:N+Ndelay+1-k));       %dot-product of the reference and scattered signals
-    temp = temp.*chebwin(N);                                %windowing the result |Using chebyshev window
+    temp = temp.*hanning(N);                                %windowing the result |Using chebyshev window
     temp2 = fftshift(fft(temp,N));                          %FFT of the above dot-product
     y1(k,:) = temp2(floor(N/2)+1-Ndop:floor(N/2)+1+Ndop);   %Discarding frequency bins not of interest
 end
@@ -47,7 +47,7 @@ if index==1
 end
 
 if index>1
-    ard = ard+ y ;
+    ard = y ;
 end
 
 ard = min(ard, 1);  % Set maximum value to 1

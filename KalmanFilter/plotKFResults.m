@@ -1,12 +1,8 @@
 clc; clear all; close all;
 addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','../DPI_Suppression');
 
-%system("fers ../FERS/Simulation_60_direct.fersxml");
-%system("fers ../FERS/Simulation_60_echo_2.fersxml");
-%system("fers ../FERS/Simulation_60_Bistatic.fersxml");
-system("fers ../FERS/scenario_7_singleFile.fersxml");
-%system("fers ../FERS/scenario_1_ref.fersxml");
-%system("fers ../FERS/scenario_1_surv.fersxml");
+
+system("fers ../FERS/scenario_4_singleFile.fersxml");
 
 % h5 Import from FERS simulation
 [Ino Qno scale_no] = loadfersHDF5('direct.h5');
@@ -24,22 +20,25 @@ I_Qno = I_Qno.*scale_no;
 fs = 200000;
 dopp_bins = 200;
 delay = 233e-6;
+c=299792458;
+range_delay = delay*c/2;
 
-proc = struct('cancellationMaxRange_m', 12650, ...
+proc = struct('cancellationMaxRange_m', range_delay, ...
               'cancellationMaxDoppler_Hz', 4, ...
               'TxToRefRxDistance_m', 12540, ...
-              'nSegments', 16, ...
-              'nIterations', 30, ...
+              'nSegments', 1, ...
+              'nIterations', 20, ...
               'Fs', fs, ...
               'alpha', 0, ...
               'initialAlpha', 0);
 
-I_Qmov = procCGLS(I_Qno, I_Qmov, proc);
 
-s1 = I_Qmov;
-s2 = I_Qno;
+
+s1 = I_Qmov;   %Surv
+s2 = I_Qno;    %Ref
 
 initial=1;
+
 current=fs;                                 %based on samples in transmitted signal
 simulation_time = size(I_Qmov,1)/fs;       %Simulation time: number of data points/sampling frequency
 
@@ -65,15 +64,17 @@ movegui(f3,'southeast');
 
 %Create MTT object
 confirmationThreshold=2;
-deletionThreshold=6;
-gatingThreshold=5000;
+deletionThreshold=4;
+gatingThreshold=[2000,10];
 filterType=1;           %Kalman Filter 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
 for i = 1:simulation_time
-    s1 = I_Qmov(initial:current);
-    s2 = I_Qno(initial:current);
-    
+    s1 = I_Qmov(initial:current); %surv
+    s2 = I_Qno(initial:current);  %ref
+
+    s1 = procECA(s2,s1,proc);
+
     %Plot Range-Doppler Map
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
@@ -82,7 +83,7 @@ for i = 1:simulation_time
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids] = meanShiftPlot(targetClusters,1e4,10,fs,dopp_bins,delay);
+    [clusterCentroids] = meanShiftPlot(targetClusters,0.5e4,10,fs,dopp_bins,delay);
     
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
@@ -97,8 +98,19 @@ for i = 1:simulation_time
     initial = current+1;
     current = current + fs;
 end
-
+%Log-likelihood
 %{
+f4=figure(4);
+f4.Position = [4000 10 1000 800]; 
+movegui(f4,'northeast');
+
+%RMSE Range  
+f5=figure(5);
+f5.Position = [4000 10 1000 800]; 
+movegui(f5,'southeast');
+
+[~,~]=multiTargetTracker.calculateLogLikelihood(f4,f5,simulation_time);
+
 %RMSE Doppler
 f4=figure(4);
 f4.Position = [4000 10 1000 800]; 

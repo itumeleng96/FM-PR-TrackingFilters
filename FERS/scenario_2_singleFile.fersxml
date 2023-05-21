@@ -21,8 +21,8 @@
   </pulse>
   
   <pulse name="noiseWaveform" type="file" filename="../Waveform/noise_waveform.h5">
-    <power>14750</power> 
-    <carrier>94e6</carrier>
+    <power>8600</power> 
+    <carrier>64e6</carrier>
   </pulse>
   
   <timing name="TxClock">
@@ -142,7 +142,7 @@
         <time>0</time>
       </positionwaypoint>
       <positionwaypoint>
-        <x>-4000</x>
+        <x>4000</x>
         <y>2000</y>
         <altitude>1600</altitude> <!-- End altitude -->
         <time>60</time><!-- Time length of simulation -->

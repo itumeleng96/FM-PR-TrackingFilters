@@ -20,8 +20,8 @@
     <carrier>94e6</carrier> <!-- Prieska Tx -> OFM -->
   </pulse>
   
-  <pulse name="noiseWaveform" type="file" filename="../Waveform/noise_waveform.h5">
-    <power>14750</power> 
+  <pulse name="noiseWaveform" type="file" filename="../Waveform/fm_noise_waveform.h5">
+    <power>4300</power> 
     <carrier>94e6</carrier>
   </pulse>
   
@@ -70,8 +70,8 @@
   <platform name="NoiseTx">
     <motionpath interpolation="static">
       <positionwaypoint>
-        <x>50000</x> 
-        <y>50000</y>
+        <x>30000</x> 
+        <y>30000</y>
         <altitude>1600</altitude>
         <time>0</time>
       </positionwaypoint>

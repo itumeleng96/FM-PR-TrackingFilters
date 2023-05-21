@@ -131,13 +131,14 @@ classdef multiTargetTracker
             grid on;
             title('Targets centroids and  Prediction');
             
+           
             for i = 1:length(obj.tracks)
                 hold on;
                 % Plot predicted track as a line connected by open triangles
                 plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'r--^', 'MarkerFaceColor', 'none', 'MarkerSize', 7);
-                
+                hold on
                 % Plot true track as open circles joined by a line
-                plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'bo-', 'MarkerFaceColor', 'none', 'MarkerSize', 6);
+                plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'bo', 'MarkerFaceColor', 'none', 'MarkerSize', 6);
             end
             legend('Predicted Track', 'True Track');
         end

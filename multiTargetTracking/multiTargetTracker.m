@@ -142,41 +142,53 @@ classdef multiTargetTracker
             end
             legend('Predicted Track', 'True Track');
         end
-
-        function [doppler_rms,range_rms] = plotRMSE(obj,f,f1,plotDoppler_RMS,plotRange_RMS,simulationTime)
+        function [doppler_rms, range_rms] = plotRMSE(obj, f, f1, plotDoppler_RMS, plotRange_RMS, simulationTime)
             time = 0:1:simulationTime;
-            
-            doppler_rms=zeros(length(obj.tracks),length(time));
-            range_rms=zeros(length(obj.tracks),length(time));
-
-            %Calculate the Range and Doppler RMS
+            doppler_rms = zeros(length(obj.tracks), length(time));
+            range_rms = zeros(length(obj.tracks), length(time));
+        
+            % Calculate the Range and Doppler RMS
             for i = 1:length(obj.tracks)
                 predictedTrack = obj.tracks(i).predictedTrack;
                 trueTrack = obj.tracks(i).trueTrack;
-                predictedTrack_interp = interp1(predictedTrack(1,:), time);
-                trueTrack_interp = interp1(trueTrack(1,:), time);
-                range_rms(i,:) = sqrt(mean((predictedTrack_interp - trueTrack_interp).^2,1));
-                predictedTrack_interp2 = interp1(predictedTrack(2,:), time);
-                trueTrack_interp2 = interp1(trueTrack(2,:), time);
-                doppler_rms(i,:) = sqrt(mean((predictedTrack_interp2 - trueTrack_interp2).^2,1));
+                
+                % Interpolate x-coordinates
+                predictedTrack_interp_x = interp1(predictedTrack(1,:), predictedTrack(2,:), time);
+                trueTrack_interp_x = interp1(trueTrack(1,:), trueTrack(2,:), time);
+                
+                % Interpolate y-coordinates
+                predictedTrack_interp_y = interp1(predictedTrack(1,:), predictedTrack(3,:), time);
+                trueTrack_interp_y = interp1(trueTrack(1,:), trueTrack(3,:), time);
+                
+                % Check for insufficient sample points for interpolation
+                if any(isnan(predictedTrack_interp_x)) || any(isnan(trueTrack_interp_x)) || ...
+                   any(isnan(predictedTrack_interp_y)) || any(isnan(trueTrack_interp_y))
+                    error('Insufficient sample points for interpolation.');
+                end
+                
+                % Calculate Doppler RMS
+                doppler_rms(i,:) = sqrt(mean((predictedTrack_interp_x - trueTrack_interp_x).^2, 1));
+        
+                % Calculate Range RMS
+                range_rms(i,:) = sqrt(mean((predictedTrack_interp_y - trueTrack_interp_y).^2, 1));
             end
-            
-            if(plotDoppler_RMS)
+
+            if plotDoppler_RMS
                 figure(f);
                 plot(time, doppler_rms);
                 xlabel('Time(s)');
-                ylabel('Bistatic Doppler RMS Error(Hz)');
-                title('Bistatic Doppler RMS Error vs Time');
-                legend('Track 1','Track 2','Track 3','Track 4','Track 5','Track 6','Track 7','Track 8','Track 9','Track 10');
-            end 
-            
-            if(plotRange_RMS)
+                ylabel('Doppler RMS Error (Hz)');
+                title('Doppler RMS Error vs Time');
+                legend('Track 1', 'Track 2', 'Track 3', 'Track 4', 'Track 5', 'Track 6', 'Track 7', 'Track 8', 'Track 9', 'Track 10');
+            end
+        
+            if plotRange_RMS
                 figure(f1);
                 plot(time, range_rms);
                 xlabel('Time(s)');
-                ylabel('Bistatic Range RMS Error(m)');
-                title('Bistatic Range  RMS Error vs Time');
-                legend('Track 1','Track 2','Track 3','Track 4','Track 5','Track 6','Track 7','Track 8','Track 9','Track 10');
+                ylabel('Range RMS Error (m)');
+                title('Range RMS Error vs Time');
+                legend('Track 1', 'Track 2', 'Track 3', 'Track 4', 'Track 5', 'Track 6', 'Track 7', 'Track 8', 'Track 9', 'Track 10');
             end
         end
         function [doppler_ll, range_ll] = calculateLogLikelihood(obj, f, f1, simulationTime)
@@ -223,16 +235,16 @@ classdef multiTargetTracker
     end
     methods(Static)
 
-        function [detectionsInRadius] = pruneDetections(detections,predictedCoordinate,gatingThreshold)
-            %For every detection check that it falls within the predicted
-            %Coordinates'radius 
-           numberOfDetections=size(detections,2);
-           detectionsInRadius=[];
-           for i=1:numberOfDetections 
-                if norm(detections(:,i)-(predictedCoordinate)) < gatingThreshold
-                    detectionsInRadius(:,end+1)=detections(:,i);
+        function detectionsInRadius = pruneDetections(detections, predictedCoordinate, gatingThreshold)
+            % For every detection check that it falls within the predicted coordinates' radius
+            numberOfDetections = size(detections, 2);
+            detectionsInRadius = [];
+            for i = 1:numberOfDetections
+                if abs(detections(1, i) - predictedCoordinate(1)) < gatingThreshold(1) && ...
+                   abs(detections(2, i) - predictedCoordinate(2)) < gatingThreshold(2)
+                    detectionsInRadius = [detectionsInRadius, detections(:, i)];
                 end
-           end
+            end
         end
 
         function [detection,detections] = globalNearestNeighbour(detectionsInRadius,predictedCoordinate,allDetections)

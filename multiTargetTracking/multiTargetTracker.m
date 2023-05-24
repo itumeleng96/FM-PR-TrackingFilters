@@ -31,11 +31,11 @@ classdef multiTargetTracker
 
                 for i=1:numberOfDetections
                     if i ==1
-                        obj.tracks = [track([detections(1,i);detections(2,i)],[;],0,i,0,0,obj.filterType)];
+                        obj.tracks = [track([detections(1,i);detections(2,i)],[;],i,0,0,0,obj.filterType)];
                         obj.newtracksCreated = 1;
                     
                     else
-                        obj.tracks(end+1)=track([detections(1,i);detections(2,i)],[;],0,i,0,0,obj.filterType);
+                        obj.tracks(end+1)=track([detections(1,i);detections(2,i)],[;],i,0,0,0,obj.filterType);
                         obj.newtracksCreated = 1;
 
                     end
@@ -85,8 +85,8 @@ classdef multiTargetTracker
         
         function tracks = confirmTracks(obj)
             %Confirm Tracks based on confirmation Threshold
-            for i=1:max(size(obj.tracks))
-                if obj.tracks(i).numberOfUpdates > obj.confirmationThreshold
+            for i=1:max(size(obj.tracks))                
+                if (obj.tracks(i).confirmed == 0 && obj.tracks(i).numberOfUpdates > obj.confirmationThreshold)
                     obj.tracks(i).confirmed = 1;
                 end
             end
@@ -97,7 +97,7 @@ classdef multiTargetTracker
         function obj = maintainTracks(obj)
             %disp("Maintain Tracks");
             obj.tracks =obj.deleteTracks();
-            obj.confirmTracks();
+            obj.tracks =obj.confirmTracks();
 
         end
 
@@ -132,15 +132,27 @@ classdef multiTargetTracker
             title('Targets centroids and  Prediction');
             
            
+            hold on;
             for i = 1:length(obj.tracks)
-                hold on;
-                % Plot predicted track as a line connected by open triangles
-                plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'r--^', 'MarkerFaceColor', 'none', 'MarkerSize', 7);
-                hold on
-                % Plot true track as open circles joined by a line
-                plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'bo', 'MarkerFaceColor', 'none', 'MarkerSize', 6);
+                if obj.tracks(i).confirmed == 0
+                    % Plot tentative track as a line connected by open triangles
+                    plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'r--^', 'MarkerFaceColor', 'none', 'MarkerSize', 7, 'DisplayName', 'Tentative Track');
+                    % Plot true track as open circles joined by a line
+                    plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'bo', 'MarkerFaceColor', 'none', 'MarkerSize', 6, 'DisplayName', 'True Track');
+                else
+                    % Plot confirmed track as a line connected by filled triangles
+                    plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 7, 'DisplayName', 'Confirmed Track');
+                    plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'bo', 'MarkerFaceColor', 'none', 'MarkerSize', 6, 'DisplayName', 'True Track');
+                end
             end
-            legend('Predicted Track', 'True Track');
+            tentative_marker = plot(nan, nan, 'r--^', 'MarkerFaceColor', 'none', 'MarkerSize', 7);
+            true_marker = plot(nan, nan, 'bo', 'MarkerFaceColor', 'none', 'MarkerSize', 6);
+            confirmed_marker = plot(nan, nan, 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 7);
+        
+            % Create a legend with custom markers and labels
+            legend([tentative_marker, true_marker, confirmed_marker], 'Tentative Track', 'True Track', 'Confirmed Track', 'Location', 'best');
+                    
+            hold off;
         end
         function [doppler_rms, range_rms] = plotRMSE(obj, f, f1, plotDoppler_RMS, plotRange_RMS, simulationTime)
             time = 0:1:simulationTime;

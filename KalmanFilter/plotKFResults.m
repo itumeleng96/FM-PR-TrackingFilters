@@ -2,7 +2,7 @@ clc; clear all; close all;
 addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','../DPI_Suppression');
 
 
-system("fers ../FERS/scenario_4_singleFile.fersxml");
+system("fers ../FERS/scenario_3_singleFile.fersxml");
 
 % h5 Import from FERS simulation
 [Ino Qno scale_no] = loadfersHDF5('direct.h5');
@@ -63,7 +63,7 @@ f3.Position = [4000 10 1000 800];
 movegui(f3,'southeast');
 
 %Create MTT object
-confirmationThreshold=2;
+confirmationThreshold=4;
 deletionThreshold=4;
 gatingThreshold=[2000,10];
 filterType=1;           %Kalman Filter 

@@ -8,7 +8,7 @@ classdef track
        predictedTrack,
        trackingFilterObject,
        trackId,
-       confirmed,
+       confirmed,           %confirmed=1: Confirmed ,confirmed=0: Tentative
        numberOfUpdates,
     end
     
@@ -20,10 +20,9 @@ classdef track
             obj.trackId = trackId;
             obj.confirmed = confirmation;
             obj.numberOfUpdates = numberOfUpdates;
-
             %Initialize Tracker
             %Create random initial points within observation space
-            x_initial = [1e4+(2e4)*rand,(200) * rand];
+            x_initial = [trueTrack(1,1),trueTrack(2,1)];
             dt=1;                              %Time step between samples(update time)
             U=[0,0];                           %Input values x(Delay) and y(Doppler shift) 
             

@@ -127,7 +127,7 @@ classdef GaussNewton
                     end
                     lambda = lambda * 10;  % Increase damping factor
                 end
-                lambda = lambda * 0.1;  % Decrease damping factor
+                lambda = lambda * 0.1;     % Decrease damping factor
                 % Check for convergence
                 if norm(dx) < obj.tolerance
                     break;

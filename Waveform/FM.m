@@ -6,10 +6,10 @@ filename = 'Recordings/Malmesbury_1.rcf';
     
 % Select where to start from in the recorded data (This data is about 10 min long so anything from 0 to 500s+ works)     
 
-t_start = 100;
+t_start = 160;
 t_length_Tx = 60;
 t_delay = 0;
-Fs = 500000;
+Fs = 200000;
 
 refORsur = input('Reference [0] or surveillance channel [1]: ');
 name = input('Output file name [RecordedNormalised.h5]: ','s');

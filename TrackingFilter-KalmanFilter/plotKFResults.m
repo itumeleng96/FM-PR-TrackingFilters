@@ -2,7 +2,7 @@ clc; clear all; close all;
 addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','../DPI_Suppression');
 
 
-system("fers ../FERS/scenario_3_singleFile.fersxml");
+system("fers ../FERS/scenario_2_singleFile.fersxml");
 
 % h5 Import from FERS simulation
 [Ino Qno scale_no] = loadfersHDF5('direct.h5');
@@ -21,7 +21,7 @@ fs = 200000;
 dopp_bins = 200;
 delay = 233e-6;
 c=299792458;
-range_delay = delay*c/2;
+range_delay = delay*c;
 
 proc = struct('cancellationMaxRange_m', range_delay, ...
               'cancellationMaxDoppler_Hz', 4, ...
@@ -29,7 +29,7 @@ proc = struct('cancellationMaxRange_m', range_delay, ...
               'nSegments', 1, ...
               'nIterations', 20, ...
               'Fs', fs, ...
-              'alpha', 0, ...
+              'alpha', 0, ...porn
               'initialAlpha', 0);
 
 
@@ -62,10 +62,20 @@ f3=figure(3);
 f3.Position = [4000 10 1000 800]; 
 movegui(f3,'southeast');
 
+%Doppler Error
+f4=figure(4);
+f4.Position = [4000 10 1000 800]; 
+movegui(f4,'northeast');
+
+%Range Error
+f5=figure(5);
+f5.Position = [4000 10 1000 800]; 
+movegui(f5,'southeast');
+
 %Create MTT object
 confirmationThreshold=4;
-deletionThreshold=4;
-gatingThreshold=[2000,10];
+deletionThreshold=6;
+gatingThreshold=[1500,15];
 filterType=1;           %Kalman Filter 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -79,7 +89,7 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.25,fs,dopp_bins,delay,i,f2,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.20,fs,dopp_bins,delay,i,f2,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
@@ -91,6 +101,8 @@ for i = 1:simulation_time
     multiTargetTracker = multiTargetTracker.predictionStage();
     multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM)
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
+    %[~,~]=multiTargetTracker.calculateLogLikelihood(f4,f5,simulation_time);
+    %[~,~]=multiTargetTracker.plotRMSE(f4,f5,true,true,simulation_time,i);
     
     ard = ard_;
     rdm= rdm_;
@@ -98,28 +110,3 @@ for i = 1:simulation_time
     initial = current+1;
     current = current + fs;
 end
-%Log-likelihood
-%{
-f4=figure(4);
-f4.Position = [4000 10 1000 800]; 
-movegui(f4,'northeast');
-
-%RMSE Range  
-f5=figure(5);
-f5.Position = [4000 10 1000 800]; 
-movegui(f5,'southeast');
-
-[~,~]=multiTargetTracker.calculateLogLikelihood(f4,f5,simulation_time);
-
-%RMSE Doppler
-f4=figure(4);
-f4.Position = [4000 10 1000 800]; 
-movegui(f4,'northeast');
-
-%RMSE Range  
-f5=figure(5);
-f5.Position = [4000 10 1000 800]; 
-movegui(f5,'southeast');
-
-[~,~]=multiTargetTracker.plotRMSE(f4,f5,true,true,simulation_time);
-%}

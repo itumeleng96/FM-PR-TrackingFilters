@@ -136,61 +136,62 @@ classdef multiTargetTracker
             for i = 1:length(obj.tracks)
                 if obj.tracks(i).confirmed == 0
                     % Plot tentative track as a line connected by open triangles
-                    plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'r--^', 'MarkerFaceColor', 'none', 'MarkerSize', 7, 'DisplayName', 'Tentative Track');
+                    plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 8, 'DisplayName', 'Predicted Track');
                     % Plot true track as open circles joined by a line
-                    plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'bo', 'MarkerFaceColor', 'none', 'MarkerSize', 6, 'DisplayName', 'True Track');
+                    plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'o:', 'MarkerFaceColor', [1 0.5 0], 'MarkerSize', 4, 'DisplayName', 'Tentative Track');
                 else
                     % Plot confirmed track as a line connected by filled triangles
-                    plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 7, 'DisplayName', 'Confirmed Track');
-                    plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'bo', 'MarkerFaceColor', 'none', 'MarkerSize', 6, 'DisplayName', 'True Track');
+                    plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 8, 'DisplayName', 'Predicted Track');
+                    plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'o:', 'MarkerFaceColor',[0 0 0], 'MarkerSize', 4, 'DisplayName', 'Confirmed');
                 end
             end
-            tentative_marker = plot(nan, nan, 'r--^', 'MarkerFaceColor', 'none', 'MarkerSize', 7);
-            true_marker = plot(nan, nan, 'bo', 'MarkerFaceColor', 'none', 'MarkerSize', 6);
-            confirmed_marker = plot(nan, nan, 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 7);
+            predicted_marker = plot(nan, nan, 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 8);
+            tentative_marker = plot(nan, nan, 'o:', 'MarkerFaceColor', [1 0.5 0], 'MarkerSize', 4);
+            confirmed_marker = plot(nan, nan, 'o:', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 8);
         
             % Create a legend with custom markers and labels
-            legend([tentative_marker, true_marker, confirmed_marker], 'Tentative Track', 'True Track', 'Confirmed Track', 'Location', 'best');
+            legend([predicted_marker,tentative_marker, confirmed_marker], 'Predicted Track', 'Tentative Track', 'Confirmed Track', 'Location', 'best');
                     
             hold off;
         end
-        function [doppler_rms, range_rms] = plotRMSE(obj, f, f1, plotDoppler_RMS, plotRange_RMS, simulationTime)
-            time = 0:1:simulationTime;
+        function [doppler_rms, range_rms] = plotRMSE(obj, f, f1, plotDoppler_RMS, plotRange_RMS, simulationTime, i)
+            time = 1:1:i;
             doppler_rms = zeros(length(obj.tracks), length(time));
             range_rms = zeros(length(obj.tracks), length(time));
+            
+                % Calculate the Range and Doppler RMS
+                for j = 1:length(obj.tracks)
+                    predictedTrack = obj.tracks(j).predictedTrack;
+                    trueTrack = obj.tracks(j).trueTrack;
+                    
+                    trackLength = min(i, size(predictedTrack, 2));
         
-            % Calculate the Range and Doppler RMS
-            for i = 1:length(obj.tracks)
-                predictedTrack = obj.tracks(i).predictedTrack;
-                trueTrack = obj.tracks(i).trueTrack;
-                
-                % Interpolate x-coordinates
-                predictedTrack_interp_x = interp1(predictedTrack(1,:), predictedTrack(2,:), time);
-                trueTrack_interp_x = interp1(trueTrack(1,:), trueTrack(2,:), time);
-                
-                % Interpolate y-coordinates
-                predictedTrack_interp_y = interp1(predictedTrack(1,:), predictedTrack(3,:), time);
-                trueTrack_interp_y = interp1(trueTrack(1,:), trueTrack(3,:), time);
-                
-                % Check for insufficient sample points for interpolation
-                if any(isnan(predictedTrack_interp_x)) || any(isnan(trueTrack_interp_x)) || ...
-                   any(isnan(predictedTrack_interp_y)) || any(isnan(trueTrack_interp_y))
-                    error('Insufficient sample points for interpolation.');
+                    range_diff = zeros(1, i);
+                    doppler_diff = zeros(1, i);
+        
+                    trackStart = max(1, i - trackLength + 1);
+                    
+                    range_diff(trackStart:i) = predictedTrack(1, trackStart:trackLength) - trueTrack(1, trackStart:trackLength);
+                    doppler_diff(trackStart:i) = predictedTrack(2, trackStart:trackLength) - trueTrack(2, trackStart:trackLength);
+        
+                    % Extrapolate tracks with 0's if they are small
+                    if trackLength < i
+                        range_diff(1:trackStart-1) = 0;
+                        doppler_diff(1:trackStart-1) = 0;
+                        range_diff(i+1:end) = 0;
+                        doppler_diff(i+1:end) = 0;
+                    end
+                    
+                    range_rms(j,:) = abs(range_diff);
+                    doppler_rms(j,:) = abs(doppler_diff);
                 end
-                
-                % Calculate Doppler RMS
-                doppler_rms(i,:) = sqrt(mean((predictedTrack_interp_x - trueTrack_interp_x).^2, 1));
         
-                % Calculate Range RMS
-                range_rms(i,:) = sqrt(mean((predictedTrack_interp_y - trueTrack_interp_y).^2, 1));
-            end
-
             if plotDoppler_RMS
                 figure(f);
                 plot(time, doppler_rms);
                 xlabel('Time(s)');
-                ylabel('Doppler RMS Error (Hz)');
-                title('Doppler RMS Error vs Time');
+                ylabel('Doppler Error(Hz)');
+                title('Doppler Error vs Time');
                 legend('Track 1', 'Track 2', 'Track 3', 'Track 4', 'Track 5', 'Track 6', 'Track 7', 'Track 8', 'Track 9', 'Track 10');
             end
         
@@ -198,8 +199,8 @@ classdef multiTargetTracker
                 figure(f1);
                 plot(time, range_rms);
                 xlabel('Time(s)');
-                ylabel('Range RMS Error (m)');
-                title('Range RMS Error vs Time');
+                ylabel('Range  Error(m)');
+                title('Range Error vs Time');
                 legend('Track 1', 'Track 2', 'Track 3', 'Track 4', 'Track 5', 'Track 6', 'Track 7', 'Track 8', 'Track 9', 'Track 10');
             end
         end
@@ -213,21 +214,13 @@ classdef multiTargetTracker
             for i = 1:length(obj.tracks)
                 predictedTrack = obj.tracks(i).predictedTrack;
                 trueTrack = obj.tracks(i).trueTrack;
-    
-                for t = 1:length(time)
-                    % Interpolate predicted and true values at each time step
-                    predictedTrack_interp = interp1(predictedTrack(1, :), time(t));
-                    trueTrack_interp = interp1(trueTrack(1, :), time(t));
-                    range_residual = predictedTrack_interp - trueTrack_interp;
-                    range_ll(t) = -0.5 * log(2 * pi) - 0.5 * log(var(range_residual)) - 0.5 * (range_residual^2) / var(range_residual);
-        
-                    predictedTrack_interp2 = interp1(predictedTrack(2, :), time(t));
-                    trueTrack_interp2 = interp1(trueTrack(2, :), time(t));
-                    doppler_residual = predictedTrack_interp2 - trueTrack_interp2;
-                    doppler_ll(t) = -0.5 * log(2 * pi) - 0.5 * log(var(doppler_residual)) - 0.5 * (doppler_residual^2) / var(doppler_residual);
-                end
-                disp(range_ll);
-                disp(doppler_ll);
+                predictedTrack_interp = interp1(predictedTrack(1,:), time);
+                trueTrack_interp = interp1(trueTrack(1,:), time);
+                range_ll = predictedTrack_interp - trueTrack_interp;
+                
+                predictedTrack_interp2 = interp1(predictedTrack(2,:), time);
+                trueTrack_interp2 = interp1(trueTrack(2,:), time);
+                doppler_ll = predictedTrack_interp2 - trueTrack_interp2;
             end
             
             figure(f);
@@ -242,8 +235,6 @@ classdef multiTargetTracker
             ylabel('Bistatic Range Log-likelihood (m)');
             title('Bistatic Range  Log-likelihood vs Time');
         end
-
-
     end
     methods(Static)
 

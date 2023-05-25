@@ -6,7 +6,7 @@ ylim_upper = 200;
 ylim_lower = -200;
 
 
-c = 299792458;                                                    %speed of the light
+c = 299792458;                                               %speed of the light
 N=length(s1);                                                %number of points
 Ndelay = floor(td_max*fs);                                   %number of points corresponding to td_max
 Ndop = ceil(N*fd_max/fs);                                    %number of points corresponding to fd_max
@@ -47,13 +47,13 @@ if index==1
 end
 
 if index>1
-    ard = y ;
+    ard = ard+y ;
 end
 
 ard_ = ard;
 
 figure(f);
-imagesc(range, frequency, 10*log10(ard.'));
+imagesc(range,frequency,10*log10(ard.'),[max_dB-40 max_dB]);
 axis xy;
 colorbar;
 xlabel('Bistatic range [m]','Fontsize',10);

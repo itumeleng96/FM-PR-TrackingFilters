@@ -4,11 +4,11 @@
 
 
 #### The Following Tracking filters and code have been implemented:
-<li>The Kalman Filter</li>
-<li>The Gauss Newton Filter</li>
-<li>The Particle Filter  </li>
-<li>The Recursive Gauss Newton Filter - Still to be implemented</li>
-<li>The Polynomial Filters still to be implemented</li>
+<li>Kalman Filter</li>
+<li>Gauss Newton Filter</li>
+<li>Particle Filter  </li>
+<li>Recursive Gauss Newton Filter - Still to be implemented</li>
+<li>Polynomial Filters still to be implemented</li>
 
 
 #### Other algorithms implemented

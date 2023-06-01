@@ -154,75 +154,71 @@ classdef multiTargetTracker
                     
             hold off;
         end
-        function [doppler_rms, range_rms] = plotRMSE(obj, f, f1, plotDoppler_RMS, plotRange_RMS, simulationTime, i)
+        function [doppler_error, range_error] = plotError(obj, f, f1, plotDoppler_Error, plotRange_Error, i)
             time = 1:1:i;
-            doppler_rms = zeros(length(obj.tracks), length(time));
-            range_rms = zeros(length(obj.tracks), length(time));
+            doppler_error = zeros(length(obj.tracks), length(time));
+            range_error = zeros(length(obj.tracks), length(time));
             
-                % Calculate the Range and Doppler RMS
-                for j = 1:length(obj.tracks)
-                    predictedTrack = obj.tracks(j).predictedTrack;
-                    trueTrack = obj.tracks(j).trueTrack;
-                    
-                    trackLength = min(i, size(predictedTrack, 2));
+            % Calculate the Range and Doppler RMS
+            for j = 1:length(obj.tracks)
+                predictedTrack = obj.tracks(j).predictedTrack;
+                trueTrack = obj.tracks(j).trueTrack;
+                
+                trackLength = size(trueTrack, 2);
+                
+                range_diff = predictedTrack(1, 1:i) - trueTrack(1, 1:i);
+                doppler_diff = predictedTrack(2, 1:i) - trueTrack(2, 1:i);
+                
+                range_error(j, 1:i) = abs(range_diff);
+                doppler_error(j, 1:i) = abs(doppler_diff);
+            end
         
-                    range_diff = zeros(1, i);
-                    doppler_diff = zeros(1, i);
-        
-                    trackStart = max(1, i - trackLength + 1);
-                    
-                    range_diff(trackStart:i) = predictedTrack(1, trackStart:trackLength) - trueTrack(1, trackStart:trackLength);
-                    doppler_diff(trackStart:i) = predictedTrack(2, trackStart:trackLength) - trueTrack(2, trackStart:trackLength);
-        
-                    % Extrapolate tracks with 0's if they are small
-                    if trackLength < i
-                        range_diff(1:trackStart-1) = 0;
-                        doppler_diff(1:trackStart-1) = 0;
-                        range_diff(i+1:end) = 0;
-                        doppler_diff(i+1:end) = 0;
-                    end
-                    
-                    range_rms(j,:) = abs(range_diff);
-                    doppler_rms(j,:) = abs(doppler_diff);
-                end
-        
-            if plotDoppler_RMS
+            if plotDoppler_Error
                 figure(f);
-                plot(time, doppler_rms);
+                plot(time, doppler_error);
                 xlabel('Time(s)');
-                ylabel('Doppler Error(Hz)');
+                ylabel('Doppler Error (Hz)');
                 title('Doppler Error vs Time');
                 legend('Track 1', 'Track 2', 'Track 3', 'Track 4', 'Track 5', 'Track 6', 'Track 7', 'Track 8', 'Track 9', 'Track 10');
             end
         
-            if plotRange_RMS
+            if plotRange_Error
                 figure(f1);
-                plot(time, range_rms);
+                plot(time, range_error);
                 xlabel('Time(s)');
-                ylabel('Range  Error(m)');
+                ylabel('Range Error (m)');
                 title('Range Error vs Time');
                 legend('Track 1', 'Track 2', 'Track 3', 'Track 4', 'Track 5', 'Track 6', 'Track 7', 'Track 8', 'Track 9', 'Track 10');
             end
         end
-        function [doppler_ll, range_ll] = calculateLogLikelihood(obj, f, f1, simulationTime)
-            time = 0:1:simulationTime;
+
+        function [doppler_ll, range_ll] = calculateLogLikelihood(obj, f, f1, i)
+            time = 1:1:i;
 
             doppler_ll = zeros(length(obj.tracks), length(time));
             range_ll = zeros(length(obj.tracks), length(time));
-
+        
             % Calculate the Range and Doppler log-likelihood
-            for i = 1:length(obj.tracks)
-                predictedTrack = obj.tracks(i).predictedTrack;
-                trueTrack = obj.tracks(i).trueTrack;
-                predictedTrack_interp = interp1(predictedTrack(1,:), time);
-                trueTrack_interp = interp1(trueTrack(1,:), time);
-                range_ll = predictedTrack_interp - trueTrack_interp;
+            for j = 1:length(obj.tracks)
+                predictedTrack = obj.tracks(j).predictedTrack;
+                trueTrack = obj.tracks(j).trueTrack;
+
+                trackLength = size(trueTrack, 2);
                 
-                predictedTrack_interp2 = interp1(predictedTrack(2,:), time);
-                trueTrack_interp2 = interp1(trueTrack(2,:), time);
-                doppler_ll = predictedTrack_interp2 - trueTrack_interp2;
-            end
+                range_error = predictedTrack(1, 1:i) - trueTrack(1, 1:i);
+                doppler_error = predictedTrack(2, 1:i) - trueTrack(2, 1:i);
+        
+                % Calculate the log-likelihood for Range
+                value_1 = -0.5 * log(2 * pi) - 0.5 * log(var(range_error)) - 0.5 * (range_error.^2) / var(range_error);
+                range_ll(j,:) = abs(value_1);
+
+        
+                % Calculate the log-likelihood for Doppler
+                value_2 = -0.5 * log(2 * pi) - 0.5 * log(var(doppler_error)) - 0.5 * (doppler_error.^2) / var(doppler_error);
+                doppler_ll(j,:) = abs(value_2);
             
+                
+            end
             figure(f);
             plot(time, doppler_ll);
             xlabel('Time(s)');

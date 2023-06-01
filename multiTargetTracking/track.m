@@ -28,8 +28,8 @@ classdef track
             
             switch filterType
                 case 1
-                    std_meas=[0.01,1];                 %Standard Deviation of the measurements in the x and y
-                    std_acc=[1e-10,1e-9];              %Standard Deviation of the acceleration in ms^2
+                    std_meas=[1,0.01];                %Standard Deviation of the measurements in the x and y
+                    std_acc=[1e-6,1e-1];              %Standard Deviation of the acceleration in ms^2
                     KF_object = kalmanFilter(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);0;0;x_initial(2);0;0]);
                     obj.trackingFilterObject = KF_object; 
                 

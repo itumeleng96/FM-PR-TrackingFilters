@@ -68,7 +68,6 @@ classdef multiTargetTracker
                 end
             end
             obj.newtracksCreated = 0;
-
         end
 
         function tracks = deleteTracks(obj)
@@ -192,46 +191,45 @@ classdef multiTargetTracker
             end
         end
 
-        function [doppler_ll, range_ll] = calculateLogLikelihood(obj, f, f1, i)
+        function [doppler_ll, range_ll] = calculateLogLikelihood(obj, f, f1, i,R,doppler_ll,range_ll)
             time = 1:1:i;
-
-            doppler_ll = zeros(length(obj.tracks), length(time));
-            range_ll = zeros(length(obj.tracks), length(time));
         
             % Calculate the Range and Doppler log-likelihood
             for j = 1:length(obj.tracks)
                 predictedTrack = obj.tracks(j).predictedTrack;
                 trueTrack = obj.tracks(j).trueTrack;
-
-                trackLength = size(trueTrack, 2);
                 
-                range_error = predictedTrack(1, 1:i) - trueTrack(1, 1:i);
-                doppler_error = predictedTrack(2, 1:i) - trueTrack(2, 1:i);
-        
-                % Calculate the log-likelihood for Range
-                value_1 = -0.5 * log(2 * pi) - 0.5 * log(var(range_error)) - 0.5 * (range_error.^2) / var(range_error);
-                range_ll(j,:) = abs(value_1);
-
-        
-                % Calculate the log-likelihood for Doppler
-                value_2 = -0.5 * log(2 * pi) - 0.5 * log(var(doppler_error)) - 0.5 * (doppler_error.^2) / var(doppler_error);
-                doppler_ll(j,:) = abs(value_2);
-            
+                range_mean=trueTrack(1,i);
+                range_sample =predictedTrack(1,i);
+                %n_range  = length(range_sample);  
                 
+                range_ll(j, i) = lognlike([range_mean,sqrt(R(1, 1))],range_sample);
+
+                %range_ll(j,i)= -0.5 *n_range* log(2 * pi) - 0.5 *n_range *log(R(1,1)) - 0.5 *sum((range_sample-range_mean).^2)/R(1,1);
+                
+        
+                doppler_mean=trueTrack(2,i);
+                doppler_sample =predictedTrack(2,i);
+                %n_doppler = length(doppler_sample);
+                
+                doppler_ll(j, i) = lognlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
+                %doppler_ll(j,i) =  -0.5 *n_doppler* log(2 * pi) - 0.5 *n_doppler *log(R(2,2)) - 0.5 *sum((doppler_sample - doppler_mean).^2)/R(2,2);
             end
+
             figure(f);
             plot(time, doppler_ll);
             xlabel('Time(s)');
-            ylabel('Bistatic Doppler Log-likelihood(Hz)');
+            ylabel('Bistatic Doppler Log-likelihood');
             title('Bistatic Doppler Log-likelihood vs Time');
             
             figure(f1);
             plot(time, range_ll);
             xlabel('Time(s)');
-            ylabel('Bistatic Range Log-likelihood (m)');
+            ylabel('Bistatic Range Log-likelihood');
             title('Bistatic Range  Log-likelihood vs Time');
         end
     end
+
     methods(Static)
 
         function detectionsInRadius = pruneDetections(detections, predictedCoordinate, gatingThreshold)

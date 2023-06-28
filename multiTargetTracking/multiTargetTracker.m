@@ -194,26 +194,33 @@ classdef multiTargetTracker
         function [doppler_ll, range_ll] = calculateLogLikelihood(obj, f, f1, i,R,doppler_ll,range_ll)
             time = 1:1:i;
         
-            % Calculate the Range and Doppler log-likelihood
+            %Calculate the Range and Doppler log-likelihood
             for j = 1:length(obj.tracks)
                 predictedTrack = obj.tracks(j).predictedTrack;
                 trueTrack = obj.tracks(j).trueTrack;
                 
+
+                %----------------------------------------------------------------%
+                %--Log-likelihood for Bistatic Range
+                %----------------------------------------------------------------%
                 range_mean=trueTrack(1,i);
                 range_sample =predictedTrack(1,i);
-                %n_range  = length(range_sample);  
                 
-                range_ll(j, i) = lognlike([range_mean,sqrt(R(1, 1))],range_sample);
-
-                %range_ll(j,i)= -0.5 *n_range* log(2 * pi) - 0.5 *n_range *log(R(1,1)) - 0.5 *sum((range_sample-range_mean).^2)/R(1,1);
+                %range_ll(j, i) = normlike([range_mean,sqrt(R(1,1))],range_sample);
+                %range_ll(j, i) = lognlike([range_mean,sqrt(R(1,1))],range_sample);
+                range_ll(j, i) = -((length(range_sample) / 2) * log(2*pi*R(1, 1)) - sum((range_sample - range_mean)^2) / (2*R(1, 1)));
+                %range_ll(j, i) = -((length(range_sample) / 2) * log(2*pi*R(1, 1)) - sum((log(range_sample) - range_mean)^2) / (2*R(1, 1)));
                 
-        
+                %----------------------------------------------------------------%
+                %--Log-likelihood for Bistatic Doppler
+                %----------------------------------------------------------------%
                 doppler_mean=trueTrack(2,i);
                 doppler_sample =predictedTrack(2,i);
-                %n_doppler = length(doppler_sample);
                 
-                doppler_ll(j, i) = lognlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
-                %doppler_ll(j,i) =  -0.5 *n_doppler* log(2 * pi) - 0.5 *n_doppler *log(R(2,2)) - 0.5 *sum((doppler_sample - doppler_mean).^2)/R(2,2);
+                %doppler_ll(j, i) = normlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
+                %doppler_ll(j, i) = lognlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
+                doppler_ll(j, i) = -((length(doppler_sample) / 2) * log(2*pi*R(2, 2)) - sum((doppler_sample - doppler_mean)^2) / (2*R(2, 2)));
+                %doppler_ll(j, i) = -((length(doppler_sample) / 2) * log(2*pi*R(2, 2)) - sum((log(doppler_sample) - doppler_mean)^2) / (2*R(2, 2)));
             end
 
             figure(f);

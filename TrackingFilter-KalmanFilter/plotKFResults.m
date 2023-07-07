@@ -1,21 +1,21 @@
-clc; clear all; close all;
-addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','../DPI_Suppression');
+clc; clear; close all;
+addpath('../FERS/','../CFAR/','../MeanShiftCluster/', ...
+    '../multiTargetTracking/','../DPI_Suppression');
 
 
-system("fers ../FERS/scenario_2_singleFile.fersxml");
+system("fers ../FERS/scenario_1_singleFile.fersxml");
 
 % h5 Import from FERS simulation
-[Ino Qno scale_no] = loadfersHDF5('direct.h5');
-[Imov Qmov scale_mov] = loadfersHDF5('echo.h5');
+[Ino, Qno, scale_no] = loadfersHDF5('direct.h5');
+[Imov, Qmov, scale_mov] = loadfersHDF5('echo.h5');
 
 
-I_Qmov = Imov + j*Qmov;
+I_Qmov = Imov + 1i*Qmov;
 I_Qmov = I_Qmov.*scale_mov;
-I_Qno = Ino + j*Qno;
+I_Qno = Ino + 1i*Qno;
 I_Qno = I_Qno.*scale_no;
 
 %I_Qmov=I_Qmov-I_Qno;
-
 
 fs = 200000;
 dopp_bins = 200;
@@ -23,13 +23,14 @@ delay = 233e-6;
 c=299792458;
 range_delay = delay*c;
 
+%DPI Cancellation
 proc = struct('cancellationMaxRange_m', range_delay, ...
               'cancellationMaxDoppler_Hz', 4, ...
               'TxToRefRxDistance_m', 12540, ...
               'nSegments', 1, ...
               'nIterations', 20, ...
               'Fs', fs, ...
-              'alpha', 0, ...porn
+              'alpha', 0, ...
               'initialAlpha', 0);
 
 
@@ -39,7 +40,7 @@ s2 = I_Qno;    %Ref
 
 initial=1;
 
-current=fs;                                 %based on samples in transmitted signal
+current=fs;                                %based on samples in transmitted signal
 simulation_time = size(I_Qmov,1)/fs;       %Simulation time: number of data points/sampling frequency
 
 
@@ -75,9 +76,16 @@ movegui(f5,'southeast');
 %Create MTT object
 confirmationThreshold=4;
 deletionThreshold=6;
-gatingThreshold=[1500,15];
-filterType=1;           %Kalman Filter 
+gatingThreshold=[2000,15];
+
+%FilterType 1: Kalman Filter
+filterType=1;    
+
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
+
+%LOG_LIKELIHOODS
+doppler_ll=[];
+range_ll=[];
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current); %surv
@@ -97,15 +105,26 @@ for i = 1:simulation_time
     
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
+
+    %DELETE and CONFIRM Tracks
     multiTargetTracker = multiTargetTracker.maintainTracks();
+
+    %Filter Prediction Stage
     multiTargetTracker = multiTargetTracker.predictionStage();
+
+    %PLOT Prediction and True Tracks
     multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM)
+
+    %UPDATE Tracks from measurements
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
-    %[~,~]=multiTargetTracker.calculateLogLikelihood(f4,f5,simulation_time);
-    %[~,~]=multiTargetTracker.plotRMSE(f4,f5,true,true,simulation_time,i);
+
+    %CALCULATE Likelihoods 
+    [doppler_ll,range_ll]=multiTargetTracker.calculateLogLikelihood(f4,f5,i,[100^2,0;0,2^2],doppler_ll,range_ll);
+    %[~,~]=multiTargetTracker.plotError(f4,f5,true,true,i);
     
     ard = ard_;
     rdm= rdm_;
+
     %Counting Variables
     initial = current+1;
     current = current + fs;

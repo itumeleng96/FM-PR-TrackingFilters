@@ -47,12 +47,13 @@ if index==1
 end
 
 if index>1
-    ard = ard+y ;
+    ard = y ;
 end
 
 ard_ = ard;
+
 figure(f);
-imagesc(range,frequency,10*log10(ard.'),[max_dB-100 max_dB]);
+imagesc(range,frequency,10*log10(ard.'),[max_dB-40 max_dB]);
 axis xy;
 colorbar;
 xlabel('Bistatic range [m]','Fontsize',10);

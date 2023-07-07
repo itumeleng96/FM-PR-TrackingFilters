@@ -15,7 +15,6 @@ classdef particleFilter
         
             %Init funtion
             obj.N = N;
-            obj.scaling_factor = 100e4;
 
             %Create  uniformly distributed particles on Initialization
             %obj.particles = obj.createUniformParticles([0,2e-4]*obj.scaling_factor,[0,150],N);
@@ -39,7 +38,10 @@ classdef particleFilter
                      (dt^2)/2, dt, 1, 0,0,0;
                      0, 0, 0, (dt^4)/4, (dt^3)/2, (dt^2)/2;
                      0, 0, 0, (dt^3)/2, dt^2, dt;
-                     0, 0, 0, (dt^2)/2, dt,1].*std_acc;
+                     0, 0, 0, (dt^2)/2, dt, 1];
+
+            obj.Q(1:3,1:3) = obj.Q(1:3,1:3) * std_acc(1)^2;
+            obj.Q(4:6,4:6) = obj.Q(4:6,4:6) * std_acc(2)^2;
                    
         end
         
@@ -47,27 +49,35 @@ classdef particleFilter
 
             %Predict new particle states
             noise = mvnrnd(zeros(size(obj.Q,1),1), obj.Q, obj.N);
-            obj.particles = obj.A * obj.particles' + noise';
-            obj.particles = obj.particles';
+            obj.particles = (obj.A * obj.particles')' + noise;
+            %obj.particles = (obj.A * obj.particles')';
             
-            X_pred_scaled = mean(obj.particles,1)';
-            X_pred = X_pred_scaled;
-            X_pred(1,1) = X_pred_scaled(1,1)/obj.scaling_factor;
+            
+            X_pred = mean(obj.particles,1)';
 
             PF_obj  = obj;
         end  
         
         function [X_est,PF_obj] = update(obj,z)
             %Update stage
-            obj.weights(:)= 1;
-            meas_err = 1;
+            %obj.weights(:)= 1;
+            range_meas_err = 5000;
+            doppler_meas_err =10;
+
 
             %Get distance between particles (range,doppler) and the measured (range,dopplelr) values
-            distance =  sqrt((obj.particles(:,1)- z(1)*obj.scaling_factor).^2 + (obj.particles(:,4)- z(2)).^2);
+            rangeDistance =  abs(obj.particles(:,1)- z(1));
+            dopplerDistance =  abs(obj.particles(:,4)- z(2));
             
-            %Get the shortest distance and Distribute around it
-            mean = min(distance);
-            obj.weights =  obj.weights .* normpdf(distance,mean,meas_err);
+            %Get the shortest distance and Distribute around it / replace
+            %with Likelihood function
+            rangeMean = min(rangeDistance);
+            dopplerMean =min(dopplerDistance);
+
+            range_pdf = obj.calculateLikelihood(rangeMean,rangeDistance,range_meas_err);
+            doppler_pdf = obj.calculateLikelihood(dopplerMean,dopplerDistance,doppler_meas_err);
+
+            obj.weights =  obj.weights .*range_pdf.*doppler_pdf;
             
             obj.weights = obj.weights + 1.e-300;
             obj.weights = obj.weights/(sum(obj.weights));
@@ -79,10 +89,9 @@ classdef particleFilter
                 [obj.particles,obj.weights]= obj.resampleFromIndex(obj.particles,indexes);
             end        
             
-            [mean,~] = obj.estimate(obj.particles,obj.weights);
-            mean(1) = mean(1)/obj.scaling_factor;
-
-            X_est = mean;
+            [meanValue,~] = obj.estimate(obj.particles,obj.weights);
+            X_est = meanValue;
+            
             PF_obj = obj;
         end
     end
@@ -116,11 +125,12 @@ classdef particleFilter
             % N : number of particles
                 particles = zeros(N,6);
                 particles(:,1) = mean(1) + (randn(N,1))*std(1) ; 
-                particles(:,4) = mean(2) + (randn(N,1))*std(2) ;
+                particles(:,4) = mean(4) + (randn(N,1))*std(2) ;
                     
         end
         
         function [particles,weights] = resampleFromIndex(particles,indexes)
+            disp("RFI");
             %RESAMPLEFROMINDEX Summary of this function goes here
             %   Detailed explanation goes here
                 particles(:,1) = particles(indexes,1);
@@ -159,8 +169,13 @@ classdef particleFilter
         function [neff] = NEFF(weights)
             %NEFF : Effective particle sample size
             % To measure degeneracy of the  particles
-                neff = 1./ sum(weights.^2) ;
-        end    
+            neff = 1./ sum(weights.^2) ;
+        end   
+
+        function [likelihood] = calculateLikelihood(mean,distances,meas_err)
+            %Calculate the Likelihood using a Normal Distribution
+            likelihood = normpdf(distances,mean,meas_err);
+        end
+
      end
  end
-

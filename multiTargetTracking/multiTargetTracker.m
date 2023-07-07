@@ -207,8 +207,8 @@ classdef multiTargetTracker
                 range_sample =predictedTrack(1,i);
                 
                 %range_ll(j, i) = normlike([range_mean,sqrt(R(1,1))],range_sample);
-                %range_ll(j, i) = lognlike([range_mean,sqrt(R(1,1))],range_sample);
-                range_ll(j, i) = -((length(range_sample) / 2) * log(2*pi*R(1, 1)) - sum((range_sample - range_mean)^2) / (2*R(1, 1)));
+                range_ll(j, i) = lognlike([range_mean,sqrt(R(1,1))],range_sample);
+                %range_ll(j, i) = -((length(range_sample) / 2) * log(2*pi*R(1, 1)) - sum((range_sample - range_mean)^2) / (2*R(1, 1)));
                 %range_ll(j, i) = -((length(range_sample) / 2) * log(2*pi*R(1, 1)) - sum((log(range_sample) - range_mean)^2) / (2*R(1, 1)));
                 
                 %----------------------------------------------------------------%
@@ -218,8 +218,8 @@ classdef multiTargetTracker
                 doppler_sample =predictedTrack(2,i);
                 
                 %doppler_ll(j, i) = normlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
-                %doppler_ll(j, i) = lognlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
-                doppler_ll(j, i) = -((length(doppler_sample) / 2) * log(2*pi*R(2, 2)) - sum((doppler_sample - doppler_mean)^2) / (2*R(2, 2)));
+                doppler_ll(j, i) = lognlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
+                %doppler_ll(j, i) = -((length(doppler_sample) / 2) * log(2*pi*R(2, 2)) - sum((doppler_sample - doppler_mean)^2) / (2*R(2, 2)));
                 %doppler_ll(j, i) = -((length(doppler_sample) / 2) * log(2*pi*R(2, 2)) - sum((log(doppler_sample) - doppler_mean)^2) / (2*R(2, 2)));
             end
 

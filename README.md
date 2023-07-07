@@ -17,5 +17,5 @@
 <li>MeanshiftCluster</li>
 
 ### TODO
-<li>Introduce noise to the FERS simulations </li>
+<li>Log-likelihood as a statistical Benchmark for the Performance of Tracking Filters </li>
 <li>Implement other tracking filters </li>

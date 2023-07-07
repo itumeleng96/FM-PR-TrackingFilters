@@ -47,7 +47,7 @@ if index==1
 end
 
 if index>1
-    ard = ard+y ;
+    ard = y ;
 end
 
 ard_ = ard;

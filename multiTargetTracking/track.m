@@ -8,7 +8,7 @@ classdef track
        predictedTrack,
        trackingFilterObject,
        trackId,
-       confirmed,           %confirmed=1: Confirmed ,confirmed=0: Tentative
+       confirmed,            %confirmed=1: Confirmed ,confirmed=0: Tentative
        numberOfUpdates,
     end
     
@@ -28,8 +28,8 @@ classdef track
             
             switch filterType
                 case 1
-                    std_meas=[1,0.01];                %Standard Deviation of the measurements in the x and y
-                    std_acc=[1e-6,1e-1];              %Standard Deviation of the acceleration in ms^2
+                    std_meas=[25,0.1];                      %Standard Deviation of the measurements in the x and y
+                    std_acc=[1e-3,1];                       %Standard Deviation of the acceleration in ms^2
                     KF_object = kalmanFilter(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);0;0;x_initial(2);0;0]);
                     obj.trackingFilterObject = KF_object; 
                 
@@ -42,14 +42,17 @@ classdef track
                     obj.trackingFilterObject = GN_object;
                 
                 case 3
-                    N=10000;  %Number of particles
-                    PF_object = particleFilter(dt,1,[x_initial(1);0;0;x_initial(2);0;0],N);
+                    N=1000;  %Number of particles
+                    std_acc=[20,0.1];                 %Standard Deviation of the acceleration in ms^2
+                    PF_object = particleFilter(dt,[std_acc(1),std_acc(2)],[x_initial(1);0;0;x_initial(2);0;0],N);
                     obj.trackingFilterObject = PF_object;
                 
                 
                 otherwise
                     dt=1;
-                    KF_object = kalmanFilter(dt, 0.1, 0.1, 1, 0.01,0.01,[trueTrack(1,1)+0.00003;0;0;trueTrack(2,1)+0.00003;0;0]); %Make starting point random
+                    std_meas=[25,0.1];                      %Standard Deviation of the measurements in the x and y
+                    std_acc=[1e-3,1];                       %Standard Deviation of the acceleration in ms^2
+                    KF_object = kalmanFilter(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);0;0;x_initial(2);0;0]);
                     obj.trackingFilterObject = KF_object;
             end
         end

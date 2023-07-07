@@ -56,7 +56,7 @@
       <elevationrate>0</elevationrate>
     </fixedrotation>
     <transmitter name="Tx" type="continuous" antenna="TxIsoAntenna" pulse="TxWaveform" timing="TxClock">
-      <prf>0.0016</prf>
+      <prf>0.016</prf>
     </transmitter>
   </platform>
   
@@ -76,7 +76,7 @@
       <elevationrate>0</elevationrate>
     </fixedrotation>
     <receiver name="direct" type="continuous" antenna="RxYagiAntenna" timing="RxClock">
-      <prf>0.0016</prf>
+      <prf>0.016</prf>
       <window_skip>0</window_skip>
       <window_length>60</window_length><!-- Time length of simulation -->
       <noise_temp>100</noise_temp><!--4 dB NF as per the minimal frontend -->
@@ -99,7 +99,7 @@
       <elevationrate>0</elevationrate>
     </fixedrotation>
     <receiver name="echo" type="continuous" antenna="RxYagiAntenna" timing="RxClock" ignoredirectsignals="true">
-      <prf>0.0016</prf>
+      <prf>0.016</prf>
       <window_skip>0</window_skip>
       <window_length>60</window_length> <!-- Time length of simulation -->
       <noise_temp>100</noise_temp> <!-- 4 dB NF as per the minimal frontend -->
@@ -115,8 +115,8 @@
         <time>0</time>
       </positionwaypoint>
       <positionwaypoint>
-        <x>-4000</x>
-        <y>2000</y>
+        <x>-2000</x>
+        <y>3000</y>
         <altitude>1600</altitude> <!-- End altitude -->
         <time>60</time><!-- Time length of simulation -->
       </positionwaypoint>

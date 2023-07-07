@@ -5,13 +5,13 @@ addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','
 system("fers ../FERS/scenario_1_singleFile.fersxml");
 
 % h5 Import from FERS simulation
-[Ino Qno scale_no] = loadfersHDF5('direct.h5');
-[Imov Qmov scale_mov] = loadfersHDF5('echo.h5');
+[Ino, Qno, scale_no] = loadfersHDF5('direct.h5');
+[Imov, Qmov, scale_mov] = loadfersHDF5('echo.h5');
 
 
-I_Qmov = Imov + j*Qmov;
+I_Qmov = Imov + 1i*Qmov;
 I_Qmov = I_Qmov.*scale_mov;
-I_Qno = Ino + j*Qno;
+I_Qno = Ino + 1i*Qno;
 I_Qno = I_Qno.*scale_no;
 
 %I_Qmov=I_Qmov-I_Qno;
@@ -76,7 +76,8 @@ movegui(f5,'southeast');
 confirmationThreshold=4;
 deletionThreshold=6;
 gatingThreshold=[5000,15];
-filterType=3;           %Particle Filter 
+%Particle Filter 
+filterType=3;           
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
 doppler_ll=[];
@@ -105,7 +106,7 @@ for i = 1:simulation_time
     multiTargetTracker = multiTargetTracker.predictionStage();
     multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM)
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
-    %[~,~]=multiTargetTracker.plotError(f4,f5,true,true,i);
+    [~,~]=multiTargetTracker.plotError(f4,f5,true,true,i);
 
     ard = ard_;
     rdm= rdm_;

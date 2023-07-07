@@ -61,7 +61,7 @@ classdef particleFilter
         function [X_est,PF_obj] = update(obj,z)
             %Update stage
             %obj.weights(:)= 1;
-            range_meas_err = 5000;
+            range_meas_err = 2000;
             doppler_meas_err =10;
 
 

@@ -1,6 +1,7 @@
 clc; clear all; close all;
 
-addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','../DPI_Suppression');
+addpath('../FERS/','../CFAR/','../MeanShiftCluster/', ...
+    '../multiTargetTracking/','../DPI_Suppression');
 
 system("fers ../FERS/scenario_1_singleFile.fersxml");
 
@@ -96,20 +97,33 @@ for i = 1:simulation_time
     %Plot CFAR from Cell-Averaging CFAR 
     [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.2,fs,dopp_bins,delay,i,f2,rdm);                    
     
-    
     %Get Coordinates from CFAR using meanShift Algorithm
     [clusterCentroids] = meanShiftPlot(targetClusters,0.5e4,10,fs,dopp_bins,delay);
     
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
+    
+    %DELETE and CONFIRM Tracks
     multiTargetTracker = multiTargetTracker.maintainTracks();
+
+    %Filter Prediction Stage
     multiTargetTracker = multiTargetTracker.predictionStage();
+    
+    %PLOT Prediction and True Tracks
     multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM)
+
+    %UPDATE Tracks from measurements
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
-    [~,~]=multiTargetTracker.plotError(f4,f5,true,true,i);
+
+    %UPDATE Tracks from measurements
+    multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
+
+    %CALCULATE Likelihoods 
+    [doppler_ll,range_ll]=multiTargetTracker.calculateLogLikelihood(f4,f5,i,[100^2,0;0,2^2],doppler_ll,range_ll);
 
     ard = ard_;
     rdm= rdm_;
+
     %Counting Variables
     initial = current+1;
     current = current + fs;

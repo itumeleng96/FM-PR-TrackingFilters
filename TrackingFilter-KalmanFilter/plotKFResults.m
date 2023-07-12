@@ -3,7 +3,7 @@ addpath('../FERS/','../CFAR/','../MeanShiftCluster/', ...
     '../multiTargetTracking/','../DPI_Suppression');
 
 
-system("fers ../FERS/scenario_1_singleFile.fersxml");
+system("fers ../FERS/scenario_1_singleFile_120.fersxml");
 
 % h5 Import from FERS simulation
 [Ino, Qno, scale_no] = loadfersHDF5('direct.h5');
@@ -76,7 +76,7 @@ movegui(f5,'southeast');
 %Create MTT object
 confirmationThreshold=4;
 deletionThreshold=6;
-gatingThreshold=[2000,15];
+gatingThreshold=[2500,20];
 
 %FilterType 1: Kalman Filter
 filterType=1;    

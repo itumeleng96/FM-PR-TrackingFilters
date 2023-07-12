@@ -1,8 +1,7 @@
 clc; clear all; close all;
-addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/');
+addpath('../FERS/','../CFAR/','../MeanShiftCluster/','../multiTargetTracking/','../DPI_Suppression');
 
-system("fers ../FERS/scenario_1_ref.fersxml");
-system("fers ../FERS/scenario_1_surv.fersxml");
+system("fers ../FERS/scenario_1_singleFile.fersxml");
 
 % h5 Import from FERS simulation
 [Ino Qno scale_no] = loadfersHDF5('direct.h5');
@@ -14,11 +13,23 @@ I_Qmov = I_Qmov.*scale_mov;
 I_Qno = Ino + j*Qno;
 I_Qno = I_Qno.*scale_no;
 
-I_Qmov=I_Qmov-I_Qno;
+%I_Qmov=I_Qmov-I_Qno;
 
 fs = 200000;
 dopp_bins = 200;
 delay = 233e-6;
+c=299792458;
+range_delay = delay*c;
+
+proc = struct('cancellationMaxRange_m', range_delay, ...
+              'cancellationMaxDoppler_Hz', 4, ...
+              'TxToRefRxDistance_m', 12540, ...
+              'nSegments', 1, ...
+              'nIterations', 20, ...
+              'Fs', fs, ...
+              'alpha', 0, ...
+              'initialAlpha', 0);
+
 
 s1 = I_Qmov;
 s2 = I_Qno;
@@ -47,34 +58,48 @@ f3=figure(3);
 f3.Position = [4000 10 1000 800]; 
 movegui(f3,'southeast');
 
+f4=figure(4);
+f4.Position = [4000 10 1000 800]; 
+movegui(f4,'northeast');
+
+f5=figure(5);
+f5.Position = [4000 10 1000 800]; 
+movegui(f5,'southeast');
+
 %Create MTT object
-confirmationThreshold = 2;
-deletionThreshold = 4;
-gatingThreshold = 5000;       %Radius around the predicted measurement to eliminate other measurements
+confirmationThreshold =4;
+deletionThreshold = 6;
+gatingThreshold=[2000,15];
 filterType = 2;             %Gauss Newton
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
+
+doppler_ll=[];
+range_ll=[];
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current);
     s2 = I_Qno(initial:current);
     
+    s1 = procECA(s2,s1,proc);
+
     %Plot Range-Doppler Map
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.35,fs,dopp_bins,delay,i,f2,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.20,fs,dopp_bins,delay,i,f2,rdm);                    
      
     %Get Coordinates from CFAR using meanShift Algorithm
     [clusterCentroids] = meanShiftPlot(targetClusters,1e4,10,fs,dopp_bins,delay);
     
-    disp(clusterCentroids);
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
     multiTargetTracker = multiTargetTracker.maintainTracks();
     multiTargetTracker = multiTargetTracker.predictionStage();
     multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM)
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
+    [doppler_ll,range_ll]=multiTargetTracker.calculateLogLikelihood(f4,f5,i,[100^2,0;0,2^2],doppler_ll,range_ll);
+    %[~,~]=multiTargetTracker.plotError(f4,f5,true,true,i);
     
     ard = ard_;
     rdm = rdm_;
@@ -83,13 +108,3 @@ for i = 1:simulation_time
     current = current + fs;
 end
 
-f4=figure(4);
-f4.Position = [4000 10 1000 800]; 
-movegui(f4,'northeast');
-
-%Multi-Target Tracking 
-f5=figure(5);
-f5.Position = [4000 10 1000 800]; 
-movegui(f5,'southeast');
-
-[~,~]= multiTargetTracker.plotRMSE(f4,f5,true,true,simulation_time);

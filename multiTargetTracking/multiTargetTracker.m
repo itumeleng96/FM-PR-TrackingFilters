@@ -192,8 +192,9 @@ classdef multiTargetTracker
         end
 
         function [doppler_ll, range_ll] = calculateLogLikelihood(obj, f, f1, i,R,doppler_ll,range_ll)
+
             time = 1:1:i;
-        
+
             %Calculate the Range and Doppler log-likelihood
             for j = 1:length(obj.tracks)
                 predictedTrack = obj.tracks(j).predictedTrack;
@@ -207,10 +208,9 @@ classdef multiTargetTracker
                 range_sample =predictedTrack(1,i);
                 
                 %range_ll(j, i) = normlike([range_mean,sqrt(R(1,1))],range_sample);
-                range_ll(j, i) = lognlike([range_mean,sqrt(R(1,1))],range_sample);
-                %range_ll(j, i) = -((length(range_sample) / 2) * log(2*pi*R(1, 1)) - sum((range_sample - range_mean)^2) / (2*R(1, 1)));
-                %range_ll(j, i) = -((length(range_sample) / 2) * log(2*pi*R(1, 1)) - sum((log(range_sample) - range_mean)^2) / (2*R(1, 1)));
-                
+                %range_ll(j, i) = lognlike([range_mean,sqrt(R(1,1))],range_sample);
+                range_ll(j, i) = logLikelihood(range_mean,sqrt(R(1,1)),range_sample);
+
                 %----------------------------------------------------------------%
                 %--Log-likelihood for Bistatic Doppler
                 %----------------------------------------------------------------%
@@ -218,9 +218,9 @@ classdef multiTargetTracker
                 doppler_sample =predictedTrack(2,i);
                 
                 %doppler_ll(j, i) = normlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
-                doppler_ll(j, i) = lognlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
-                %doppler_ll(j, i) = -((length(doppler_sample) / 2) * log(2*pi*R(2, 2)) - sum((doppler_sample - doppler_mean)^2) / (2*R(2, 2)));
-                %doppler_ll(j, i) = -((length(doppler_sample) / 2) * log(2*pi*R(2, 2)) - sum((log(doppler_sample) - doppler_mean)^2) / (2*R(2, 2)));
+                %doppler_ll(j, i) = lognlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);'
+                doppler_ll(j, i) = logLikelihood(doppler_mean,sqrt(R(2, 2)),doppler_sample);
+
             end
 
             figure(f);
@@ -231,6 +231,34 @@ classdef multiTargetTracker
             
             figure(f1);
             plot(time, range_ll);
+            xlabel('Time(s)');
+            ylabel('Bistatic Range Log-likelihood');
+            title('Bistatic Range  Log-likelihood vs Time');
+        end
+
+        function [crlb_range, crlb_doppler] = calculateCRLB(obj, f, f1, i,R,crlb_doppler,crlb_range)
+            time = 1:1:i;
+
+            % Calculate the CRLB for each track
+            for j = 1:length(obj.tracks)
+                %trueTrack = obj.tracks(j).trueTrack;
+        
+                % Calculate the Range CRLB
+                crlb_range(j) = mean(range_derivative.^2);  % Fisher Information
+        
+                % Calculate the Doppler CRLB
+                crlb_doppler(j) = mean(doppler_derivative.^2);  % Fisher Information
+            end
+      
+
+            figure(f);
+            plot(time, crlb_doppler);
+            xlabel('Time(s)');
+            ylabel('Bistatic Doppler Log-likelihood');
+            title('Bistatic Doppler Log-likelihood vs Time');
+            
+            figure(f1);
+            plot(time, crlb_range);
             xlabel('Time(s)');
             ylabel('Bistatic Range Log-likelihood');
             title('Bistatic Range  Log-likelihood vs Time');

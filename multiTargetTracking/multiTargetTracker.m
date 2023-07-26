@@ -195,7 +195,6 @@ classdef multiTargetTracker
 
             time = 1:1:i;
 
-            %Calculate the Range and Doppler log-likelihood
             for j = 1:length(obj.tracks)
                 predictedTrack = obj.tracks(j).predictedTrack;
                 trueTrack = obj.tracks(j).trueTrack;
@@ -207,7 +206,7 @@ classdef multiTargetTracker
                 range_mean=trueTrack(1,i);
                 range_sample =predictedTrack(1,i);
                 
-                %range_ll(j, i) = normlike([range_mean,sqrt(R(1,1))],range_sample);
+                %range_ll(j, i) = normlike([(range_mean),sqrt(R(1,1))],range_sample);
                 %range_ll(j, i) = lognlike([range_mean,sqrt(R(1,1))],range_sample);
                 range_ll(j, i) = logLikelihood(range_mean,sqrt(R(1,1)),range_sample);
 
@@ -241,13 +240,13 @@ classdef multiTargetTracker
 
             % Calculate the CRLB for each track
             for j = 1:length(obj.tracks)
-                %trueTrack = obj.tracks(j).trueTrack;
+                trueTrack = obj.tracks(j).trueTrack;
         
                 % Calculate the Range CRLB
-                crlb_range(j) = mean(range_derivative.^2);  % Fisher Information
+                crlb_range(j,i) = cramerRLB(trueTrack(i),R(1,1));  % Fisher Information
         
                 % Calculate the Doppler CRLB
-                crlb_doppler(j) = mean(doppler_derivative.^2);  % Fisher Information
+                crlb_doppler(j,i) = cramerRLB(trueTrack(i),R(2,2));  % Fisher Information
             end
       
 

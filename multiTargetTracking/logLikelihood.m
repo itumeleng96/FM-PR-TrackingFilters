@@ -14,7 +14,7 @@ function ll = logLikelihood(mean, R ,sample)
     
     % Log-likelihood for a NORMAL distribution is given by:
     % log_likelihood = -((N / 2) * log(2*pi*sigma^2)) - sum((x - mu)^2) / (2*sigma^2)
-    % ll = -((length(range_sample) / 2) * log(2*pi*R(1, 1)) - sum((range_sample - range_mean)^2) / (2*R(1, 1)));
+    %ll = -((num_observations/ 2) * log(2*pi*R) - sum((sample - mean)^2) / (2*R));
 
 
     % Log-likelihood for  a LOG-NORMAL  distribution is given by:

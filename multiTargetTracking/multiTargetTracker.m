@@ -194,7 +194,7 @@ classdef multiTargetTracker
         function [doppler_ll, range_ll] = calculateLogLikelihood(obj, f, f1, i,R,doppler_ll,range_ll)
 
             time = 1:1:i;
-
+            
             for j = 1:length(obj.tracks)
                 predictedTrack = obj.tracks(j).predictedTrack;
                 trueTrack = obj.tracks(j).trueTrack;
@@ -217,7 +217,7 @@ classdef multiTargetTracker
                 doppler_sample =predictedTrack(2,i);
                 
                 %doppler_ll(j, i) = normlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
-                %doppler_ll(j, i) = lognlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);'
+                %doppler_ll(j, i) = lognlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
                 doppler_ll(j, i) = logLikelihood(doppler_mean,sqrt(R(2, 2)),doppler_sample);
 
             end
@@ -235,32 +235,48 @@ classdef multiTargetTracker
             title('Bistatic Range  Log-likelihood vs Time');
         end
 
-        function [crlb_range, crlb_doppler] = calculateCRLB(obj, f, f1, i,R,crlb_doppler,crlb_range)
+        function [crlb_doppler,crlb_range] = calculateCRLB(obj, f, f1, i,xVar,yVar,N,crlb_doppler,crlb_range)
             time = 1:1:i;
 
+            doppler_error = zeros(length(obj.tracks), length(time));
+            range_error = zeros(length(obj.tracks), length(time));
+            
             % Calculate the CRLB for each track
             for j = 1:length(obj.tracks)
+                
+                predictedTrack = obj.tracks(j).predictedTrack;
                 trueTrack = obj.tracks(j).trueTrack;
-        
+                
+                range_diff = predictedTrack(1, 1:i) - trueTrack(1, 1:i);
+                doppler_diff = predictedTrack(2, 1:i) - trueTrack(2, 1:i);
+                
+                range_error(j, 1:i) = abs(range_diff);
+                doppler_error(j, 1:i) = abs(doppler_diff);
+
                 % Calculate the Range CRLB
-                crlb_range(j,i) = cramerRLB(trueTrack(i),R(1,1));  % Fisher Information
+                crlb_range(j,i) = cramerRLB(N(j),xVar(j)); 
         
                 % Calculate the Doppler CRLB
-                crlb_doppler(j,i) = cramerRLB(trueTrack(i),R(2,2));  % Fisher Information
+                crlb_doppler(j,i) = cramerRLB(N(j),yVar(j)); 
             end
       
 
             figure(f);
             plot(time, crlb_doppler);
+            hold on;
+            plot(time, doppler_error);
+            
             xlabel('Time(s)');
-            ylabel('Bistatic Doppler Log-likelihood');
-            title('Bistatic Doppler Log-likelihood vs Time');
+            ylabel('Bistatic Doppler Error');
+            title('Bistatic Doppler Error vs Time');
             
             figure(f1);
             plot(time, crlb_range);
+            hold on;
+            plot(time,range_error);
             xlabel('Time(s)');
-            ylabel('Bistatic Range Log-likelihood');
-            title('Bistatic Range  Log-likelihood vs Time');
+            ylabel('Bistatic Range Error');
+            title('Bistatic Range  Error vs Time');
         end
     end
 

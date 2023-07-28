@@ -1,5 +1,5 @@
 
-function [clustCent] = meanShiftPlot(dataPoints,bandWidthX,bandWidthY,fs,fd_max,td_max)
+function [clustCent,xVariances,yVariances,numPoints] = meanShiftPlot(dataPoints,bandWidthX,bandWidthY,fs,fd_max,td_max)
 %MEANSHIFT Summary of this function goes here
 % ---INPUT---
 % dataPts           - input data, (numDim x numPts)
@@ -69,7 +69,19 @@ while numInitPts
     numInitPts      = length(initPtInds);                   %number of active points in set
 end
 
+xVariances = zeros(1, numClust);
+yVariances = zeros(1, numClust);
+numPoints = zeros(1,numClust);
 
+% Calculate and print x and y variance for each cluster
+for cN = 1:numClust
+    clusterMembers = clusterVotes(cN, :) > 0;
+    clusterPoints = dataPoints(:, clusterMembers);
+
+    xVariances(cN) = var(clusterPoints(1, :));
+    yVariances(cN) = var(clusterPoints(2, :));
+    numPoints(cN) = size(clusterPoints,2);
+end
 
 %Plot centroids on CFAR Plot
 hold on;

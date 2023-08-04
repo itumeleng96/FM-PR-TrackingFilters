@@ -15,8 +15,8 @@
 <li>Constant False Alarm Rate Filter </li>
 <li>Multi-target Tracker</li>
 <li>MeanshiftCluster</li>
+<li>Log-likelihood as a statistical Benchmark for the Performance of Tracking Filters </li>
 
 ### TODO
-<li>Log-likelihood as a statistical Benchmark for the Performance of Tracking Filters - To be verified</li>
 <li>Log-likelihood for multiple Tracks</li>
 <li>Implement other tracking filters </li>

@@ -3,7 +3,7 @@ addpath('../FERS/','../CFAR/','../MeanShiftCluster/', ...
     '../multiTargetTracking/','../DPI_Suppression');
 
 
-system("fers ../FERS/scenario_1_singleFile_120.fersxml");
+system("fers ../FERS/scenario_1_singleFile.fersxml");
 
 % h5 Import from FERS simulation
 [Ino, Qno, scale_no] = loadfersHDF5('direct.h5');
@@ -76,7 +76,7 @@ movegui(f5,'southeast');
 %Create MTT object
 confirmationThreshold=4;
 deletionThreshold=6;
-gatingThreshold=[2500,20];
+gatingThreshold=[5000,30];
 
 %FilterType 1: Kalman Filter
 filterType=1;    
@@ -86,6 +86,11 @@ multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,
 %LOG_LIKELIHOODS
 doppler_ll=[];
 range_ll=[];
+
+%CRLB 
+crlb_doppler=[];
+crlb_range=[];
+
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current); %surv
@@ -97,12 +102,14 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.20,fs,dopp_bins,delay,i,f2,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.2,fs,dopp_bins,delay,i,f2,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids] = meanShiftPlot(targetClusters,0.5e4,10,fs,dopp_bins,delay);
-    
+    [clusterCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,0.5e4,10,fs,dopp_bins,delay);
+    %disp(variancesX);
+    %disp(variancesY);
+   
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
 
@@ -119,8 +126,13 @@ for i = 1:simulation_time
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
 
     %CALCULATE Likelihoods 
-    [doppler_ll,range_ll]=multiTargetTracker.calculateLogLikelihood(f4,f5,i,[100^2,0;0,2^2],doppler_ll,range_ll);
+    [doppler_ll,range_ll]=multiTargetTracker.calculateLogLikelihood(f4,f5,i,doppler_ll,range_ll);
+    
+    %CALCULATE ERROR 
     %[~,~]=multiTargetTracker.plotError(f4,f5,true,true,i);
+    
+    %CALCULATE CRLB
+    %[crlb_doppler,crlb_range]=multiTargetTracker.calculateCRLB(f4,f5,i,variancesX,variancesY,numPoints,crlb_doppler,crlb_range);
     
     ard = ard_;
     rdm= rdm_;

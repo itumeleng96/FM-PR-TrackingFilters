@@ -1,7 +1,7 @@
 classdef kalmanFilter
 
     properties
-        dt,U,X,F,B,H,Q,R,P,coeff,measured_x,measured_y,std_acc;
+        dt,U,X,F,B,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc;
     end
     
     methods
@@ -64,6 +64,8 @@ classdef kalmanFilter
             obj.R = [x_std_meas^2,0;
                      0,y_std_meas^2];
 
+            obj.S = [0,0;
+                     0,0];
             %Initial covariance Matrix
             %High estimate uncertainty
             obj.P = eye(size(obj.F,2))*10;
@@ -91,10 +93,9 @@ classdef kalmanFilter
             %COMPUTE KALMAN GAIN 
 
             %K = P * H'* inv(H*P*H'+R)
-            %S = H*P*H'+ R - Total Error 
-            S = obj.H * obj.P * obj.H.' + obj.R;
-            K = (obj.P * obj.H.') * S^(-1);
-            
+            %S = H*P*H'+ R - Total Error - Innovation Covariance Matrix
+            obj.S = obj.H * obj.P * obj.H.' + obj.R;
+            K = (obj.P * obj.H.') * obj.S^(-1);
             %GET KALMAN ESTIMATE 
             obj.X = obj.X + K * (z-obj.H * obj.X);
             

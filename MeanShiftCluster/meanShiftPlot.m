@@ -85,7 +85,7 @@ end
 
 %Plot centroids on CFAR Plot
 hold on;
-plot(clustCent(1,:),clustCent(2,:),'^','MarkerFaceColor','black', 'MarkerSize', 5);
+plot(clustCent(1,:),clustCent(2,:),'^','MarkerFaceColor','red', 'MarkerSize', 5);
 
 end
 

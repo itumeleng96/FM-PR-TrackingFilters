@@ -11,6 +11,8 @@ function ll = logLikelihood(mean, S ,sample)
     % Calculate the log-likelihood for the  parameter
     
     % Log-likelihood for a NORMAL distribution is given by:
-    ll = log(normpdf(sample,mean,S));
+    %ll = log(normpdf(sample,mean,S));
+    ll = -0.5 * log(2 * pi * S^2) - ((sample - mean)^2) / (2 * S^2);
+
 
 end

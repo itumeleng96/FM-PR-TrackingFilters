@@ -8,16 +8,16 @@ classdef particleFilter
         weights,        %A vector containig the current weights of the particles
         N,              %Number of particles to use 
         scaling_factor; % 
+        std_meas;
+        S;
     end
     
     methods
-        function obj = particleFilter(dt,std_acc,initialCentroid,N)
+        function obj = particleFilter(dt,std_acc,std_meas,initialCentroid,N)
         
             %Init funtion
             obj.N = N;
-
-            %Create  uniformly distributed particles on Initialization
-            %obj.particles = obj.createUniformParticles([0,2e-4]*obj.scaling_factor,[0,150],N);
+            obj.std_meas=std_meas;
            
             %Create  Gaussian  distributed particles on Initialization
             obj.particles = obj.createGaussianParticles(initialCentroid,[10000,10],N);
@@ -25,74 +25,88 @@ classdef particleFilter
             %Set Equal weights
             obj.weights = ones(N,1)/N;
             obj.dt = dt;
- 
-            obj.A = [1,dt,(1/2)*dt^2, 0 ,0 ,0;
-                     0, 1, dt,0,0,0;
-                     0, 0, 1, 0,0,0;
-                     0, 0  0, 1,dt,(1/2)*dt^2;
-                     0, 0, 0, 0,1,dt ;
-                     0, 0, 0, 0,0,1;];
 
-            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2, 0,0,0;
-                     (dt^3)/2, dt^2, dt, 0,0,0;
-                     (dt^2)/2, dt, 1, 0,0,0;
-                     0, 0, 0, (dt^4)/4, (dt^3)/2, (dt^2)/2;
-                     0, 0, 0, (dt^3)/2, dt^2, dt;
-                     0, 0, 0, (dt^2)/2, dt, 1];
+            obj.A = [1,dt,(1/2)*dt^2;
+                     0, 1, dt;
+                     0, 0, 1;];
+            
+            
+            obj.Q = [5000,0,0;
+                     0,10,0;
+                     0,0,0.1;];
+            
 
-            obj.Q(1:3,1:3) = obj.Q(1:3,1:3) * std_acc(1)^2;
-            obj.Q(4:6,4:6) = obj.Q(4:6,4:6) * std_acc(2)^2;
-                   
+            obj.S = [0,0;
+                     0,0];
+
         end
         
-        function [X_pred,PF_obj] = predict(obj)
+        function [X_pred, PF_obj] = predict(obj)
 
-            %Predict new particle states
-            noise = mvnrnd(zeros(size(obj.Q,1),1), obj.Q, obj.N);
-            obj.particles = (obj.A * obj.particles')' + noise;
-            %obj.particles = (obj.A * obj.particles')';
-            
-            
-            X_pred = mean(obj.particles,1)';
-
-            PF_obj  = obj;
-        end  
+            % Generate random Gaussian noise with zero mean and covariance matrix Q
+            noise = zeros(obj.N, size(obj.Q, 1));
         
-        function [X_est,PF_obj] = update(obj,z)
-            %Update stage
-            %obj.weights(:)= 1;
-            range_meas_err = 2000;
-            doppler_meas_err =10;
+            % Generate random Gaussian noise with zero mean and covariance matrix Q
+            noise(:,1) = obj.Q(1,1) * randn(1, obj.N);
+            noise(:,2) = obj.Q(2,2) * randn(1, obj.N);
+            noise(:,3) = obj.Q(3,3) * randn(1, obj.N);
 
-
-            %Get distance between particles (range,doppler) and the measured (range,dopplelr) values
-            rangeDistance =  abs(obj.particles(:,1)- z(1));
-            dopplerDistance =  abs(obj.particles(:,4)- z(2));
-            
-            %Get the shortest distance and Distribute around it / replace
-            %with Likelihood function
-            rangeMean = min(rangeDistance);
-            dopplerMean =min(dopplerDistance);
-
-            range_pdf = obj.calculateLikelihood(rangeMean,rangeDistance,range_meas_err);
-            doppler_pdf = obj.calculateLikelihood(dopplerMean,dopplerDistance,doppler_meas_err);
-
-            obj.weights =  obj.weights .*range_pdf.*doppler_pdf;
-            
-            obj.weights = obj.weights + 1.e-300;
-            obj.weights = obj.weights/(sum(obj.weights));
-            
-            %resample if too few effective particles,duplicate useful particles
-            neff = obj.NEFF(obj.weights);
-            if neff< obj.N/2 
-                indexes = obj.resampleSystematic(obj.weights);
-                [obj.particles,obj.weights]= obj.resampleFromIndex(obj.particles,indexes);
-            end        
-            
-            [meanValue,~] = obj.estimate(obj.particles,obj.weights);
-            X_est = meanValue;
-            
+            % Add process noise to particle states
+            obj.particles(:, 1:3) = (obj.A(1:3, 1:3) * obj.particles(:, 1:3)' + noise(:, 1:3)')';
+        
+            % Update the covariance matrix of the particles based on the noise added
+            %cov_matrix = cov(obj.particles(:, 1:3), 1); % Use 1 as the normalization factor
+            %obj.Q = cov_matrix;
+        
+            X_pred = mean(obj.particles, 1)';
+            std_dev = var(obj.particles, 1);
+            obj.S(1, 1) = std_dev(1);
+            obj.S(2, 2) = std_dev(2);
+        
             PF_obj = obj;
+        end
+        
+        function [X_est, PF_obj] = update(obj, z)
+            % Update stage
+            
+            % Calculate the covariance matrix of the particles
+            cov_matrix = cov(obj.particles(:, 1:2), 1); % Use 1 as the normalization factor
+            
+            % Calculate Mahalanobis distance between particles and the measurement
+            diffs = (obj.particles(:, 1:2)' - z)';
+
+            mahalanobis_distances = sqrt(sum((diffs / cov_matrix) .* diffs, 2));
+        
+            % Find the minimum distance (closest particle) to be used in the likelih\ood function
+            minDistance = min(mahalanobis_distances);
+        
+            
+            % Calculate the likelihood using a single PDF (Gaussian) based on the minimum distance
+            likelihood = obj.calculateLikelihood(mahalanobis_distances,minDistance, obj.std_meas);
+
+            likelihood = likelihood / sum(likelihood);
+
+
+            % Update the particle weights
+            obj.weights = obj.weights .* likelihood;
+            obj.weights = obj.weights + 1.e-300;
+            obj.weights = obj.weights / sum(obj.weights);
+           
+
+            % Resample if too few effective particles, duplicate useful particles
+            neff = obj.NEFF(obj.weights);
+            if neff < obj.N / 2
+                indexes = obj.resampleSystematic(obj.weights);
+                [obj.particles, obj.weights] = obj.resampleFromIndex(obj.particles, indexes);
+            end
+        
+            [meanValue, ~] = obj.estimate(obj.particles, obj.weights);
+            X_est = meanValue;
+        
+            PF_obj = obj;
+
+           
+
         end
     end
     methods(Static)
@@ -112,20 +126,14 @@ classdef particleFilter
                 end
             end
         end
-        function [particles] = createUniformParticles(x_range,y_range,N)
-            %Create a uniform Distribution of particles over a region
-            % N : number of particles
-                particles = zeros(N,6);
-                particles(:,1) = unifrnd(x_range(1),x_range(2),[N 1]);
-                particles(:,4) = unifrnd(y_range(1),y_range(2),[N 1]);
-        end
+
                 
         function [particles] = createGaussianParticles(mean,std,N)
             %Create a Gaussian Distribution of particles over a region
             % N : number of particles
-                particles = zeros(N,6);
+                particles = zeros(N,3);
                 particles(:,1) = mean(1) + (randn(N,1))*std(1) ; 
-                particles(:,4) = mean(4) + (randn(N,1))*std(2) ;
+                particles(:,2) = mean(2) + (randn(N,1))*std(2) ;
                     
         end
         
@@ -136,9 +144,6 @@ classdef particleFilter
                 particles(:,1) = particles(indexes,1);
                 particles(:,2) = particles(indexes,2);
                 particles(:,3) = particles(indexes,3);
-                particles(:,4) = particles(indexes,4);
-                particles(:,5) = particles(indexes,5);
-                particles(:,6) = particles(indexes,6);
                 
                 N = size(particles,1);
                 weights = zeros(N,1);
@@ -153,14 +158,14 @@ classdef particleFilter
                 mean = [0,0];
                 var = [0,0];
                 
-                % Calculate the mean of particles using only columns 1 and 4
+                % Calculate the mean of particles using only columns 1 and 2
                 mean(1) = sum(particles(:, 1).*weights)/sum(weights);
-                mean(2) = sum(particles(:, 4).*weights)/sum(weights);
+                mean(2) = sum(particles(:, 2).*weights)/sum(weights);
                 
-                % Calculate the variance of particles using only columns 1 and 4
+                % Calculate the variance of particles using only columns 1 and 2
                 var_particles = zeros(size(particles, 1),2);
                 var_particles(:, 1) = (particles(:, 1) - mean(1)).^2;
-                var_particles(:, 2) = (particles(:, 4) - mean(2)).^2;
+                var_particles(:, 2) = (particles(:, 2) - mean(2)).^2;
                 
                 var(1) = sum(var_particles(:, 1).*weights)/sum(weights);
                 var(2) = sum(var_particles(:, 2).*weights)/sum(weights);

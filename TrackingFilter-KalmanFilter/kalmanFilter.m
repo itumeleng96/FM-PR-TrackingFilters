@@ -5,15 +5,12 @@ classdef kalmanFilter
     end
     
     methods
-        function obj = kalmanFilter(dt,u_x,u_y,std_acc,x_std_meas,y_std_meas,X_initial)
+        function obj = kalmanFilter(dt,std_acc,x_std_meas,y_std_meas,X_initial)
         
             %Init funtion
             %Inputs: 
             % dt : smapling time
-            % u_x : acceleration in the x-direction
-            % u_y : acceleration in the y-direction
             % x_std_meas : standard deviation of the measurement in the x-direction
-            % y_std_meas : standard deviation of the measurement in the y-direction
             
             
             %Control Input Variables
@@ -22,42 +19,35 @@ classdef kalmanFilter
     
             %Initial State
             obj.X= X_initial;
-         
-
-            %State transition matrix
+                
+            %Update Interval
             obj.dt = dt;
 
-
-            obj.F = [1,dt,(1/2)*dt^2, 0 ,0 ,0;
-                     0, 1, dt,0,0,0;
-                     0, 0, 1, 0,0,0;
-                     0, 0  0, 1,dt,(1/2)*dt^2;
-                     0, 0, 0, 0,1,dt ;
-                     0, 0, 0, 0,0,1;];
+            %State transition matrix
+            obj.F = [1,dt,(1/2)*dt^2;
+                     0, 1, dt;
+                     0, 0, 1;];
 
 
             %The control input matrix B
             obj.B = [0,0;
                      0,0;
-                     0,0;
-                     0,0;
-                     0,0;
                      0,0;];
 
             %Measurement Mapping Matrix 
-            obj.H = [1,0,0,0,0,0;
-                     0,0,0,1,0,0];
+            obj.H = [1,0,0;
+                     0,1,0;];
 
-            %Process Noise Covariance Matrix 
-            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2, 0,0,0;
-                     (dt^3)/2, dt^2, dt, 0,0,0;
-                     (dt^2)/2, dt, 1, 0,0,0;
-                     0, 0, 0, (dt^4)/4, (dt^3)/2, (dt^2)/2;
-                     0, 0, 0, (dt^3)/2, dt^2, dt;
-                     0, 0, 0, (dt^2)/2, dt, 1];
+            %Process Noise Covariance Matrix
+            obj.Q = [2500, 0, 0;
+                    0,1, 0;
+                    0, 0,0.1];
+            
+            %obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2;
+            %       (dt^3)/2, dt^2, dt;
+            %         (dt^2)/2, dt, 1;]*100;
 
-            obj.Q(1:3,1:3) = obj.Q(1:3,1:3) * std_acc(1)^2;
-            obj.Q(4:6,4:6) = obj.Q(4:6,4:6) * std_acc(2)^2;
+            %obj.Q(1:3,1:3) = obj.Q(1:3,1:3) * std_acc(1)^2;
 
             %Initial Measurement Noise Covariance Matrix
             %Standard deviation of measurement in doppler shift and delay
@@ -68,7 +58,7 @@ classdef kalmanFilter
                      0,0];
             %Initial covariance Matrix
             %High estimate uncertainty
-            obj.P = eye(size(obj.F,2))*10;
+            obj.P = eye(size(obj.F,2));
 
         end
         
@@ -91,11 +81,11 @@ classdef kalmanFilter
             %Update stage
 
             %COMPUTE KALMAN GAIN 
-
+            
             %K = P * H'* inv(H*P*H'+R)
             %S = H*P*H'+ R - Total Error - Innovation Covariance Matrix
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
-            K = (obj.P * obj.H.') * obj.S^(-1);
+            K = (obj.P * obj.H.') / obj.S;
             %GET KALMAN ESTIMATE 
             obj.X = obj.X + K * (z-obj.H * obj.X);
             

@@ -14,8 +14,8 @@ classdef kalmanFilter
             
             
             %Control Input Variables
-            obj.U = [u_x;
-                     u_y];
+            %obj.U = [u_x;
+            %         u_y];
     
             %Initial State
             obj.X= X_initial;

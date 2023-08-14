@@ -28,9 +28,9 @@ classdef track
             
             switch filterType
                 case 1
-                    std_meas=[sqrt(250),sqrt(0.1)];                      %Standard Deviation of the measurements in the x and y
-                    std_acc=[0.2,0.1];                         %Standard Deviation of the acceleration in ms^2
-                    KF_object = kalmanFilter(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);0;0;x_initial(2);0;0]);
+                    std_meas=[sqrt(1000),sqrt(0.01)];                      %Standard Deviation of the measurements in the x and y
+                    std_acc=[5,0];                                  %Standard Deviation of the acceleration in ms^2
+                    KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[x_initial(1);x_initial(2);0;]);
                     obj.trackingFilterObject = KF_object; 
                 
                 case 2
@@ -38,15 +38,16 @@ classdef track
                     std_meas=[25,0.1];                  %Standard Deviation of the measurements in the x and y
                     max_iterations=100;
                     tolerance = 1;
-                    GN_object = GaussNewton(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);0;0;x_initial(2);0;0],max_iterations,tolerance);
-                    obj.trackingFilterObject = GN_object;
+                    RGNF_object = RGNF(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);x_initial(2);0;],max_iterations,tolerance);
+                    obj.trackingFilterObject = RGNF_object;
                 
                 case 3
-                    N=1000;  %Number of particles
-                    std_acc=[20,0.1];                 %Standard Deviation of the acceleration in ms^2
-                    PF_object = particleFilter(dt,[std_acc(1),std_acc(2)],[x_initial(1);0;0;x_initial(2);0;0],N);
+                    N=5000;  %Number of particles
+                    std_acc=[2,0.1];                 %Standard Deviation of the acceleration in ms^2
+                    std_meas=3;                      %Standard Deviation of the measurements in the x and y
+
+                    PF_object = particleFilter(dt,[std_acc(1),std_acc(2)],std_meas,[x_initial(1);x_initial(2);0;],N);
                     obj.trackingFilterObject = PF_object;
-                
                 
                 otherwise
                     dt=1;
@@ -79,7 +80,7 @@ classdef track
             
             %Update the predicted track
             obj.predictedTrack(1,end+1)=X(1,1);
-            obj.predictedTrack(2,end)=X(4,1);
+            obj.predictedTrack(2,end)=X(2,1);
             obj.sampleSinceLastUpdate = obj.sampleSinceLastUpdate+1;
 
             %disp("Predicted Track");

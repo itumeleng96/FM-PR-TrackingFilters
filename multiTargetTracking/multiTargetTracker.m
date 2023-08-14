@@ -193,14 +193,13 @@ classdef multiTargetTracker
 
         function [doppler_ll, range_ll] = calculateLogLikelihood(obj, f, f1, i,doppler_ll,range_ll)
 
-            time = 1:1:i;
-
-            %ERROR
+            time = 1:1:i;            
             
             for j = 1:length(obj.tracks)
                 predictedTrack = obj.tracks(j).predictedTrack;
                 trueTrack = obj.tracks(j).trueTrack;
                 s_matrix = obj.tracks(j).trackingFilterObject.S;
+                %disp(s_matrix);
                 %----------------------------------------------------------------%
                 %--Log-likelihood for Bistatic Range
                 %----------------------------------------------------------------%

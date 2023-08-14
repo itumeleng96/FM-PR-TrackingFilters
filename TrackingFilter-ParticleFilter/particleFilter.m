@@ -44,7 +44,7 @@ classdef particleFilter
         function [X_pred, PF_obj] = predict(obj)
 
             % Generate random Gaussian noise with zero mean and covariance matrix Q
-            noise = zeros(obj.N, size(obj.Q, 1));
+            %noise = zeros(obj.N, size(obj.Q, 1));
         
             % Generate random Gaussian noise with zero mean and covariance matrix Q
             noise(:,1) = obj.Q(1,1) * randn(1, obj.N);
@@ -68,45 +68,37 @@ classdef particleFilter
         
         function [X_est, PF_obj] = update(obj, z)
             % Update stage
-            
-            % Calculate the covariance matrix of the particles
-            cov_matrix = cov(obj.particles(:, 1:2), 1); % Use 1 as the normalization factor
-            
-            % Calculate Mahalanobis distance between particles and the measurement
+        
+            % Calculate the particle likelihoods based on a Gaussian PDF
             diffs = (obj.particles(:, 1:2)' - z)';
-
-            mahalanobis_distances = sqrt(sum((diffs / cov_matrix) .* diffs, 2));
-        
-            % Find the minimum distance (closest particle) to be used in the likelih\ood function
-            minDistance = min(mahalanobis_distances);
-        
             
-            % Calculate the likelihood using a single PDF (Gaussian) based on the minimum distance
-            likelihood = obj.calculateLikelihood(mahalanobis_distances,minDistance, obj.std_meas);
-
+            % Calculate the squared distances
+            squared_distances = sum(diffs.^2, 2);
+            
+            % Calculate the Gaussian likelihood
+            likelihood = exp(-0.5 * squared_distances / obj.std_meas^2);
+            
+            % Normalize the likelihood
             likelihood = likelihood / sum(likelihood);
 
-
+            
             % Update the particle weights
             obj.weights = obj.weights .* likelihood;
-            obj.weights = obj.weights + 1.e-300;
+            obj.weights = obj.weights + 1.e-300;  % Add small constant to avoid zero weights
             obj.weights = obj.weights / sum(obj.weights);
-           
-
-            % Resample if too few effective particles, duplicate useful particles
+        
+            % Resample if too few effective particles
             neff = obj.NEFF(obj.weights);
             if neff < obj.N / 2
                 indexes = obj.resampleSystematic(obj.weights);
                 [obj.particles, obj.weights] = obj.resampleFromIndex(obj.particles, indexes);
             end
         
+            % Calculate estimated state as weighted mean
             [meanValue, ~] = obj.estimate(obj.particles, obj.weights);
             X_est = meanValue;
         
             PF_obj = obj;
-
-           
-
         end
     end
     methods(Static)

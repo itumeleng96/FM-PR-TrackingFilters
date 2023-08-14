@@ -33,13 +33,15 @@ classdef RGNF
              obj.H = [1,0,0;
                      0,1,0;];
                  
-            % Process Noise Covariance Matrix 
-            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2;
-                     (dt^3)/2, dt^2;
-                     (dt^2)/2, dt;];
+            obj.Q = [100, 0, 0;
+                    0,1, 0;
+                    0, 0,0.1];
+            
+            %obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2;
+            %       (dt^3)/2, dt^2, dt;
+            %         (dt^2)/2, dt, 1;]*100;
                  
-            obj.Q(1:3, 1:3) = obj.Q(1:3, 1:3) * std_acc(1)^2;
-            %obj.Q(4:6, 4:6) = obj.Q(4:6, 4:6) * std_acc(2)^2;
+            %obj.Q(1:3, 1:3) = obj.Q(1:3, 1:3) * std_acc(1)^2;
             
             % Initial Measurement Noise Covariance
             obj.R = [x_std_meas^2, 0;
@@ -49,7 +51,13 @@ classdef RGNF
         % Function to predict the next state
         function [X_pred, GN_Obj] = predict(obj)
             % Calculate the predicted time state: x_k = Ax_(k-1) + Bu_(k-1)
-            obj.X = obj.A * obj.X +obj.Q;
+            % Generate random Gaussian noise with zero mean and covariance matrix Q
+        
+            % Generate random Gaussian noise with zero mean and covariance matrix Q
+            noise = sqrtm(obj.Q) * randn(size(obj.X));
+
+
+            obj.X = obj.A * obj.X +noise;
         
             % Update the covariance matrix based on process noise
             X_pred = obj.X;
@@ -64,7 +72,7 @@ classdef RGNF
         function [X_est, RGNF_obj] = update(obj, z)
             % Perform the update step of the Gauss-Newton filter
 
-            lambda = 0.01;
+            lambda = 0.1;
 
             for i = 1:obj.max_iter
                 r = obj.objectiveFunction(obj.X, z);  % Compute residual

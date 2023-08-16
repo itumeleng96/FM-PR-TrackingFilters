@@ -44,7 +44,7 @@ classdef particleFilter
         function [X_pred, PF_obj] = predict(obj)
 
             % Generate random Gaussian noise with zero mean and covariance matrix Q
-            %noise = zeros(obj.N, size(obj.Q, 1));
+            noise = zeros(obj.N, size(obj.Q, 1));
         
             % Generate random Gaussian noise with zero mean and covariance matrix Q
             noise(:,1) = obj.Q(1,1) * randn(1, obj.N);
@@ -70,13 +70,15 @@ classdef particleFilter
             % Update stage
         
             % Calculate the particle likelihoods based on a Gaussian PDF
+            % p(z t​∣x t(i))=p(zx∣x t(i),σx)⋅p(z y∣y t(i),σy)
             diffs = (obj.particles(:, 1:2)' - z)';
+            likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
+            likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
+            likelihood = likelihood_x .* likelihood_y;
             
             % Calculate the squared distances
-            squared_distances = sum(diffs.^2, 2);
+            %squared_distances = sum(diffs.^2, 2);
             
-            % Calculate the Gaussian likelihood
-            likelihood = exp(-0.5 * squared_distances / obj.std_meas^2);
             
             % Normalize the likelihood
             likelihood = likelihood / sum(likelihood);

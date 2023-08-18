@@ -22,4 +22,4 @@
 
 ## How to run the tracking Filter in the Matlab Terminal
 <li> runTrackingFilter </li>
-<li> Enter the filterType: <filterNumber> </li>
+<li> Enter the filterType:  1 for Kalman and 2 for Particle filter </li>

@@ -11,7 +11,7 @@ The above matlab script contains the Matlab Class.
 
 ## Screenshots
 
-![Screenshot 1](https://github.com/itumeleng96/trackingFilters/edit/main/TrackingFilter-KalmanFilter/Readme.md#:~:text=RD%20Plot-,.png,-Readme.md)
+![Screenshot 1](https://github.com/itumeleng96/trackingFilters/blob/main/TrackingFilter-KalmanFilter/RD%20Plot.png)
 ![Screenshot 2](image_url_2)
 
 ## License

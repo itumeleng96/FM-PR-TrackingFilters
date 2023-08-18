@@ -4,10 +4,10 @@
 
 
 #### The Following Tracking filters and code have been implemented:
-<li>Kalman Filter</li>
-<li>Particle Filter  </li>
-<li>Recursive Gauss Newton Filter - Still to be implemented</li>
-<li>Polynomial Filters still to be implemented</li>
+<li>1.Kalman Filter</li>
+<li>2.Particle Filter  </li>
+<li>3.Recursive Gauss Newton Filter - Still to be implemented</li>
+<li>4.Polynomial Filters still to be implemented</li>
 
 
 #### Other algorithms implemented
@@ -19,3 +19,7 @@
 ### TODO
 <li>Log-likelihood for multiple Tracks</li>
 <li>Implement other tracking filters </li>
+
+## How to run the tracking Filter in the Matlab Terminal
+<li> runTrackingFilter </li>
+<li> Enter the filterType: <filterNumber> </li>

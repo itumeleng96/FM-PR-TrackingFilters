@@ -11,7 +11,7 @@ The above matlab script contains the Matlab Class.
 
 ## Screenshots
 
-![Screenshot 1](image_url_1)
+![Screenshot 1](Log Likelihood.png)
 ![Screenshot 2](image_url_2)
 
 ## License

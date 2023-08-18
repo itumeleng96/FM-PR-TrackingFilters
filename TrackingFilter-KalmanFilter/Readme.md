@@ -12,6 +12,6 @@ The above matlab script contains the Matlab Class.
 ## Screenshots
 
 ![Screenshot 1](https://github.com/itumeleng96/trackingFilters/blob/main/TrackingFilter-KalmanFilter/RD%20Plot.png)
-![Screenshot 2](image_url_2)
+![Screenshot 2](https://github.com/itumeleng96/trackingFilters/blob/main/TrackingFilter-KalmanFilter/Log%20Likelihood.png)
 
 ## License

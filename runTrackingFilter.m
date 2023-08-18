@@ -1,9 +1,17 @@
-clc; clear; close all;
-addpath('../FERS/','../CFAR/','../MeanShiftCluster/', ...
-    '../multiTargetTracking/','../DPI_Suppression');
+clc;
+clear;
+close all;
+
+addpath('FERS/', ...
+        'CFAR/', ...
+        'MeanShiftCluster/', ...
+        'multiTargetTracking/', ...
+        'DPI_Suppression', ...
+        'TrackingFilter-KalmanFilter/', ...
+        'TrackingFilter-ParticleFilter/');
 
 
-system("fers ../FERS/scenario_1_singleFile.fersxml");
+system("fers FERS/scenario_1_singleFile.fersxml");
 
 % h5 Import from FERS simulation
 [Ino, Qno, scale_no] = loadfersHDF5('direct.h5');
@@ -79,7 +87,10 @@ deletionThreshold=6;
 gatingThreshold=[5000,30];
 
 %FilterType 1: Kalman Filter
-filterType=1;    
+%FilterType 2: Particle Filter
+
+filterType = input('Enter the filterType: ');
+
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -91,6 +102,7 @@ range_ll=[];
 crlb_doppler=[];
 crlb_range=[];
 
+plotResults = true;
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current); %surv
@@ -99,16 +111,14 @@ for i = 1:simulation_time
     s1 = procECA(s2,s1,proc);
 
     %Plot Range-Doppler Map
-    [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
+    [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f,plotResults);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.2,fs,dopp_bins,delay,i,f2,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.2,fs,dopp_bins,delay,i,f2,rdm,plotResults);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,0.5e4,10,fs,dopp_bins,delay);
-    %disp(variancesX);
-    %disp(variancesY);
+    [clusterCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,0.5e4,10,fs,dopp_bins,delay,plotResults);
    
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
@@ -120,13 +130,13 @@ for i = 1:simulation_time
     multiTargetTracker = multiTargetTracker.predictionStage();
 
     %PLOT Prediction and True Tracks
-    multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM)
+    multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM,plotResults)
 
     %UPDATE Tracks from measurements
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
 
     %CALCULATE Likelihoods 
-    [doppler_ll,range_ll]=multiTargetTracker.calculateLogLikelihood(f4,f5,i,doppler_ll,range_ll);
+    [doppler_ll,range_ll]=multiTargetTracker.calculateLogLikelihood(f4,f5,i,doppler_ll,range_ll,plotResults);
     
     %CALCULATE ERROR 
     %[~,~]=multiTargetTracker.plotError(f4,f5,true,true,i);

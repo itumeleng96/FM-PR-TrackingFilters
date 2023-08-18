@@ -4,7 +4,7 @@
 %G : Number of Guard cells
 %cut : the magnitiude cells of the Range Doppler map
 
-function [targetClusters,RDM,rdm_] = ca_cfarPlot(RDM,rate_fa,fs,fd_max,td_max,index,f,rdm)
+function [targetClusters,RDM,rdm_] = ca_cfarPlot(RDM,rate_fa,fs,fd_max,td_max,index,f,rdm,plotResults)
 %Generates a CFAR output map in the range-doppler domain
 %Firstly calculate the interference power from the average of N samples in
 %the vicinity of the CUT
@@ -63,22 +63,25 @@ rdm = min(rdm, 1);  % Set maximum value to 1
 rdm_ = rdm;
 
 
-figure(f);
-imagesc(range, frequency, rdm_);
-colormap(gca, 'gray'); % Set the colormap to 'gray'
-c = colorbar;
-c.Label.String = 'Intensity';
-c.FontSize = 10;
-c.Color = 'black'; % Set colorbar label color to white
-set(gca, 'Color', 'black'); % Set background color to black
-text(0, 10, "Time: " + index + "s", 'Color', 'white'); % Set text color to white
-axis xy;
-xlabel('Bistatic range [m]', 'FontSize', 10, 'Color', 'black'); % Set xlabel color to white
-ylabel('Doppler frequency [Hz]', 'FontSize', 10, 'Color', 'black'); % Set ylabel color to white
-grid on;
-title('CFAR and Centroids', 'Color', 'black'); % Set title color to white
-%xlim([0 xlim_upper]);
-ylim([ylim_lower ylim_upper]);
+if(plotResults)
+    figure(f);
+    imagesc(range, frequency, rdm_);
+    colormap(gca, 'gray'); % Set the colormap to 'gray'
+    c = colorbar;
+    c.Label.String = 'Intensity';
+    c.FontSize = 10;
+    c.Color = 'black'; % Set colorbar label color to white
+    set(gca, 'Color', 'black'); % Set background color to black
+    text(0, 10, "Time: " + index + "s", 'Color', 'white'); % Set text color to white
+    axis xy;
+    xlabel('Bistatic range [m]', 'FontSize', 10, 'Color', 'black'); % Set xlabel color to white
+    ylabel('Doppler frequency [Hz]', 'FontSize', 10, 'Color', 'black'); % Set ylabel color to white
+    grid on;
+    title('CFAR and Centroids', 'Color', 'black'); % Set title color to white
+    %xlim([0 xlim_upper]);
+    ylim([ylim_lower ylim_upper]);
+end
+
 RDM = RDM_final;
 
 [row, column] = find(RDM > 0);

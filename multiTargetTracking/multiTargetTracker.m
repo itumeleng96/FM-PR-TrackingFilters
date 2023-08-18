@@ -112,46 +112,47 @@ classdef multiTargetTracker
             
         end
 
-        function plotMultiTargetTracking(obj,fs,fd_max,td_max,index,f,RDM)
-
-            figure(f);
-            c=3e8;
-            Ndelay = floor(td_max*fs);                                 
-            time = 0:1/fs:Ndelay/fs;
-            range = time *c;
-            frequency = -fd_max:1:fd_max;
-            imagesc(range,frequency,RDM*0);
-            colormap(gca, 'white'); % Set the colormap to 'gray'
-
-            text(0,10,"Time:" + index+ "s");
-            axis xy;
-            xlabel('Bistatic Range [m]','Fontsize',10);
-            ylabel('Doppler frequency [Hz]','Fontsize',10);
-            grid on;
-            title('Targets centroids and  Prediction');
-            
-           
-            hold on;
-            for i = 1:length(obj.tracks)
-                if obj.tracks(i).confirmed == 0
-                    % Plot tentative track as a line connected by open triangles
-                    plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 8, 'DisplayName', 'Predicted Track');
-                    % Plot true track as open circles joined by a line
-                    plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'o:', 'MarkerFaceColor', [1 0.5 0], 'MarkerSize', 4, 'DisplayName', 'Tentative Track');
-                else
-                    % Plot confirmed track as a line connected by filled triangles
-                    plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 8, 'DisplayName', 'Predicted Track');
-                    plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'o:', 'MarkerFaceColor',[0 0 0], 'MarkerSize', 4, 'DisplayName', 'Confirmed');
+        function plotMultiTargetTracking(obj,fs,fd_max,td_max,index,f,RDM,plotResults)
+            if(plotResults)
+                figure(f);
+                c=3e8;
+                Ndelay = floor(td_max*fs);                                 
+                time = 0:1/fs:Ndelay/fs;
+                range = time *c;
+                frequency = -fd_max:1:fd_max;
+                imagesc(range,frequency,RDM*0);
+                colormap(gca, 'white'); % Set the colormap to 'gray'
+    
+                text(0,10,"Time:" + index+ "s");
+                axis xy;
+                xlabel('Bistatic Range [m]','Fontsize',10);
+                ylabel('Doppler frequency [Hz]','Fontsize',10);
+                grid on;
+                title('Targets centroids and  Prediction');
+                
+               
+                hold on;
+                for i = 1:length(obj.tracks)
+                    if obj.tracks(i).confirmed == 0
+                        % Plot tentative track as a line connected by open triangles
+                        plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 8, 'DisplayName', 'Predicted Track');
+                        % Plot true track as open circles joined by a line
+                        plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'o:', 'MarkerFaceColor', [1 0.5 0], 'MarkerSize', 4, 'DisplayName', 'Tentative Track');
+                    else
+                        % Plot confirmed track as a line connected by filled triangles
+                        plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 8, 'DisplayName', 'Predicted Track');
+                        plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'o:', 'MarkerFaceColor',[0 0 0], 'MarkerSize', 4, 'DisplayName', 'Confirmed');
+                    end
                 end
+                predicted_marker = plot(nan, nan, 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 8);
+                tentative_marker = plot(nan, nan, 'o:', 'MarkerFaceColor', [1 0.5 0], 'MarkerSize', 4);
+                confirmed_marker = plot(nan, nan, 'o:', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 8);
+            
+                % Create a legend with custom markers and labels
+                legend([predicted_marker,tentative_marker, confirmed_marker], 'Predicted Track', 'Tentative Track', 'Confirmed Track', 'Location', 'best');
+                        
+                hold off;
             end
-            predicted_marker = plot(nan, nan, 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 8);
-            tentative_marker = plot(nan, nan, 'o:', 'MarkerFaceColor', [1 0.5 0], 'MarkerSize', 4);
-            confirmed_marker = plot(nan, nan, 'o:', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 8);
-        
-            % Create a legend with custom markers and labels
-            legend([predicted_marker,tentative_marker, confirmed_marker], 'Predicted Track', 'Tentative Track', 'Confirmed Track', 'Location', 'best');
-                    
-            hold off;
         end
         function [doppler_error, range_error] = plotError(obj, f, f1, plotDoppler_Error, plotRange_Error, i)
             time = 1:1:i;
@@ -191,51 +192,53 @@ classdef multiTargetTracker
             end
         end
 
-        function [doppler_ll, range_ll] = calculateLogLikelihood(obj, f, f1, i,doppler_ll,range_ll)
-
-            time = 1:1:i;            
+        function [doppler_ll, range_ll] = calculateLogLikelihood(obj, f, f1, i,doppler_ll,range_ll,plotResults)
             
-            for j = 1:length(obj.tracks)
-                predictedTrack = obj.tracks(j).predictedTrack;
-                trueTrack = obj.tracks(j).trueTrack;
-                s_matrix = obj.tracks(j).trackingFilterObject.S;
-                %disp(s_matrix);
-                %----------------------------------------------------------------%
-                %--Log-likelihood for Bistatic Range
-                %----------------------------------------------------------------%
-                range_sample=trueTrack(1,i);
-                range_mean =predictedTrack(1,i);
-                
-                %range_ll(j, i) = normlike([(range_mean),s_matrix(1,1)],range_sample);
-                %range_ll(j, i) = lognlike([range_mean,sqrt(R(1,1))],range_sample);
-                range_ll(j, i) = logLikelihood(range_mean,s_matrix(1,1),range_sample);
-
-                %----------------------------------------------------------------%
-                %--Log-likelihood for Bistatic Doppler
-                %----------------------------------------------------------------%
-                doppler_sample=trueTrack(2,i);
-                doppler_mean =predictedTrack(2,i);
-                
-                %doppler_ll(j, i) = normlike([doppler_mean,s_matrix(2,2)],doppler_sample);
-                %doppler_ll(j, i) = lognlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
-                doppler_ll(j, i) = logLikelihood(doppler_mean,s_matrix(2,2),doppler_sample);
+            if(plotResults)
+                time = 1:1:i;            
+            
+                for j = 1:length(obj.tracks)
+                    predictedTrack = obj.tracks(j).predictedTrack;
+                    trueTrack = obj.tracks(j).trueTrack;
+                    s_matrix = obj.tracks(j).trackingFilterObject.S;
+                    %disp(s_matrix);
+                    %----------------------------------------------------------------%
+                    %--Log-likelihood for Bistatic Range
+                    %----------------------------------------------------------------%
+                    range_sample=trueTrack(1,i);
+                    range_mean =predictedTrack(1,i);
+                    
+                    %range_ll(j, i) = normlike([(range_mean),s_matrix(1,1)],range_sample);
+                    %range_ll(j, i) = lognlike([range_mean,sqrt(R(1,1))],range_sample);
+                    range_ll(j, i) = logLikelihood(range_mean,s_matrix(1,1),range_sample);
+    
+                    %----------------------------------------------------------------%
+                    %--Log-likelihood for Bistatic Doppler
+                    %----------------------------------------------------------------%
+                    doppler_sample=trueTrack(2,i);
+                    doppler_mean =predictedTrack(2,i);
+                    
+                    %doppler_ll(j, i) = normlike([doppler_mean,s_matrix(2,2)],doppler_sample);
+                    %doppler_ll(j, i) = lognlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
+                    doppler_ll(j, i) = logLikelihood(doppler_mean,s_matrix(2,2),doppler_sample);
+    
+                end
+    
+                figure(f);
+                plot(time, doppler_ll);
+                xlabel('Time(s)');
+                ylabel('Bistatic Doppler Log-likelihood');
+                title('Bistatic Doppler Log-likelihood vs Time');
+                %legend('Doppler Log-likelihood', 'Doppler Error'); % Add legend for the two plotted lines
+    
+                figure(f1);
+                plot(time,range_ll);
+                xlabel('Time(s)');
+                ylabel('Bistatic Range Log-likelihood');
+                title('Bistatic Range  Log-likelihood vs Time');
+                %legend('Range Log-likelihood', 'Range Error'); % Add legend for the two plotted lines
 
             end
-
-            figure(f);
-            plot(time, doppler_ll);
-            xlabel('Time(s)');
-            ylabel('Bistatic Doppler Log-likelihood');
-            title('Bistatic Doppler Log-likelihood vs Time');
-            %legend('Doppler Log-likelihood', 'Doppler Error'); % Add legend for the two plotted lines
-
-            figure(f1);
-            plot(time,range_ll);
-            xlabel('Time(s)');
-            ylabel('Bistatic Range Log-likelihood');
-            title('Bistatic Range  Log-likelihood vs Time');
-            %legend('Range Log-likelihood', 'Range Error'); % Add legend for the two plotted lines
-
         end
 
         function [crlb_doppler,crlb_range] = calculateCRLB(obj, f, f1, i,xVar,yVar,N,crlb_doppler,crlb_range)

@@ -31,7 +31,7 @@ classdef particleFilter
                      0, 0, 1;];
             
             
-            obj.Q = [5000,0,0;
+            obj.Q = [2000,0,0;
                      0,10,0;
                      0,0,0.1;];
             

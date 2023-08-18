@@ -11,6 +11,6 @@ The above matlab script contains the Matlab Class for the Particle Filter.
 
 ## Screenshots
 
-![Screenshot 1](https://github.com/itumeleng96/trackingFilters/blob/main/TrackingFilter-ParticleFilter/CfARandMTT.png)
+![Screenshot 1](https://github.com/itumeleng96/trackingFilters/blob/main/TrackingFilter-ParticleFilter/CFARandMTT.png)
 ![Screenshot 2](https://github.com/itumeleng96/trackingFilters/blob/main/TrackingFilter-ParticleFilter/LogLikelihood.png)
 

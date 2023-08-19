@@ -135,7 +135,7 @@ for i = 1:simulation_time
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
 
     %CALCULATE Likelihoods 
-    [doppler_ll,range_ll]=multiTargetTracker.calculateLogLikelihood(f4,f5,i,doppler_ll,range_ll,true);
+    [doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihood(f4,f5,i,doppler_ll,range_ll,true);
     
     %CALCULATE ERROR 
     %[~,~]=multiTargetTracker.plotError(f4,f5,true,true,i);

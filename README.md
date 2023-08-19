@@ -17,7 +17,6 @@
 <li>Log-likelihood as a statistical Benchmark for the Performance of Tracking Filters </li>
 
 ### TODO
-<li>Log-likelihood for multiple Tracks</li>
 <li>Implement other tracking filters </li>
 
 ## How to run the tracking Filter in the Matlab Terminal

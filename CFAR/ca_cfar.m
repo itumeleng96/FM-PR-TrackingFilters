@@ -4,10 +4,11 @@
 %G : Number of Guard cells
 %cut : the magnitiude cells of the Range Doppler map
 
-function RDM = ca_cfar(RDM,rate_fa)
+function [targetClusters,RDM,rdm_] = ca_cfar(RDM,rate_fa,fs,fd_max,td_max,index,rdm)
 %Generates a CFAR output map in the range-doppler domain
 %Firstly calculate the interference power from the average of N samples in
 %the vicinity of the CUT
+
 
 trc_num = 2;
 guac_num = 4;
@@ -39,6 +40,32 @@ for r=1:rows
     end
 end
 
+c=3e8;
+Ndelay = floor(td_max*fs);                                  %number of points corresponding to td_max
+time = 0:1/fs:Ndelay/fs;
+range = time*c;
+frequency = -fd_max:1:fd_max;
 
+
+if index==1
+    rdm = RDM_final ;
+end
+
+if index>1
+    rdm =rdm+RDM_final ;
+end
+rdm = min(rdm, 1);  % Set maximum value to 1
+
+rdm_ = rdm;
 
 RDM = RDM_final;
+
+[row, column] = find(RDM > 0);
+% Get target clusters as Bistatic Range and Doppler values
+
+range_values = range(column.'); % convert time values to range values
+frequency_values = frequency(row.'); % get frequency values
+
+targetClusters = [range_values; frequency_values]; % store centroids as range and frequency
+
+end

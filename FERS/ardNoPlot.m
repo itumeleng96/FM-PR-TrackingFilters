@@ -1,12 +1,6 @@
-function [y,ard_] = ardPlot(s1,s2,fs,fd_max,td_max,index,ard,f)
-
-%Parameters to allow zoom in
-xlim_upper = 2e-4;
-ylim_upper = 200;
-ylim_lower = -200;
+function [y,ard_] = ardNoPlot(s1,s2,fs,fd_max,td_max,index,ard)
 
 
-c = 299792458;                                               %speed of the light
 N=length(s1);                                                %number of points
 Ndelay = floor(td_max*fs);                                   %number of points corresponding to td_max
 Ndop = ceil(N*fd_max/fs);                                    %number of points corresponding to fd_max
@@ -31,14 +25,6 @@ toc
 y = abs(y1).^2;                                             %Power conversion
 y =y./max(max(abs(y)));                                     %Normalizing max to 1
 
-%Time and frequency axis
-time = 0:1/fs:Ndelay/fs;
-range = time*c;
-frequency = -fd_max:1:fd_max;
-Dyn_dB = 40;                                                %Dynamic range (dB)
-max_dB = 10*log10(max(max(abs(y))));
-tic
-
 
 %figure('Name','2D image');
 
@@ -51,18 +37,4 @@ if index>1
 end
 
 ard_ = ard;
-
-figure(f);
-imagesc(range,frequency,10*log10(ard.'),[max_dB-40 max_dB]);
-axis xy;
-colorbar;
-xlabel('Bistatic range [m]','Fontsize',10);
-ylabel('Doppler frequency [Hz]','Fontsize',10);
-grid on;
-title('Range-Doppler response')
-%display('imagesc plot computation')
-%xlim([0 xlim_upper]) 
-ylim([ylim_lower ylim_upper])
-text(0,10,"Time:" + index+ "s");
-drawnow
 

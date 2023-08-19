@@ -112,8 +112,7 @@ classdef multiTargetTracker
             
         end
 
-        function plotMultiTargetTracking(obj,fs,fd_max,td_max,index,f,RDM,plotResults)
-            if(plotResults)
+        function plotMultiTargetTracking(obj,fs,fd_max,td_max,index,f,RDM)
                 figure(f);
                 c=3e8;
                 Ndelay = floor(td_max*fs);                                 
@@ -126,7 +125,7 @@ classdef multiTargetTracker
                 text(0,10,"Time:" + index+ "s");
                 axis xy;
                 xlabel('Bistatic Range [m]','Fontsize',10);
-                ylabel('Doppler frequency [Hz]','Fontsize',10);
+                ylabel('Bistatic Doppler frequency [Hz]','Fontsize',10);
                 grid on;
                 title('Targets centroids and  Prediction');
                 
@@ -152,7 +151,6 @@ classdef multiTargetTracker
                 legend([predicted_marker,tentative_marker, confirmed_marker], 'Predicted Track', 'Tentative Track', 'Confirmed Track', 'Location', 'best');
                         
                 hold off;
-            end
         end
         function [doppler_error, range_error] = plotError(obj, f, f1, plotDoppler_Error, plotRange_Error, i)
             time = 1:1:i;

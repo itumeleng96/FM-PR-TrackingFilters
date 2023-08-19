@@ -31,7 +31,7 @@ classdef particleFilter
                      0, 0, 1;];
             
             
-            obj.Q = [2000,0,0;
+            obj.Q = [1000,0,0;
                      0,10,0;
                      0,0,0.1;];
             
@@ -132,7 +132,6 @@ classdef particleFilter
         end
         
         function [particles,weights] = resampleFromIndex(particles,indexes)
-            disp("RFI");
             %RESAMPLEFROMINDEX Summary of this function goes here
             %   Detailed explanation goes here
                 particles(:,1) = particles(indexes,1);

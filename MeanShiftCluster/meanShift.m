@@ -1,5 +1,5 @@
 
-function [clustCent,xVariances,yVariances,numPoints] = meanShiftPlot(dataPoints,bandWidthX,bandWidthY)
+function [clustCent,xVariances,yVariances,numPoints] = meanShift(dataPoints,bandWidthX,bandWidthY)
 %MEANSHIFT Summary of this function goes here
 % ---INPUT---
 % dataPts           - input data, (numDim x numPts)
@@ -83,9 +83,6 @@ for cN = 1:numClust
     numPoints(cN) = size(clusterPoints,2);
 end
 
-%Plot centroids on CFAR Plot
-hold on;
-plot(clustCent(1,:),clustCent(2,:),'^','MarkerFaceColor','red', 'MarkerSize', 5);
 
 end
 

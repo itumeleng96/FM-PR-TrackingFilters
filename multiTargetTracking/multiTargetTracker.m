@@ -152,42 +152,20 @@ classdef multiTargetTracker
                         
                 hold off;
         end
-        function [doppler_error, range_error] = plotError(obj, f, f1, plotDoppler_Error, plotRange_Error, i)
-            time = 1:1:i;
-            doppler_error = zeros(length(obj.tracks), length(time));
-            range_error = zeros(length(obj.tracks), length(time));
+        function [doppler_error, range_error] =calculateError(obj, i,doppler_error,range_error)
             
             % Calculate the Range and Doppler RMS
             for j = 1:length(obj.tracks)
                 predictedTrack = obj.tracks(j).predictedTrack;
                 trueTrack = obj.tracks(j).trueTrack;
                 
-                trackLength = size(trueTrack, 2);
                 
-                range_diff = predictedTrack(1, 1:i) - trueTrack(1, 1:i);
-                doppler_diff = predictedTrack(2, 1:i) - trueTrack(2, 1:i);
+                range_error(j,1:i) = abs(predictedTrack(1, 1:i) - trueTrack(1, 1:i));
+                doppler_error(j,1:i)= abs(predictedTrack(2, 1:i) - trueTrack(2, 1:i));
                 
-                range_error(j, 1:i) = abs(range_diff);
-                doppler_error(j, 1:i) = abs(doppler_diff);
             end
-        
-            if plotDoppler_Error
-                figure(f);
-                plot(time, doppler_error);
-                xlabel('Time(s)');
-                ylabel('Doppler Error (Hz)');
-                title('Doppler Error vs Time');
-                legend('Track 1', 'Track 2', 'Track 3', 'Track 4', 'Track 5', 'Track 6', 'Track 7', 'Track 8', 'Track 9', 'Track 10');
-            end
-        
-            if plotRange_Error
-                figure(f1);
-                plot(time, range_error);
-                xlabel('Time(s)');
-                ylabel('Range Error (m)');
-                title('Range Error vs Time');
-                legend('Track 1', 'Track 2', 'Track 3', 'Track 4', 'Track 5', 'Track 6', 'Track 7', 'Track 8', 'Track 9', 'Track 10');
-            end
+
+
         end
 
         function [doppler_ll, range_ll] = calculateLogLikelihood(obj, i,doppler_ll,range_ll)

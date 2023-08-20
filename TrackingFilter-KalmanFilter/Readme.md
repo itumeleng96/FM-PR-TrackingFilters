@@ -14,3 +14,5 @@ The above matlab script contains the Matlab Class.
 ![Screenshot 1](https://github.com/itumeleng96/trackingFilters/blob/main/TrackingFilter-KalmanFilter/RDPlot.png)
 ![Screenshot 2](https://github.com/itumeleng96/trackingFilters/blob/main/TrackingFilter-KalmanFilter/LogLikelihood.png)
 
+## To Do 
+    - A Method for tuning the Q-matrix for the process noise and the Measurment Noise Matrix R

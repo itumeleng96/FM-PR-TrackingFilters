@@ -64,6 +64,14 @@ f1=figure();
 f1.Position = [4000 10 1000 800]; 
 movegui(f1,'southwest');
 
+f2=figure();
+f2.Position = [4000 10 1000 800]; 
+movegui(f2,'southeast');
+
+f3=figure();
+f3.Position = [4000 10 1000 800]; 
+movegui(f3,'southwest');
+
 
 %Create MTT object
 confirmationThreshold=4;
@@ -84,6 +92,12 @@ range_ll_1=[];
 
 doppler_ll_2=[];
 range_ll_2=[];
+
+range_error_1=[];
+doppler_error_1=[];
+
+range_error_2=[];
+doppler_error_2=[];
 
 
 
@@ -125,6 +139,11 @@ for i = 1:simulation_time
     [doppler_ll_1,range_ll_1]=multiTargetTracker1.calculateLogLikelihood(i,doppler_ll_1,range_ll_1);
     [doppler_ll_2,range_ll_2]=multiTargetTracker2.calculateLogLikelihood(i,doppler_ll_2,range_ll_2);
 
+    %Calculate Errors
+    [doppler_error_1,range_error_1]=multiTargetTracker1.calculateError(i,doppler_error_1,range_error_1);
+    [doppler_error_2,range_error_2]=multiTargetTracker2.calculateError(i,doppler_error_2,range_error_2);
+
+
     ard = ard_;
     rdm= rdm_;
 
@@ -154,4 +173,25 @@ for i = 1:simulation_time
     legend('Kalman Filter', 'Particle Filter');
     grid on;
 
+     % Create comparison plots for Doppler Error
+    figure(f2);
+    plot(doppler_error_1, 'b', 'LineWidth', 2);
+    hold on;
+    plot(doppler_error_2, 'r', 'LineWidth', 2);
+    title('Bistatic Doppler Error Comparison');
+    xlabel('Time Steps');
+    ylabel('Bistatic Doppler Error');
+    legend('Kalman Filter', 'Particle Filter');
+    grid on;
+    
+    % Create comparison plots for Range Errors
+    figure(f3);
+    plot(range_error_1, 'b', 'LineWidth', 2);
+    hold on;
+    plot(range_error_2, 'r', 'LineWidth', 2);
+    title('Bistatic Range Error Comparison');
+    xlabel('Time Steps');
+    ylabel('Bistatic range Error');
+    legend('Kalman Filter', 'Particle Filter');
+    grid on;
 end

@@ -7,7 +7,6 @@
 <li>1.Kalman Filter</li>
 <li>2.Particle Filter  </li>
 <li>3.Recursive Gauss Newton Filter - Still to be implemented</li>
-<li>4.Polynomial Filters still to be implemented</li>
 
 
 #### Other algorithms implemented

@@ -31,8 +31,8 @@ classdef particleFilter
                      0, 0, 1;];
             
             
-            obj.Q = [1000,0,0;
-                     0,10,0;
+            obj.Q = [200,0,0;
+                     0,2.5,0;
                      0,0,0.1;];
             
 
@@ -55,9 +55,7 @@ classdef particleFilter
             obj.particles(:, 1:3) = (obj.A(1:3, 1:3) * obj.particles(:, 1:3)' + noise(:, 1:3)')';
         
             % Update the covariance matrix of the particles based on the noise added
-            %cov_matrix = cov(obj.particles(:, 1:3), 1); % Use 1 as the normalization factor
-            %obj.Q = cov_matrix;
-        
+            
             X_pred = mean(obj.particles, 1)';
             std_dev = var(obj.particles, 1);
             obj.S(1, 1) = std_dev(1);

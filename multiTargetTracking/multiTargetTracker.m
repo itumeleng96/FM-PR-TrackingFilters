@@ -190,7 +190,32 @@ classdef multiTargetTracker
             end
         end
 
-        function [doppler_ll, range_ll] = calculateLogLikelihood(obj, f, f1, i,doppler_ll,range_ll,plotResults)
+        function [doppler_ll, range_ll] = calculateLogLikelihood(obj, i,doppler_ll,range_ll)
+            
+            
+            for j = 1:length(obj.tracks)
+                predictedTrack = obj.tracks(j).predictedTrack;
+                trueTrack = obj.tracks(j).trueTrack;
+                s_matrix = obj.tracks(j).trackingFilterObject.S;
+                %----------------------------------------------------------------%
+                %--Log-likelihood for Bistatic Range
+                %----------------------------------------------------------------%
+                range_sample=trueTrack(1,i);
+                range_mean =predictedTrack(1,i);
+                range_ll(j, i) = logLikelihood(range_mean,s_matrix(1,1),range_sample);
+
+                %----------------------------------------------------------------%
+                %--Log-likelihood for Bistatic Doppler
+                %----------------------------------------------------------------%
+                doppler_sample=trueTrack(2,i);
+                doppler_mean =predictedTrack(2,i);
+                
+                doppler_ll(j, i) = logLikelihood(doppler_mean,s_matrix(2,2),doppler_sample);
+
+            end
+    
+        end
+        function [doppler_ll, range_ll] = plotLogLikelihood(obj, f, f1, i,doppler_ll,range_ll,plotResults)
             
             if(plotResults)
                 time = 1:1:i;            
@@ -238,6 +263,7 @@ classdef multiTargetTracker
 
             end
         end
+        
 
         function [crlb_doppler,crlb_range] = calculateCRLB(obj, f, f1, i,xVar,yVar,N,crlb_doppler,crlb_range)
             time = 1:1:i;

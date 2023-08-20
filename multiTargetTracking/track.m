@@ -39,7 +39,7 @@ classdef track
 
                     N=5000;                          %Number of particles
                     std_acc=[2,0.1];                 %Standard Deviation of the acceleration in ms^2
-                    std_meas=[2000,0.1];                      %Standard Deviation of the measurements in the x and y
+                    std_meas=[200,0.5];                      %Standard Deviation of the measurements in the x and y
 
                     PF_object = particleFilter(dt,[std_acc(1),std_acc(2)],std_meas,[x_initial(1);x_initial(2);0;],N);
                     obj.trackingFilterObject = PF_object;

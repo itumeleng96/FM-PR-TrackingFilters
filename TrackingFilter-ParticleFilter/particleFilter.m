@@ -65,7 +65,6 @@ classdef particleFilter
         end
         
         function [X_est, PF_obj] = update(obj, z)
-            % Update stage
         
             % Calculate the particle likelihoods based on a Gaussian PDF
             % p(z t​∣x t(i))=p(zx∣x t(i),σx)⋅p(z y∣y t(i),σy)
@@ -73,10 +72,7 @@ classdef particleFilter
             likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
             likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
             likelihood = likelihood_x .* likelihood_y;
-            
-            % Calculate the squared distances
-            %squared_distances = sum(diffs.^2, 2);
-            
+                        
             
             % Normalize the likelihood
             likelihood = likelihood / sum(likelihood);

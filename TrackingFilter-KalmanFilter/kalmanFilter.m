@@ -1,7 +1,7 @@
 classdef kalmanFilter
 
     properties
-        dt,U,X,F,B,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc;
+        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc,k_d;
     end
     
     methods
@@ -12,86 +12,74 @@ classdef kalmanFilter
             % dt : smapling time
             % x_std_meas : standard deviation of the measurement in the x-direction
             
-            
-            %Control Input Variables
-            %obj.U = [u_x;
-            %         u_y];
-    
+        
             %Initial State
             obj.X= X_initial;
                 
             %Update Interval
             obj.dt = dt;
 
+            %wave number c/f
+            obj.k_d = -299792458/94e6; 
+
             %State transition matrix
-            obj.F = [1,dt,(1/2)*dt^2;
-                     0, 1, dt;
-                     0, 0, 1;];
+            obj.F = [1, obj.k_d*dt;
+                     0, 1];
 
-
-            %The control input matrix B
-            obj.B = [0,0;
-                     0,0;
-                     0,0;];
+            %Transition Matrix for P(Error-Covariance)
+            obj.A = [1, dt;
+                     0, 1];
 
             %Measurement Mapping Matrix 
-            obj.H = [1,0,0;
-                     0,1,0;];
+            obj.H = [1,0;
+                     0,1;];
 
             %Process Noise Covariance Matrix
-            obj.Q = [2500, 0, 0;
-                    0,1, 0;
-                    0, 0,0.1];
+            obj.Q = [(dt^4)/4,(dt^3)/2;
+                    (dt^3)/2,dt^2]*std_acc;
             
-            %obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2;
-            %       (dt^3)/2, dt^2, dt;
-            %         (dt^2)/2, dt, 1;]*100;
-
-            %obj.Q(1:3,1:3) = obj.Q(1:3,1:3) * std_acc(1)^2;
-
-            %Initial Measurement Noise Covariance Matrix
             %Standard deviation of measurement in doppler shift and delay
+            %Measurement Error covariance matrix
             obj.R = [x_std_meas^2,0;
                      0,y_std_meas^2];
 
+            %Initial Innovation Error Matrix
             obj.S = [0,0;
                      0,0];
-            %Initial covariance Matrix
-            %High estimate uncertainty
-            obj.P = eye(size(obj.F,2));
+
+            obj.P = eye(size(obj.A,2));
 
         end
         
         function [X_pred,KF_obj1] = predict(obj)
-            %Prediction stage
+            %PREDICTION STAGE
             
-            %PREDICT NEXT STATE
-            %x_k = A*x_(k-1) + B*u_(k-1)
+            %x_k = F*x_(k-1)
             obj.X = obj.F*obj.X ;
-                        
-            %COVARIANCE UPDATE
+                       
             %P= A*P*A' + Q             
-            obj.P = (obj.F * obj.P) * obj.F.' + obj.Q;
+            obj.P = obj.A * obj.P * obj.A.' + obj.Q;
 
             X_pred = obj.X;
             KF_obj1  = obj;
         end
         
         function [X_est,KF_obj2] = update(obj,z)
-            %Update stage
-
-            %COMPUTE KALMAN GAIN 
+            %UPDATE STAGE
             
-            %K = P * H'* inv(H*P*H'+R)
             %S = H*P*H'+ R - Total Error - Innovation Covariance Matrix
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
-            K = (obj.P * obj.H.') / obj.S;
-            %GET KALMAN ESTIMATE 
+
+            %KALMAN GAIN
+            %K = P * H'* inv(H*P*H'+R)
+            K = obj.P * obj.H.'*obj.S^(-1);
+
+            %GET ESTIMATE 
             obj.X = obj.X + K * (z-obj.H * obj.X);
             
             I = eye(size(obj.H,2));
 
-            %Update Error Covariance matrix
+            %UPDATE ERROR COVARIANCE MATRIX
             obj.P = (I - (K * obj.H)) * obj.P;
             
             X_est = obj.X;

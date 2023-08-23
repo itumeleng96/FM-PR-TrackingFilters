@@ -29,9 +29,9 @@ classdef track
             switch filterType
                 case 1
                     disp("Initializing Kalman Filter");
-                    std_meas=[sqrt(1000),sqrt(0.1)];                      %Standard Deviation of the measurements in the x and y
-                    std_acc=[5,0];                                  %Standard Deviation of the acceleration in ms^2
-                    KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[x_initial(1);x_initial(2);0;]);
+                    std_meas=[2500,0.01];                      %Standard Deviation of the measurements in the x and y
+                    std_acc=1;                                  %Standard Deviation of the acceleration in ms^2
+                    KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[x_initial(1);x_initial(2);]);
                     obj.trackingFilterObject = KF_object;
                                    
                 case 2
@@ -44,7 +44,7 @@ classdef track
                     PF_object = particleFilter(dt,[std_acc(1),std_acc(2)],std_meas,[x_initial(1);x_initial(2);0;],N);
                     obj.trackingFilterObject = PF_object;
                 
-                case 3
+                case 31
                     std_acc=[1e-3,10];                 %Standard Deviation of the acceleration in ms^2
                     std_meas=[25,0.1];                  %Standard Deviation of the measurements in the x and y
                     max_iterations=100;

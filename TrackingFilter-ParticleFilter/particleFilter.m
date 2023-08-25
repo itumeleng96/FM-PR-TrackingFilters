@@ -10,6 +10,7 @@ classdef particleFilter
         scaling_factor; % 
         std_meas;
         S;
+        k_d;
     end
     
     methods
@@ -26,14 +27,14 @@ classdef particleFilter
             obj.weights = ones(N,1)/N;
             obj.dt = dt;
 
-            obj.A = [1,dt,(1/2)*dt^2;
-                     0, 1, dt;
-                     0, 0, 1;];
-            
-            
-            obj.Q = [1000,0,0;
-                     0,1,0;
-                     0,0,0.5;];
+            %wave number c/f
+            obj.k_d = -299792458/94e6; 
+
+            obj.A = [1, obj.k_d*dt;
+                     0, 1];
+
+            obj.Q = [(dt^4)/4,(dt^3)/2;
+                    (dt^3)/2,dt^2]*std_acc;
             
 
             obj.S = [0,0;
@@ -49,10 +50,9 @@ classdef particleFilter
             % Generate random Gaussian noise with zero mean and covariance matrix Q
             noise(:,1) = obj.Q(1,1) * randn(1, obj.N);
             noise(:,2) = obj.Q(2,2) * randn(1, obj.N);
-            noise(:,3) = obj.Q(3,3) * randn(1, obj.N);
 
             % Add process noise to particle states
-            obj.particles(:, 1:3) = (obj.A(1:3, 1:3) * obj.particles(:, 1:3)' + noise(:, 1:3)')';
+            obj.particles(:, 1:2) = (obj.A(1:2, 1:2) * obj.particles(:, 1:2)' + noise(:, 1:2)')';
         
             % Update the covariance matrix of the particles based on the noise added
             
@@ -119,7 +119,7 @@ classdef particleFilter
         function [particles] = createGaussianParticles(mean,std,N)
             %Create a Gaussian Distribution of particles over a region
             % N : number of particles
-                particles = zeros(N,3);
+                particles = zeros(N,2);
                 particles(:,1) = mean(1) + (randn(N,1))*std(1) ; 
                 particles(:,2) = mean(2) + (randn(N,1))*std(2) ;
                     
@@ -130,7 +130,6 @@ classdef particleFilter
             %   Detailed explanation goes here
                 particles(:,1) = particles(indexes,1);
                 particles(:,2) = particles(indexes,2);
-                particles(:,3) = particles(indexes,3);
                 
                 N = size(particles,1);
                 weights = zeros(N,1);

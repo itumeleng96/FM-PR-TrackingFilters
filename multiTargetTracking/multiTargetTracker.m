@@ -47,7 +47,7 @@ classdef multiTargetTracker
             %Assign Tracks to Detection using GNN and update filter with new measurements
             %Get qualifying detections within radius if not create new tracks
 
-            if ~isempty(obj.tracks) && ~obj.newtracksCreated
+            if ~isempty(obj.tracks)
                 numOfTracks = length(obj.tracks);
                 for i=1:numOfTracks
                     predictedCoodinate = obj.tracks(i).predictedTrack(:,end);
@@ -102,7 +102,7 @@ classdef multiTargetTracker
 
         function obj = predictionStage(obj)
             %call tracking filter on all tracks
-            %disp("Prediction Stage");
+            disp("Prediction Stage");
             numberOfTracks = max(size(obj.tracks));
 
             for i=1:numberOfTracks
@@ -152,16 +152,15 @@ classdef multiTargetTracker
                         
                 hold off;
         end
-        function [doppler_error, range_error] =calculateError(obj, i,doppler_error,range_error)
+        function [doppler_error, range_error] =calculateError(obj, i,doppler_error,range_error,dopplerTrueData,rangeTrueData)
             
             % Calculate the Range and Doppler RMS
             for j = 1:length(obj.tracks)
                 predictedTrack = obj.tracks(j).predictedTrack;
-                trueTrack = obj.tracks(j).trueTrack;
                 
                 
-                range_error(j,1:i) = abs(predictedTrack(1, 1:i) - trueTrack(1, 1:i));
-                doppler_error(j,1:i)= abs(predictedTrack(2, 1:i) - trueTrack(2, 1:i));
+                range_error(j,1:i) = abs(predictedTrack(1, 1:i) - rangeTrueData(1:i));
+                doppler_error(j,1:i)= abs(predictedTrack(2, 1:i) - dopplerTrueData(1:i));
                 
             end
 

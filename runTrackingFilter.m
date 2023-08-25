@@ -72,7 +72,6 @@ f3=figure(3);
 f3.Position = [4000 10 1000 800]; 
 movegui(f3,'southeast');
 
-%Doppler Error
 f4=figure(4);
 f4.Position = [4000 10 1000 800]; 
 movegui(f4,'northeast');
@@ -85,13 +84,12 @@ movegui(f5,'southeast');
 %Create MTT object
 confirmationThreshold=4;
 deletionThreshold=6;
-gatingThreshold=[5000,30];
+gatingThreshold=[10000,30];
 
 %FilterType 1: Kalman Filter
 %FilterType 2: Particle Filter
 
-filterType = input('Enter the filterType: ');
-
+filterType =input('Enter the filterType: ');
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -99,10 +97,13 @@ multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,
 doppler_ll=[];
 range_ll=[];
 
-%CRLB 
-crlb_doppler=[];
-crlb_range=[];
+%Errors 
+doppler_error=[];
+range_error=[];
 
+
+rangeTrueData = h5read('output_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('output_data.h5', '/doppler_shifts');
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current); %surv
@@ -119,7 +120,7 @@ for i = 1:simulation_time
     
     %Get Coordinates from CFAR using meanShift Algorithm
     [clusterCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,0.5e4,10);
-   
+
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
 
@@ -136,14 +137,24 @@ for i = 1:simulation_time
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
 
     %CALCULATE Likelihoods 
-    %[doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihood(f4,f5,i,doppler_ll,range_ll,true);
+    [doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihood(f4,f5,i,doppler_ll,range_ll,true);
     
     %CALCULATE ERROR 
-    %[~,~]=multiTargetTracker.plotError(f4,f5,true,true,i);
+    [doppler_error,range_error]=multiTargetTracker.calculateError(i,doppler_error,range_error,dopplerTrueData,rangeTrueData);
     
-    %CALCULATE CRLB
-    %[crlb_doppler,crlb_range]=multiTargetTracker.calculateCRLB(f4,f5,i,variancesX,variancesY,numPoints,crlb_doppler,crlb_range);
-    
+    figure(6);
+    plot(doppler_error);
+    title('Bistatic Doppler Error');
+    xlabel('Time Steps');
+    ylabel('Bistatic Doppler Error');
+
+
+    figure(7);
+    plot(range_error);
+    title('Bistatic Range Error');
+    xlabel('Time Steps');
+    ylabel('Bistatic Range Error');
+
     ard = ard_;
     rdm= rdm_;
 

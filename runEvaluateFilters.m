@@ -99,6 +99,8 @@ doppler_error_1=[];
 range_error_2=[];
 doppler_error_2=[];
 
+rangeTrueData = h5read('output_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('output_data.h5', '/doppler_shifts');
 
 
 for i = 1:simulation_time
@@ -140,8 +142,8 @@ for i = 1:simulation_time
     [doppler_ll_2,range_ll_2]=multiTargetTracker2.calculateLogLikelihood(i,doppler_ll_2,range_ll_2);
 
     %Calculate Errors
-    [doppler_error_1,range_error_1]=multiTargetTracker1.calculateError(i,doppler_error_1,range_error_1);
-    [doppler_error_2,range_error_2]=multiTargetTracker2.calculateError(i,doppler_error_2,range_error_2);
+    [doppler_error_1,range_error_1]=multiTargetTracker1.calculateError(i,doppler_error_1,range_error_1,dopplerTrueData,rangeTrueData);
+    [doppler_error_2,range_error_2]=multiTargetTracker2.calculateError(i,doppler_error_2,range_error_2,dopplerTrueData,rangeTrueData);
 
 
     ard = ard_;

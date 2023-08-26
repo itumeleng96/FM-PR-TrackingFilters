@@ -29,7 +29,7 @@ classdef track
             switch filterType
                 case 1
                     disp("Initializing Kalman Filter");
-                    std_meas=[10,0.1];                      %Standard Deviation of the measurements in the x and y
+                    std_meas=[100,0.1];                      %Standard Deviation of the measurements in the x and y
                     std_acc=0.5;                                 %Standard Deviation of the process noise
                     KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[x_initial(1);x_initial(2);]);
                     obj.trackingFilterObject = KF_object;
@@ -45,11 +45,11 @@ classdef track
                     obj.trackingFilterObject = PF_object;
                 
                 case 3
-                    std_acc=[1e-3,10];                 %Standard Deviation of the acceleration in ms^2
-                    std_meas=[25,0.1];                  %Standard Deviation of the measurements in the x and y
+                    std_acc=1;                 %Standard Deviation of the acceleration in ms^2
+                    std_meas=[1000,1];                  %Standard Deviation of the measurements in the x and y
                     max_iterations=100;
                     tolerance = 0.1;
-                    RGNF_object = RGNF(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);x_initial(2);0;],max_iterations,tolerance);
+                    RGNF_object = RGNF(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);x_initial(2);],max_iterations,tolerance);
                     obj.trackingFilterObject = RGNF_object;
 
                 otherwise

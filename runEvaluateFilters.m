@@ -142,8 +142,8 @@ for i = 1:simulation_time
     [doppler_ll_2,range_ll_2]=multiTargetTracker2.calculateLogLikelihood(i,doppler_ll_2,range_ll_2);
 
     %Calculate Errors
-    [doppler_error_1,range_error_1]=multiTargetTracker1.calculateError(i,doppler_error_1,range_error_1,dopplerTrueData,rangeTrueData);
-    [doppler_error_2,range_error_2]=multiTargetTracker2.calculateError(i,doppler_error_2,range_error_2,dopplerTrueData,rangeTrueData);
+    [doppler_error_1,range_error_1]=multiTargetTracker1.calculateError(i,doppler_error_1,range_error_1);
+    [doppler_error_2,range_error_2]=multiTargetTracker2.calculateError(i,doppler_error_2,range_error_2);
 
 
     ard = ard_;
@@ -170,30 +170,39 @@ for i = 1:simulation_time
     hold on;
     plot(range_ll_2, 'r');
     title('Range Log-Likelihood Comparison');
-    xlabel('Time Steps');
+    xlabel('Time(s)');
     ylabel('Range Log-Likelihood');
     legend('Kalman Filter', 'Particle Filter');
     grid on;
 
      % Create comparison plots for Doppler Error
     figure(f2);
-    plot(doppler_error_1, 'b');
+    plot(doppler_error_1, 'b--^');
     hold on;
-    plot(doppler_error_2, 'r');
+    plot(doppler_error_2, 'r-*');
+
+    hold on;
+    plot(dopplerTrueData(1:i), 'g-o');
+    
     title('Bistatic Doppler Error Comparison');
-    xlabel('Time Steps');
-    ylabel('Bistatic Doppler Error');
-    legend('Kalman Filter', 'Particle Filter');
+    xlabel('Time(s)');
+    ylabel('Doppler (Hz)  ');
+    legend('Kalman Filter', 'Particle Filter','Real Trajectory');
     grid on;
     
     % Create comparison plots for Range Errors
     figure(f3);
-    plot(range_error_1, 'b');
+    plot(range_error_1, 'b--^');
     hold on;
-    plot(range_error_2, 'r');
+    plot(range_error_2, 'r-*');
+    hold on;
+    plot(rangeTrueData(1:i), 'g-o');
+
     title('Bistatic Range Error Comparison');
     xlabel('Time Steps');
-    ylabel('Bistatic range Error');
-    legend('Kalman Filter', 'Particle Filter');
+    ylabel('Bistatic range(m)');
+    legend('Kalman Filter', 'Particle Filter','Real Trajectory');
     grid on;
+
+    %%Plot real trajectory vs different filters instead of Errors
 end

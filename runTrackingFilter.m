@@ -140,7 +140,7 @@ for i = 1:simulation_time
     [doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihood(f4,f5,i,doppler_ll,range_ll,true);
     
     %CALCULATE ERROR 
-    [doppler_error,range_error]=multiTargetTracker.calculateError(i,doppler_error,range_error,dopplerTrueData,rangeTrueData);
+    [doppler_error,range_error]=multiTargetTracker.calculateError(i,doppler_error,range_error);
     
     figure(6);
     plot(doppler_error);
@@ -154,6 +154,31 @@ for i = 1:simulation_time
     title('Bistatic Range Error');
     xlabel('Time Steps');
     ylabel('Bistatic Range Error');
+
+     % Create comparison plots for Doppler Error
+    figure(6);
+    plot(doppler_error, 'b--^');
+    hold on;
+    plot(dopplerTrueData(1:i), 'g-o');
+    
+    title('Bistatic Doppler Error Comparison');
+    xlabel('Time(s)');
+    ylabel('Doppler (Hz)  ');
+    legend('Tracking Filter','Real Trajectory');
+    grid on;
+    
+    % Create comparison plots for Range Errors
+    figure(7);
+    plot(range_error, 'b--^');
+    hold on;
+
+    plot(rangeTrueData(1:i), 'g-o');
+
+    title('Bistatic Range Error Comparison');
+    xlabel('Time Steps');
+    ylabel('Bistatic range(m)');
+    legend('Tracking Filter','Real Trajectory');
+    grid on;
 
     ard = ard_;
     rdm= rdm_;

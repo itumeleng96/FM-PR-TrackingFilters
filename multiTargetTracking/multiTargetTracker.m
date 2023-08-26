@@ -152,15 +152,15 @@ classdef multiTargetTracker
                         
                 hold off;
         end
-        function [doppler_error, range_error] =calculateError(obj, i,doppler_error,range_error,dopplerTrueData,rangeTrueData)
+        function [doppler_error, range_error] =calculateError(obj, i,doppler_error,range_error)
             
             % Calculate the Range and Doppler RMS
             for j = 1:length(obj.tracks)
                 predictedTrack = obj.tracks(j).predictedTrack;
                 
                 
-                range_error(j,1:i) = abs(predictedTrack(1, 1:i) - rangeTrueData(1:i));
-                doppler_error(j,1:i)= abs(predictedTrack(2, 1:i) - dopplerTrueData(1:i));
+                range_error(j,1:i) = abs(predictedTrack(1, 1:i));
+                doppler_error(j,1:i)= abs(predictedTrack(2, 1:i));
                 
             end
 

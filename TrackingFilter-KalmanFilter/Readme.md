@@ -7,12 +7,18 @@ the Bistatic Range and  Doppler Domain.
 
 The above matlab script contains the Matlab Class.
 
-## Log-Likelihood Results from Kalman Filter
-
 ## Screenshots
 
+## CFAR and Tracking filter Output
+
 ![Screenshot 1](https://github.com/itumeleng96/trackingFilters/blob/main/TrackingFilter-KalmanFilter/RDPlot.png)
+
+## Log-Likelihood Results from Kalman Filter
+
 ![Screenshot 2](https://github.com/itumeleng96/trackingFilters/blob/main/TrackingFilter-KalmanFilter/LogLikelihood.png)
+
+## Error Results from Kalman Filter
+
 ![Screenshot 2](https://github.com/itumeleng96/trackingFilters/blob/main/TrackingFilter-KalmanFilter/Errors.png)
 
 ## To Do 

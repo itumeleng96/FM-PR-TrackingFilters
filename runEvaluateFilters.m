@@ -111,7 +111,7 @@ for i = 1:simulation_time
 
     %Range-Doppler Map
     [y,ard_] = ardNoPlot(s1,s2,fs,dopp_bins,delay,i,ard);
-
+    
     %Plot CFAR from Cell-Averaging CFAR 
     [targetClusters,RDM,rdm_] = ca_cfar(10*log10(y.'),0.2,fs,dopp_bins,delay,i,rdm);                    
     
@@ -155,9 +155,9 @@ for i = 1:simulation_time
 
     % Create comparison plots for Doppler Log-Likelihoods
     figure(f);
-    plot(doppler_ll_1, 'b', 'LineWidth', 2);
+    plot(doppler_ll_1, 'b');
     hold on;
-    plot(doppler_ll_2, 'r', 'LineWidth', 2);
+    plot(doppler_ll_2, 'r');
     title('Doppler Log-Likelihood Comparison');
     xlabel('Time Steps');
     ylabel('Doppler Log-Likelihood');
@@ -166,9 +166,9 @@ for i = 1:simulation_time
     
     % Create comparison plots for Range Log-Likelihoods
     figure(f1);
-    plot(range_ll_1, 'b', 'LineWidth', 2);
+    plot(range_ll_1, 'b');
     hold on;
-    plot(range_ll_2, 'r', 'LineWidth', 2);
+    plot(range_ll_2, 'r');
     title('Range Log-Likelihood Comparison');
     xlabel('Time Steps');
     ylabel('Range Log-Likelihood');
@@ -177,9 +177,9 @@ for i = 1:simulation_time
 
      % Create comparison plots for Doppler Error
     figure(f2);
-    plot(doppler_error_1, 'b', 'LineWidth', 2);
+    plot(doppler_error_1, 'b');
     hold on;
-    plot(doppler_error_2, 'r', 'LineWidth', 2);
+    plot(doppler_error_2, 'r');
     title('Bistatic Doppler Error Comparison');
     xlabel('Time Steps');
     ylabel('Bistatic Doppler Error');
@@ -188,9 +188,9 @@ for i = 1:simulation_time
     
     % Create comparison plots for Range Errors
     figure(f3);
-    plot(range_error_1, 'b', 'LineWidth', 2);
+    plot(range_error_1, 'b');
     hold on;
-    plot(range_error_2, 'r', 'LineWidth', 2);
+    plot(range_error_2, 'r');
     title('Bistatic Range Error Comparison');
     xlabel('Time Steps');
     ylabel('Bistatic range Error');

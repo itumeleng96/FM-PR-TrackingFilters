@@ -5,7 +5,7 @@ classdef kalmanFilter
     end
     
     methods
-        function obj = kalmanFilter(dt,std_acc,x_std_meas,y_std_meas,X_initial)
+        function obj = kalmanFilter(dt,std_acc,r_std,rdot_std,X_initial)
         
             %Init funtion
             %Inputs: 
@@ -19,7 +19,7 @@ classdef kalmanFilter
             %Update Interval
             obj.dt = dt;
 
-            %wave number c/f
+            %wave number k=-lambda=c/f
             obj.k_d = -299792458/94e6; 
 
             %State transition matrix
@@ -34,14 +34,14 @@ classdef kalmanFilter
             obj.H = [1,0;
                      0,1;];
 
-            %Process Noise Covariance Matrix
+            %Process Noise Covariance Matrix For Random Acceleration
             obj.Q = [(dt^4)/4,(dt^3)/2;
                     (dt^3)/2,dt^2]*std_acc;
             
             %Standard deviation of measurement in doppler shift and delay
             %Measurement Error covariance matrix
-            obj.R = [x_std_meas^2,0;
-                     0,y_std_meas^2];
+            obj.R = [r_std^2,0.01*rdot_std*r_std;
+                     0.01*rdot_std*r_std,rdot_std^2];
 
             %Initial Innovation Error Matrix
             obj.S = [0,0;

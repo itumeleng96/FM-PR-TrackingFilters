@@ -29,8 +29,8 @@ classdef track
             switch filterType
                 case 1
                     disp("Initializing Kalman Filter");
-                    std_meas=[2500,0.001];                      %Standard Deviation of the measurements in the x and y
-                    std_acc=1;                                 %Standard Deviation of the process noise
+                    std_meas=[10,0.1];                      %Standard Deviation of the measurements in the x and y
+                    std_acc=0.5;                                 %Standard Deviation of the process noise
                     KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[x_initial(1);x_initial(2);]);
                     obj.trackingFilterObject = KF_object;
                                    

@@ -41,7 +41,7 @@ speed_xyz = [speed_x;speed_y;speed_z];
 speed_magnitude = norm(delta_position) / delta_time;
 
 % Display the calculated speed
-fprintf('Overall speed: %.2f m/s\n', speed_magnitude);
+%fprintf('Overall speed: %.2f m/s\n', speed_magnitude);
 
 % Calculate the number of time steps
 num_steps = Simulation_time / UpdateInterval;
@@ -79,7 +79,9 @@ for step = 1:num_steps+1
     bistatic_ranges(step) = bistatic_range_ref;
 
     %Calculate the rate of change of the total range with respect to time
+    
     d_total_range_dt = (total_range - prev_total_range) / UpdateInterval;
+    
     prev_total_range = total_range;
     
     % Calculate the Doppler shift
@@ -87,12 +89,28 @@ for step = 1:num_steps+1
     
     bistatic_doppler_shifts(step)=doppler_shift;
 
+     % Calculate the Doppler shift for the previous position
+    if step == 1
+        prev_position = Target_Pos_1 + speed_xyz * UpdateInterval * (step - 2);
+        prev_range_tx_target = norm(prev_position - Tx_Pos);
+        prev_range_ref_target = norm(prev_position - RefRx_Pos);
+        prev_total_range = prev_range_tx_target + prev_range_ref_target;
+        
+        % Calculate the Doppler shift for the previous position
+        prev_doppler_shift = - (1 / wavelength) * ((total_range - prev_total_range) / UpdateInterval);
+        
+        % Store the previous Doppler shift in the matrix
+        bistatic_doppler_shifts(step) = prev_doppler_shift;
+        prev_total_range = total_range;
+    end
+
 end
 
 
-% Save bistatic ranges and Doppler shifts to an HDF5 file
-h5create('output_data.h5', '/bistatic_ranges', size(bistatic_ranges));
-h5write('output_data.h5', '/bistatic_ranges', bistatic_ranges);
 
-h5create('output_data.h5', '/doppler_shifts', size(bistatic_doppler_shifts));
-h5write('output_data.h5', '/doppler_shifts', bistatic_doppler_shifts);
+% Save bistatic ranges and Doppler shifts to an HDF5 file
+h5create('true_data.h5', '/bistatic_ranges', size(bistatic_ranges));
+h5write('true_data.h5', '/bistatic_ranges', bistatic_ranges);
+
+h5create('true_data.h5', '/doppler_shifts', size(bistatic_doppler_shifts));
+h5write('true_data.h5', '/doppler_shifts', bistatic_doppler_shifts);

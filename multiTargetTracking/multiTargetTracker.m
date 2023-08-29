@@ -159,8 +159,8 @@ classdef multiTargetTracker
                 predictedTrack = obj.tracks(j).predictedTrack;
                 
                 
-                range_error(j,1:i) = abs(predictedTrack(1, 1:i));
-                doppler_error(j,1:i)= abs(predictedTrack(2, 1:i));
+                range_error(j,1:i) = predictedTrack(1, 1:i);
+                doppler_error(j,1:i)= predictedTrack(2, 1:i);
                 
             end
 

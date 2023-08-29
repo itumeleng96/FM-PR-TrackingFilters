@@ -99,8 +99,8 @@ doppler_error_1=[];
 range_error_2=[];
 doppler_error_2=[];
 
-rangeTrueData = h5read('output_data.h5', '/bistatic_ranges');
-dopplerTrueData = h5read('output_data.h5', '/doppler_shifts');
+rangeTrueData = h5read('true_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('true_data.h5', '/doppler_shifts');
 
 
 for i = 1:simulation_time
@@ -145,7 +145,6 @@ for i = 1:simulation_time
     [doppler_error_1,range_error_1]=multiTargetTracker1.calculateError(i,doppler_error_1,range_error_1);
     [doppler_error_2,range_error_2]=multiTargetTracker2.calculateError(i,doppler_error_2,range_error_2);
 
-
     ard = ard_;
     rdm= rdm_;
 
@@ -182,7 +181,7 @@ for i = 1:simulation_time
     plot(doppler_error_2, 'r-*');
 
     hold on;
-    plot(dopplerTrueData(1:i), 'g-o');
+    plot(dopplerTrueData(1:i), 'k-o');
     
     title('Bistatic Doppler Error Comparison');
     xlabel('Time(s)');
@@ -196,7 +195,7 @@ for i = 1:simulation_time
     hold on;
     plot(range_error_2, 'r-*');
     hold on;
-    plot(rangeTrueData(1:i), 'g-o');
+    plot(rangeTrueData(1:i), 'k-o');
 
     title('Bistatic Range Error Comparison');
     xlabel('Time Steps');

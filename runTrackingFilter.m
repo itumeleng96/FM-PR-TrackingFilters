@@ -102,8 +102,8 @@ doppler_error=[];
 range_error=[];
 
 
-rangeTrueData = h5read('output_data.h5', '/bistatic_ranges');
-dopplerTrueData = h5read('output_data.h5', '/doppler_shifts');
+rangeTrueData = h5read('true_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('true_data.h5', '/doppler_shifts');
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current); %surv
@@ -142,42 +142,22 @@ for i = 1:simulation_time
     %CALCULATE ERROR 
     [doppler_error,range_error]=multiTargetTracker.calculateError(i,doppler_error,range_error);
     
-    figure(6);
-    plot(doppler_error);
-    title('Bistatic Doppler Error');
-    xlabel('Time Steps');
-    ylabel('Bistatic Doppler Error');
-
-
-    figure(7);
-    plot(range_error);
-    title('Bistatic Range Error');
-    xlabel('Time Steps');
-    ylabel('Bistatic Range Error');
 
      % Create comparison plots for Doppler Error
     figure(6);
-    plot(doppler_error, 'b--^');
-    hold on;
-    plot(dopplerTrueData(1:i), 'g-o');
+    plot(abs(doppler_error-dopplerTrueData(1:i)), 'b-.');
     
-    title('Bistatic Doppler Error Comparison');
+    title('Bistatic Doppler Error ');
     xlabel('Time(s)');
     ylabel('Doppler (Hz)  ');
-    legend('Tracking Filter','Real Trajectory');
     grid on;
     
     % Create comparison plots for Range Errors
     figure(7);
-    plot(range_error, 'b--^');
-    hold on;
-
-    plot(rangeTrueData(1:i), 'g-o');
-
-    title('Bistatic Range Error Comparison');
-    xlabel('Time Steps');
+    plot(abs(range_error-rangeTrueData(1:i)), 'b-.');
+    title('Bistatic Range Error ');
+    xlabel('Time (s)');
     ylabel('Bistatic range(m)');
-    legend('Tracking Filter','Real Trajectory');
     grid on;
 
     ard = ard_;

@@ -15,9 +15,14 @@ RefRx_Pos=[0;0;1000];
 %Surveillance Reciever Position 
 SurvRx_Pos=[0;1;1000];
 
-%Target Positions
+%Target Positions For 60s Simulation
+%Target_Pos_1 = [4000;18000;3600];
+%Target_Pos_2 = [-2000;3000;1600];
+
+%Target Positions For 60s Simulation
 Target_Pos_1 = [4000;18000;3600];
 Target_Pos_2 = [-2000;3000;1600];
+
 
 Baseline = norm(RefRx_Pos - Tx_Pos);
 
@@ -45,9 +50,6 @@ speed_magnitude = norm(delta_position) / delta_time;
 
 % Calculate the number of time steps
 num_steps = Simulation_time / UpdateInterval;
-
-% Initialize a matrix to store the estimated positions
-estimated_positions = zeros(3, num_steps);
 
 % Estimate the positions at each time step
 % Initialize a matrix to store the estimated bistatic ranges
@@ -106,6 +108,10 @@ for step = 1:num_steps+1
 
 end
 
+
+if exist('true_data.h5', 'file')
+    delete('true_data.h5');
+end
 
 
 % Save bistatic ranges and Doppler shifts to an HDF5 file

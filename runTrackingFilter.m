@@ -13,7 +13,7 @@ addpath('FERS/', ...
 
 
 system("fers FERS/scenario_1_singleFile.fersxml");
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % h5 Import from FERS simulation
 [Ino, Qno, scale_no] = loadfersHDF5('direct.h5');
 [Imov, Qmov, scale_mov] = loadfersHDF5('echo.h5');
@@ -51,11 +51,12 @@ initial=1;
 
 current=fs;                                %based on samples in transmitted signal
 simulation_time = size(I_Qmov,1)/fs;       %Simulation time: number of data points/sampling frequency
-
+disp(simulation_time);
 
 ard = [];
 rdm =[];
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 figure('Name','2D image');
 %ARD
 f=figure(1);
@@ -81,6 +82,8 @@ f5=figure(5);
 f5.Position = [4000 10 1000 800]; 
 movegui(f5,'southeast');
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %Create MTT object
 confirmationThreshold=4;
 deletionThreshold=6;
@@ -88,8 +91,7 @@ gatingThreshold=[10000,30];
 
 %FilterType 1: Kalman Filter
 %FilterType 2: Particle Filter
-
-filterType =input('Enter the filterType: ');
+filterType =2;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -97,10 +99,8 @@ multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,
 doppler_ll=[];
 range_ll=[];
 
-%Errors 
 doppler_error=[];
 range_error=[];
-
 
 rangeTrueData = h5read('true_data.h5', '/bistatic_ranges');
 dopplerTrueData = h5read('true_data.h5', '/doppler_shifts');
@@ -143,22 +143,30 @@ for i = 1:simulation_time
     [doppler_error,range_error]=multiTargetTracker.calculateError(i,doppler_error,range_error);
     
 
-     % Create comparison plots for Doppler Error
+    % Create comparison plots for Doppler Error
     figure(6);
-    plot(abs(doppler_error-dopplerTrueData(1:i)), 'b-.');
+    plot(doppler_error, 'b--^');
+    hold on;
+    plot(dopplerTrueData(1:i), 'r-*');
     
-    title('Bistatic Doppler Error ');
+    title('Bistatic Doppler Error Comparison');
     xlabel('Time(s)');
     ylabel('Doppler (Hz)  ');
+    legend('Kalman Filter','True Trajectory');
     grid on;
     
     % Create comparison plots for Range Errors
     figure(7);
-    plot(abs(range_error-rangeTrueData(1:i)), 'b-.');
-    title('Bistatic Range Error ');
-    xlabel('Time (s)');
+    plot(range_error, 'b--^');
+    hold on;
+    plot(rangeTrueData(1:i), 'r-*');
+
+    title('Bistatic Range Error Comparison');
+    xlabel('Time(s)');
     ylabel('Bistatic range(m)');
+    legend('Kalman Filter','True Trajectory');
     grid on;
+
 
     ard = ard_;
     rdm= rdm_;

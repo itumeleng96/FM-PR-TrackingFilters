@@ -39,7 +39,7 @@ classdef track
 
                     N=5000;                                 %Number of particles
                     std_acc=10;                              %Standard Deviation of the process noise
-                    std_meas=[1500,1];                     %Standard Deviation of the measurements in the x and y
+                    std_meas=[100,1];                     %Standard Deviation of the measurements in the x and y
 
                     PF_object = particleFilter(dt,std_acc,std_meas,[x_initial(1);x_initial(2);0;],N);
                     obj.trackingFilterObject = PF_object;

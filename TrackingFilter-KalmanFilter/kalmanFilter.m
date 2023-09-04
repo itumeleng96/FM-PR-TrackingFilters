@@ -35,8 +35,11 @@ classdef kalmanFilter
                      0,1;];
 
             %Process Noise Covariance Matrix For Random Acceleration
-            obj.Q = [(dt^4)/4,(dt^3)/2;
-                    (dt^3)/2,dt^2]*std_acc;
+            %obj.Q = [(dt^4)/4,(dt^3)/2;
+            %        (dt^3)/2,dt^2]*std_acc;
+            
+            obj.Q = [obj.k_d^4*(dt^4)/4,-obj.k_d^2*(dt^3)/2;
+                    -obj.k_d^2*(dt^3)/2,dt^2]*std_acc;
             
             %Standard deviation of measurement in doppler shift and delay
             %Measurement Error covariance matrix
@@ -58,7 +61,7 @@ classdef kalmanFilter
             obj.X = obj.F*obj.X ;
                        
             %P= A*P*A' + Q             
-            obj.P = obj.A * obj.P * obj.A.' + obj.Q;
+            obj.P = obj.F * obj.P * obj.A.' + obj.Q;
 
             X_pred = obj.X;
             KF_obj1  = obj;

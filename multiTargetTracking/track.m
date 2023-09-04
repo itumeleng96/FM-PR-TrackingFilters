@@ -29,7 +29,7 @@ classdef track
             switch filterType
                 case 1
                     disp("Initializing Kalman Filter");
-                    std_meas=[0.1,1e-3];                      %Standard Deviation of the measurements in the x and y
+                    std_meas=[1,1e-3];                      %Standard Deviation of the measurements in the x and y
                     std_acc=0.5;                                 %Standard Deviation of the process noise
                     KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[x_initial(1);x_initial(2);]);
                     obj.trackingFilterObject = KF_object;
@@ -37,7 +37,7 @@ classdef track
                 case 2
                     disp("Initializing Particle Filter");
 
-                    N=5000;                                 %Number of particles
+                    N=10000;                                 %Number of particles
                     std_acc=10;                              %Standard Deviation of the process noise
                     std_meas=[100,1];                     %Standard Deviation of the measurements in the x and y
 

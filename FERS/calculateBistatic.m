@@ -61,6 +61,7 @@ prev_total_range =0;
 % Estimate the bistatic ranges at each time step
 for step = 1:num_steps+1
     estimated_position = Target_Pos_1 +   speed_xyz* UpdateInterval * (step-1);
+
     
     % Calculate the distance between target and transmitter
     range_tx_target = norm(estimated_position - Tx_Pos);
@@ -113,6 +114,8 @@ if exist('true_data.h5', 'file')
     delete('true_data.h5');
 end
 
+%disp(bistatic_ranges);
+%disp(bistatic_doppler_shifts);
 
 % Save bistatic ranges and Doppler shifts to an HDF5 file
 h5create('true_data.h5', '/bistatic_ranges', size(bistatic_ranges));

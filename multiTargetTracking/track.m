@@ -37,7 +37,7 @@ classdef track
                 case 2
                     disp("Initializing Particle Filter");
 
-                    N=10000;                                 %Number of particles
+                    N=5000;                                 %Number of particles
                     std_acc=10;                              %Standard Deviation of the process noise
                     std_meas=[100,1];                     %Standard Deviation of the measurements in the x and y
 
@@ -46,9 +46,9 @@ classdef track
                 
                 case 3
                     std_acc=1;                 %Standard Deviation of the acceleration in ms^2
-                    std_meas=[1000,1];                  %Standard Deviation of the measurements in the x and y
+                    std_meas=[1000,5];                  %Standard Deviation of the measurements in the x and y
                     max_iterations=100;
-                    tolerance = 0.1;
+                    tolerance = 0.;
                     RGNF_object = RGNF(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);x_initial(2);],max_iterations,tolerance);
                     obj.trackingFilterObject = RGNF_object;
 

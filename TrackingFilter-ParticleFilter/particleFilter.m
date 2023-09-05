@@ -37,8 +37,8 @@ classdef particleFilter
                     (dt^3)/2,dt^2]*std_acc;
             
 
-            obj.S = [0,0;
-                     0,0];
+            obj.S = [100000,0;
+                     0,200];
 
         end
         

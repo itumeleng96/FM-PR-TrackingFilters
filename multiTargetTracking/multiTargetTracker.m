@@ -104,7 +104,7 @@ classdef multiTargetTracker
             %call tracking filter on all tracks
             disp("Prediction Stage");
             numberOfTracks = max(size(obj.tracks));
-
+            
             for i=1:numberOfTracks
                 obj.tracks(i)=obj.tracks(i).predictTrack();
             end
@@ -152,15 +152,19 @@ classdef multiTargetTracker
                         
                 hold off;
         end
-        function [doppler_error, range_error] =calculateError(obj, i,doppler_error,range_error)
+        function [doppler_error, range_error,doppler_meas,range_meas] =calculateError(obj, i,doppler_error,range_error)
             
             % Calculate the Range and Doppler RMS
             for j = 1:length(obj.tracks)
                 predictedTrack = obj.tracks(j).predictedTrack;
-                
+                trueTrack = obj.tracks(j).trueTrack;
+
                 
                 range_error(j,1:i) = predictedTrack(1, 1:i);
                 doppler_error(j,1:i)= predictedTrack(2, 1:i);
+
+                range_meas(j,1:i) = trueTrack(1, 1:i);
+                doppler_meas(j,1:i)= trueTrack(2, 1:i);
                 
             end
 
@@ -241,6 +245,57 @@ classdef multiTargetTracker
             end
         end
         
+        function [range_ll,doppler_ll] = logLikelihoodMatrix(z,Hx, S )    % Inputs:
+            %   - sample: Array of observed  values from the predicted track.
+            %   - mean: Mean of the distribution under consideration from the true track.
+            %   - R: Covariance value for the parameter (scalar).
+            % 
+            % Output:
+            %   - ll: Log-likelihood for the parameter.
+        
+           
+            % Calculate the log-likelihood for the  parameter
+            
+            % Log-likelihood for a NORMAL distribution is given by:
+            %ll = log(normpdf(sample,mean,S));
+            likelihood = log(mvnpdf(z, Hx, S));
+            disp(likelihood);
+            range_ll =0;
+            doppler_ll =0;
+        
+        end
+
+        function logLikelihood= plotLogLikelihoodMatrix(obj, f, i,logLikelihood,plotResults)
+            
+            if(plotResults)
+                time = 1:1:i;            
+            
+                
+                for j = 1:length(obj.tracks)
+                    predictedTrack = obj.tracks(j).predictedTrack;
+                    trueTrack = obj.tracks(j).trueTrack;
+                    S_matrix = obj.tracks(j).trackingFilterObject.S;
+                    disp(S_matrix);
+
+                    x=[predictedTrack(1,i);predictedTrack(2,i)];
+                    z=[trueTrack(1,i);trueTrack(2,i)];
+                    H= [1,0;0,1;];
+                    Hx = H*x;
+                    
+     
+                   logLikelihood(j,i) = log(mvnpdf(z, Hx, S_matrix));
+    
+                end
+                figure(f);
+                plot(time, logLikelihood);
+                xlabel('Time(s)');
+                ylabel('Log-likelihood');
+                title('Log-likelihood vs Time');
+                %legend('Doppler Log-likelihood', 'Doppler Error'); % Add legend for the two plotted lines
+    
+
+            end
+        end
 
         function [crlb_doppler,crlb_range] = calculateCRLB(obj, f, f1, i,xVar,yVar,N,crlb_doppler,crlb_range)
             time = 1:1:i;

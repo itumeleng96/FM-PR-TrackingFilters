@@ -29,7 +29,7 @@ classdef track
             switch filterType
                 case 1
                     disp("Initializing Kalman Filter");
-                    std_meas=[1,1e-3];                      %Standard Deviation of the measurements in the x and y
+                    std_meas=[50,1e-3];                           %Standard Deviation of the measurements in the x and y
                     std_acc=0.5;                                 %Standard Deviation of the process noise
                     KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[x_initial(1);x_initial(2);]);
                     obj.trackingFilterObject = KF_object;
@@ -79,15 +79,19 @@ classdef track
 
         function obj = predictTrack(obj)
             %Predict using Tracking filter and update predictedTrack
-            [X,obj.trackingFilterObject]= predict(obj.trackingFilterObject);
-            
-            %Update the predicted track
-            obj.predictedTrack(1,end+1)=X(1,1);
-            obj.predictedTrack(2,end)=X(2,1);
+            if(size(obj.predictedTrack)>1)
+                [X,obj.trackingFilterObject]= predict(obj.trackingFilterObject);
+    
+                %Update the predicted track
+                obj.predictedTrack(1,end+1)=X(1,1);
+                obj.predictedTrack(2,end)=X(2,1);
+            else
+                
+                obj.predictedTrack(1,end+1)=obj.trueTrack(1,1);
+                obj.predictedTrack(2,end)=obj.trueTrack(2,1);
+            end
             obj.sampleSinceLastUpdate = obj.sampleSinceLastUpdate+1;
 
-            %disp("Predicted Track");
-            %disp(obj.predictedTrack);
         end
  
         function obj = incrementSampleSinceLastUpdate(obj) %call function to keep track of 

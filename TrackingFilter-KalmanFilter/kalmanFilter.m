@@ -18,9 +18,11 @@ classdef kalmanFilter
                 
             %Update Interval
             obj.dt = dt;
+            c=299792458;
+
 
             %wave number k=-lambda=c/f
-            obj.k_d = -3e8/94e6; 
+            obj.k_d = -c/94e6; 
 
             %State transition matrix
             obj.F = [1, obj.k_d*dt;
@@ -38,8 +40,8 @@ classdef kalmanFilter
             %obj.Q = [(dt^4)/4,(dt^3)/2;
             %        (dt^3)/2,dt^2]*std_acc;
             
-            obj.Q = [obj.k_d^4*(dt^4)/4,-obj.k_d^2*(dt^3)/2;
-                    -obj.k_d^2*(dt^3)/2,dt^2]*std_acc;
+            obj.Q = [obj.k_d^4*(dt^4)/4,obj.k_d^2*(dt^3)/2;
+                    obj.k_d^2*(dt^3)/2,dt^2]*std_acc;
             
             %Standard deviation of measurement in doppler shift and delay
             %Measurement Error covariance matrix
@@ -60,19 +62,20 @@ classdef kalmanFilter
             %x_k = F*x_(k-1)
             obj.X = obj.F*obj.X ;
                        
-            %P= A*P*A' + Q             
-            obj.P = obj.F * obj.P * obj.A.' + obj.Q;
-
             X_pred = obj.X;
             KF_obj1  = obj;
         end
         
         function [X_est,KF_obj2] = update(obj,z)
             %UPDATE STAGE
+            %P= A*P*A' + Q             
+            obj.P = obj.F * obj.P * obj.F.' + obj.Q;
+
+
+
             
             %S = H*P*H'+ R - Total Error - Innovation Covariance Matrix
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
-
             %KALMAN GAIN
             %K = P * H'* inv(H*P*H'+R)
             K = obj.P * obj.H.'*obj.S^(-1);

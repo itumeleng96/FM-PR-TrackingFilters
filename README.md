@@ -25,7 +25,7 @@
 <li>A comprehensive report detailing the optimal parameters, advantages and disadvantages of each filter and the various filter parameters</li>
 <li>Accept real-time streamed data into the Multi-Target Tracking Filter if time permits.</li>
 
-##To Do's
+## To Do's
 <li>Ground Truth Data for Multiple waypoints</li>
 <li>Validate Filter results</li>
 <li>Implement UKF</li>

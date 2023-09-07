@@ -45,12 +45,12 @@ classdef track
                     obj.trackingFilterObject = PF_object;
                 
                 case 3
+                    disp("Initializing Unscented Kalman Filter");
+
                     std_acc=1;                 %Standard Deviation of the acceleration in ms^2
                     std_meas=[1000,5];                  %Standard Deviation of the measurements in the x and y
-                    max_iterations=100;
-                    tolerance = 0.;
-                    RGNF_object = RGNF(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);x_initial(2);],max_iterations,tolerance);
-                    obj.trackingFilterObject = RGNF_object;
+                    UKF_object = unscentedKalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[x_initial(1),x_initial(2);]);
+                    obj.trackingFilterObject = UKF_object;
 
                 otherwise
                     dt=1;

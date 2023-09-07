@@ -37,8 +37,8 @@ classdef particleFilter
                     (dt^3)/2,dt^2]*std_acc;
             
 
-            obj.S = [100000,0;
-                     0,200];
+            obj.S = [0,0;
+                     0,0];
 
         end
         
@@ -57,10 +57,9 @@ classdef particleFilter
             % Update the covariance matrix of the particles based on the noise added
             
             X_pred = mean(obj.particles, 1)';
-            std_dev = var(obj.particles, 1);
-            obj.S(1, 1) = std_dev(1);
-            obj.S(2, 2) = std_dev(2);
-        
+            %std_dev = var(obj.particles, 1);
+            %obj.S(1, 1) = std_dev(1);
+            %obj.S(2, 2) = std_dev(2);
             PF_obj = obj;
         end
         
@@ -72,11 +71,10 @@ classdef particleFilter
             likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
             likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
             likelihood = likelihood_x .* likelihood_y;
-                        
             
             % Normalize the likelihood
             likelihood = likelihood / sum(likelihood);
-
+            
             
             % Update the particle weights
             obj.weights = obj.weights .* likelihood;
@@ -93,7 +91,13 @@ classdef particleFilter
             % Calculate estimated state as weighted mean
             [meanValue, ~] = obj.estimate(obj.particles, obj.weights);
             X_est = meanValue;
+            
+            % Initialize the cross-covariance matrix (K) as a zero matrix
         
+            % Calculate the cross-covariance elements (K_ij) using the weighted particles
+            % S = HPH' + R;
+            obj.S= sum(obj.weights .* (obj.particles(:, 1:2) - meanValue) .* (z - meanValue')', 3) + obj.std_meas;
+            
             PF_obj = obj;
         end
     end

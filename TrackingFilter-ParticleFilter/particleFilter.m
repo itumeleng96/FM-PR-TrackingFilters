@@ -89,15 +89,17 @@ classdef particleFilter
             end
         
             % Calculate estimated state as weighted mean
-            [meanValue, ~] = obj.estimate(obj.particles, obj.weights);
+            [meanValue,varValue] = obj.estimate(obj.particles, obj.weights);
             X_est = meanValue;
+            
+            obj.S(1,1)=varValue(1);
+            obj.S(2,2)=varValue(2);
             
             % Initialize the cross-covariance matrix (K) as a zero matrix
         
             % Calculate the cross-covariance elements (K_ij) using the weighted particles
             % S = HPH' + R;
-            obj.S= sum(obj.weights .* (obj.particles(:, 1:2) - meanValue) .* (z - meanValue')', 3) + obj.std_meas;
-            
+            %obj.S= sum(obj.weights .* (obj.particles(:, 1:2) - meanValue) .* (z - meanValue')', 3) + obj.std_meas;
             PF_obj = obj;
         end
     end

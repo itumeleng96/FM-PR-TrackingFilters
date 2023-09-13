@@ -13,24 +13,34 @@ classdef kalmanFilter
             % x_std_meas : standard deviation of the measurement in the x-direction
             
         
-            obj.X= X_initial;                   % Initial State
-            obj.dt = dt;                        % Update Interval
-            c=299792458;
-            obj.k_d = -c/94e6;                  % Wave number k=-lambda=c/f
+            obj.X= X_initial;                              % Initial State
+            obj.dt = dt;                                   % Update Interval
+            c=299792458;    
+            obj.k_d = -c/94e6;                             % Wave number k=-lambda=c/f
 
-            obj.F = [1, obj.k_d*dt;0, 1];       % State transition matrix
+                    
+            obj.F = [1,obj.k_d*dt,obj.k_d*(1/2)*dt^2;
+                     0, 1, dt;
+                     0, 0, 1;];
                     
             
-            obj.H = [1,0;0,1;];                 % Measurement Function
+            obj.H = [1,0,0;0,1,0;];                        % Measurement Function
 
             
-            obj.Q = [(dt^4)/4,(dt^3)/2;  %Process uncertainty
-                    (dt^3)/2,dt^2]*std_acc;
 
-            obj.R = [r_std^2,0;0,rdot_std^2];   % Measurement Uncertainty
-            obj.S = [2.5e3,0;0,0.0005];                  % System Uncertainty  
-            obj.P = eye(size(obj.F,2));         % Uncertainty Covariance
+            obj.Q = [(dt^5)/20, (dt^4)/8, (dt^3)/6;
+                    (dt^4)/8,(dt^3)/3, (dt^2)/2;
+                    (dt^3)/6, (dt^2)/2,dt]*std_acc;
 
+
+            obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty
+            obj.S = [0,0;0,0.0];                           % System Uncertainty  
+            obj.P = eye(size(obj.F,2));                    % Uncertainty Covariance
+           
+            obj.A = [1, dt, dt^2;
+                     0, 1, dt ;
+                     0, 0, 1];
+      
         end
         
         function [X_pred,KF_obj1] = predict(obj)
@@ -41,7 +51,7 @@ classdef kalmanFilter
             obj.X = obj.F*obj.X ;
             
             % P = FPF' + Q
-            obj.P = obj.F * obj.P * obj.F.' + obj.Q;
+            obj.P = obj.A * obj.P * obj.A.' + obj.Q;
 
             %Return Prior
             X_pred = obj.X;
@@ -53,13 +63,12 @@ classdef kalmanFilter
             
             %S = H*P*H'+ R
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
-            disp(obj.S);
+
             %K = PH'inv(S)
-            K = obj.P * obj.H.'*obj.S^(-1);
+            K = (obj.P * obj.H.') / obj.S;
 
             %x = x + Ky
             obj.X = obj.X + K * (z-obj.H * obj.X);
-            
             I = eye(size(obj.H,2));
 
             %UPDATE ERROR COVARIANCE MATRIX

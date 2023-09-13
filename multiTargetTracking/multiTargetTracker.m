@@ -47,7 +47,7 @@ classdef multiTargetTracker
             %Assign Tracks to Detection using GNN and update filter with new measurements
             %Get qualifying detections within radius if not create new tracks
 
-            if ~isempty(obj.tracks) && ~obj.newtracksCreated
+            if ~isempty(obj.tracks)
                 numOfTracks = length(obj.tracks);
                 for i=1:numOfTracks
                     predictedCoodinate = obj.tracks(i).predictedTrack(:,end);
@@ -101,8 +101,7 @@ classdef multiTargetTracker
         end
 
         function obj = predictionStage(obj)
-
-            disp("Prediction Stage");
+            %disp("Prediction Stage");
             numberOfTracks = max(size(obj.tracks));
             
             for i=1:numberOfTracks
@@ -275,6 +274,7 @@ classdef multiTargetTracker
                     predictedTrack = obj.tracks(j).predictedTrack;
                     trueTrack = obj.tracks(j).trueTrack;
                     S_matrix = obj.tracks(j).trackingFilterObject.S;
+                    disp(S_matrix);
 
                     x=[predictedTrack(1,i);predictedTrack(2,i)];
                     z=[trueTrack(1,i);trueTrack(2,i)];
@@ -376,5 +376,3 @@ classdef multiTargetTracker
         end
     end
 end
-
-

@@ -28,9 +28,9 @@ classdef kalmanFilter
 
             
 
-            obj.Q = [(dt^5)/20, (dt^4)/8, (dt^3)/6;
-                    (dt^4)/8,(dt^3)/3, (dt^2)/2;
-                    (dt^3)/6, (dt^2)/2,dt]*std_acc;
+            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2;
+                     (dt^3)/2, dt^2, dt;
+                     (dt^2)/2, dt , 1]*std_acc;
 
 
             obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty

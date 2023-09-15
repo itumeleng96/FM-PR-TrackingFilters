@@ -29,7 +29,6 @@
 <li>Ground Truth Data for Multiple waypoints</li>
 <li>Validate Filter results</li>
 <li>Implement UKF</li>
-<li>Test MTT</li>
 
 ## How to run the tracking Filter in the Matlab Terminal
 <li> runTrackingFilter </li>

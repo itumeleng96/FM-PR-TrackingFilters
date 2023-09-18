@@ -38,7 +38,7 @@ classdef unscentedKalmanFilter
             %Measurement Error covariance matrix
             obj.R = [r_std^2,0,0;
                      0,rdot_std^2,0;
-                     0,0,0.001];
+                     0,0,0.1];
 
 
             obj.P = eye(size(obj.F,2));
@@ -46,9 +46,9 @@ classdef unscentedKalmanFilter
             obj.S = [0,0;0,0.0];                  % System Uncertainty  
 
             %Constants for sigma points
-            obj.alpha =0.1;
+            obj.alpha =1;
             obj.kappa =0;
-            obj.beta =4;
+            obj.beta =2;
             obj.n = 3;
             obj.lambda = obj.alpha^2*(obj.n+obj.kappa) -obj.n;
             
@@ -60,7 +60,6 @@ classdef unscentedKalmanFilter
         function [X_pred,UKF_obj1] = predict(obj)
             %PREDICTION STAGE
             
-            %x_k = F*x_(k-1)
             %calculate sigma points for given mean and covariance
             obj.sigmaPoints = obj.createSigmaPoints(obj.X');
                       
@@ -83,6 +82,7 @@ classdef unscentedKalmanFilter
             [~,Pz] = obj.unscentedTransformZ();  
             Pxz=obj.unscentedTransformCross(Xu,muZ);
             obj.S =Pxz;
+            
             %Kalman Gain 
             K =Pxz* Pz^-1 ;  
             

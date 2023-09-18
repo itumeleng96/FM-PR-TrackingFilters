@@ -151,7 +151,7 @@ classdef multiTargetTracker
                         
                 hold off;
         end
-        function [doppler_error, range_error,doppler_meas,range_meas] =calculateError(obj, i,doppler_error,range_error)
+        function [doppler_error, range_error,doppler_meas,range_meas] =getErrors(obj, i,doppler_error,range_error)
             
             % Calculate the Range and Doppler RMS
             for j = 1:length(obj.tracks)
@@ -274,7 +274,8 @@ classdef multiTargetTracker
                     predictedTrack = obj.tracks(j).predictedTrack;
                     trueTrack = obj.tracks(j).trueTrack;
                     S_matrix = obj.tracks(j).trackingFilterObject.S;
-                    disp(S_matrix);
+                    S_matrix = S_matrix(1:2,1:2);
+                    
 
                     x=[predictedTrack(1,i);predictedTrack(2,i)];
                     z=[trueTrack(1,i);trueTrack(2,i)];
@@ -295,49 +296,43 @@ classdef multiTargetTracker
 
             end
         end
+        function [range_mse,doppler_mse] = calculateMSE(obj,i,range_mse,doppler_mse,true_doppler,true_range)
 
-        function [crlb_doppler,crlb_range] = calculateCRLB(obj, f, f1, i,xVar,yVar,N,crlb_doppler,crlb_range)
-            time = 1:1:i;
+        
+            for j = 1:length(obj.tracks)
+                predictedTrack = obj.tracks(j).predictedTrack;
+    
+                % Calculate squared errors for each track at the current time step
+                range_mse(i) = (true_range(i) - predictedTrack(1, i))^2;
+                doppler_mse(i) = (true_doppler(i) - predictedTrack(2, i))^2;
+    
+            end
+                
 
-            doppler_error = zeros(length(obj.tracks), length(time));
-            range_error = zeros(length(obj.tracks), length(time));
+        
+        end
+    
+        function [crlb_doppler,crlb_range] = calculateCRLB(obj, i,crlb_doppler,crlb_range,true_doppler,true_range)
             
             % Calculate the CRLB for each track
             for j = 1:length(obj.tracks)
-                
-                predictedTrack = obj.tracks(j).predictedTrack;
-                trueTrack = obj.tracks(j).trueTrack;
-                
-                range_diff = predictedTrack(1, 1:i) - trueTrack(1, 1:i);
-                doppler_diff = predictedTrack(2, 1:i) - trueTrack(2, 1:i);
-                
-                range_error(j, 1:i) = abs(range_diff);
-                doppler_error(j, 1:i) = abs(doppler_diff);
+                observedTrack = obj.tracks(j).trueTrack;
+                sample_variance_doppler = sum((observedTrack(2,i) - true_doppler(i)  ).^2) / 1;
+                sample_variance_range = sum((observedTrack(1,i) - true_range(i)  ).^2) / 1;
 
-                % Calculate the Range CRLB
-                crlb_range(j,i) = cramerRLB(N(j),xVar(j)); 
-        
-                % Calculate the Doppler CRLB
-                crlb_doppler(j,i) = cramerRLB(N(j),yVar(j)); 
+                variance_mu_doppler = sample_variance_doppler / 1; % Variance of the sample mean
+                variance_mu_range = sample_variance_range / 1; % Variance of the sample mean
+
+
+                Fisher_information_mu_doppler = 1 / variance_mu_doppler;
+                Fisher_information_mu_range = 1 / variance_mu_range;
+
+                crlb_doppler(i) = 1/Fisher_information_mu_doppler;
+                crlb_range(i) = 1/Fisher_information_mu_range;
+                
             end
       
 
-            figure(f);
-            plot(time, crlb_doppler);
-            hold on;
-            plot(time, doppler_error);
-            
-            xlabel('Time(s)');
-            ylabel('Bistatic Doppler Error');
-            title('Bistatic Doppler Error vs Time');
-            
-            figure(f1);
-            plot(time, crlb_range);
-            hold on;
-            plot(time,range_error);
-            xlabel('Time(s)');
-            ylabel('Bistatic Range Error');
-            title('Bistatic Range  Error vs Time');
         end
     end
 

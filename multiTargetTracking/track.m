@@ -41,18 +41,23 @@ classdef track
                     N=5000;                                          %Number of particles
                     std_acc=1;                                       %Standard Deviation of the process noise
                     std_meas=[500,0.1];                              %Standard Deviation of the measurements in the x and y
-
                     PF_object = particleFilter(dt,std_acc,std_meas,[obj.x_initial(1);obj.x_initial(2);0;],N);
                     obj.trackingFilterObject = PF_object;
                 
                 case 3
                     disp("Initializing Unscented Kalman Filter");
-
                     std_acc=0.1;                                     %Standard Deviation of the acceleration in ms^2
                     std_meas=[100,0.1];                              %Standard Deviation of the measurements in the x and y
                     UKF_object = unscentedKalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),obj.x_initial(2),0;]);
                     obj.trackingFilterObject = UKF_object;
 
+                case 4
+                    disp("Initializing Recursive Gauss Newton Filter");
+                    std_acc=0.1;                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[100,0.1];                              %Standard Deviation of the measurements in the x and y
+                    RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;],100);
+                    obj.trackingFilterObject = RGNF_object;
+    
                 otherwise
                     dt=1;
                     std_meas=[25,0.001];                              %Standard Deviation of the measurements in the x and y

@@ -59,18 +59,15 @@ classdef RGNF
             tolerance = 1e-6;  % Convergence tolerance 
              %The forgetting  factor(Lambda) - between 0 and 1
             lambda = 0.8;
-
-        
             for i = 1:obj.max_iter
                 % Observer gain Kn
                 K_n = obj.P * obj.H.' / (obj.R + obj.H * obj.P * obj.H.');
                 
                 % Delta Error 
-                dx = K_n * (Y_n - obj.H * obj.X);
+                dx = K_n * (Y_n - obj.H *x_new -obj.H*(obj.X-x_new)); 
                 x_temp = obj.X + dx;
-        
+                disp(dx);
                 % Check for convergence
-                disp( norm(x_temp - x_new));
                 if norm(x_temp - x_new) < tolerance
                     x_new = x_temp;
                     break;  % Converged, exit the loop

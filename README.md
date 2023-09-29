@@ -6,8 +6,9 @@
 #### The Following Tracking filters and code have been implemented:
 <li>1.Kalman Filter</li>
 <li>2.Particle Filter  </li>
-<li>3.Unscented Kalman Filter -In progress</li>
-<li>4.Recursive Gauss Newton Filter - Still to be implemented</li>
+<li>3.Unscented Kalman Filter </li>
+<li>4.Polynomial  Filter - In progress</li>
+<li>5.Recursive Gauss Newton Filter - Still to be implemented</li>
 
 
 

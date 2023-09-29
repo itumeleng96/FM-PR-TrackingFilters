@@ -1,7 +1,7 @@
 classdef RGNF
 
     properties
-        dt,U,X,A,B,H,Q,R,P,coeff,measured_x,measured_y,max_iter,tolerance,k_d;
+        dt,U,X,A,B,H,Q,R,P,coeff,measured_x,measured_y,max_iter,k_d;
     end
     
     methods
@@ -42,12 +42,11 @@ classdef RGNF
 
         % Function to predict the next state
         function [X_pred, GN_Obj] = predict(obj)
-            lambda = 0.1;
-
+           
             obj.X = obj.A*obj.X ;
         
             % Initial covariance matrix
-            obj.P = lambda^(-1)*obj.A * obj.P * obj.A.' + obj.Q;
+            obj.P = (obj.A * obj.P * obj.A.') + obj.Q;
 
             X_pred = obj.X;
             GN_Obj = obj;
@@ -55,26 +54,37 @@ classdef RGNF
 
 
         function [X_est, RGNF_obj] = update(obj, Y_n)
-            %The forgetting  factor(Lambda) - between 0 and 1
-            K_n=0;
-            x_new=obj.X;
+            K_n = 0;
+            x_new = obj.X;
+            tolerance = 1e-6;  % Convergence tolerance 
+             %The forgetting  factor(Lambda) - between 0 and 1
+            lambda = 0.8;
 
+        
             for i = 1:obj.max_iter
-                %Observer gain Kn
-                K_n = obj.P*obj.H.' * (obj.R + obj.H*obj.P*obj.H.')^(-1);
+                % Observer gain Kn
+                K_n = obj.P * obj.H.' / (obj.R + obj.H * obj.P * obj.H.');
                 
-                %Delta Error 
-                dx = K_n*(Y_n - obj.H*obj.X - obj.H*(obj.X-x_new));
-                x_new = obj.X+dx;
-            
+                % Delta Error 
+                dx = K_n * (Y_n - obj.H * obj.X);
+                x_temp = obj.X + dx;
+        
+                % Check for convergence
+                disp( norm(x_temp - x_new));
+                if norm(x_temp - x_new) < tolerance
+                    x_new = x_temp;
+                    break;  % Converged, exit the loop
+                else
+                    x_new = x_temp;
+                end
             end
             
-            %Update Covariance Matrix
-            I = eye(size(obj.H,2));
-            obj.P = (I - (K_n * obj.H)) * obj.P ;
-
+            % Update Covariance Matrix
+            I = eye(size(obj.H, 2));
+            obj.P = (I - (K_n * obj.H)) * obj.P / lambda ;
+        
             obj.X = x_new;
-            X_est =obj.X;
+            X_est = obj.X;
             RGNF_obj = obj;
         end
     end

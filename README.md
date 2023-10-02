@@ -8,7 +8,7 @@
 <li>2.Particle Filter  </li>
 <li>3.Unscented Kalman Filter </l>
 <li>4.Recursive Gauss Newton Filter</li>
-<li>5.Polynomial Filter</li>
+<li>5.Polynomial Filter (To be implemented)</li>
 
 
 #### Other algorithms implemented

@@ -53,7 +53,7 @@ classdef track
 
                 case 4
                     disp("Initializing Recursive Gauss Newton Filter");
-                    std_acc=0.1;                                     %Standard Deviation of the acceleration in ms^2
+                    std_acc=0.01;                                     %Standard Deviation of the acceleration in ms^2
                     std_meas=[100,0.1];                              %Standard Deviation of the measurements in the x and y
                     RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;],100);
                     obj.trackingFilterObject = RGNF_object;

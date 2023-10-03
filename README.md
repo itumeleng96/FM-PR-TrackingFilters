@@ -28,7 +28,7 @@
 ## To Do's
 <li>Ground Truth Data for Multiple waypoints</li>
 <li>Validate Filter results</li>
-<li>Implement Polynomial Filter</li>
+<li>Implement Polynomial Filters</li>
 <li>Implement Probalistic Data Association</li>
 
 ## How to run the tracking Filter in the Matlab Terminal

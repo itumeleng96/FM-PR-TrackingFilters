@@ -27,8 +27,8 @@
 
 ## To Do's
 <li>Ground Truth Data for Multiple waypoints</li>
-<li>Validate Filter results</li>
-<li>Implement UKF</li>
+<li>CRLB</li>
+<li>Polynomial Filter</li>
 
 ## How to run the tracking Filter in the Matlab Terminal
 <li> runTrackingFilter </li>

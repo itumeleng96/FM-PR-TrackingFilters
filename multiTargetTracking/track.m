@@ -58,6 +58,13 @@ classdef track
                     RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;],100);
                     obj.trackingFilterObject = RGNF_object;
     
+                case 5
+                    disp("Initializing Polynomial Filter");
+                    std_acc=0.01;                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[100,0.1];                              %Standard Deviation of the measurements in the x and y
+                    PF_object = EMP(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;]);
+                    obj.trackingFilterObject = PF_object;
+                    
                 otherwise
                     dt=1;
                     std_meas=[25,0.001];                              %Standard Deviation of the measurements in the x and y

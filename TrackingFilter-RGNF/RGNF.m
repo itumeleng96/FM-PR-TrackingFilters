@@ -1,7 +1,7 @@
 classdef RGNF
 
     properties
-        dt,U,X,A,B,H,Q,R,P,coeff,measured_x,measured_y,max_iter,k_d;
+        dt,U,X,A,B,H,Q,R,P,S,coeff,measured_x,measured_y,max_iter,k_d;
     end
     
     methods
@@ -37,6 +37,8 @@ classdef RGNF
 
             obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty
             obj.P = eye(size(obj.A,2));                    % Filter Covariance matrix
+            obj.S = [0,0;0,0.0];                            
+
 
         end
 
@@ -54,11 +56,16 @@ classdef RGNF
 
 
         function [X_est, RGNF_obj] = update(obj, Y_n)
-            K_n = 0;
             x_new = obj.X;
-            tolerance = 1e-6;  % Convergence tolerance 
-             %The forgetting  factor(Lambda) - between 0 and 1
-            lambda = 0.8;
+
+            %Convergence tolerance 
+            tolerance = 1e-6; 
+            %The forgetting  factor(Lambda) - between 0 and 1
+            lambda = 1;
+
+            %S = H*P*H'+ R - Innovation Covariance Matrix
+            obj.S = obj.H * obj.P * obj.H.' + obj.R;
+
             for i = 1:obj.max_iter
                 % Observer gain Kn
                 K_n = obj.P * obj.H.' / (obj.R + obj.H * obj.P * obj.H.');
@@ -66,7 +73,7 @@ classdef RGNF
                 % Delta Error 
                 dx = K_n * (Y_n - obj.H *x_new -obj.H*(obj.X-x_new)); 
                 x_temp = obj.X + dx;
-                disp(dx);
+
                 % Check for convergence
                 if norm(x_temp - x_new) < tolerance
                     x_new = x_temp;

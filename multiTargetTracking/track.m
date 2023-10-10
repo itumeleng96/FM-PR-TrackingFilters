@@ -39,8 +39,8 @@ classdef track
                 case 2
                     disp("Initializing Particle Filter");
                     N=5000;                                          %Number of particles
-                    std_acc=1;                                       %Standard Deviation of the process noise
-                    std_meas=[500,0.1];                              %Standard Deviation of the measurements in the x and y
+                    std_acc=0.1;                                       %Standard Deviation of the process noise
+                    std_meas=[500,1];                              %Standard Deviation of the measurements in the x and y
                     PF_object = particleFilter(dt,std_acc,std_meas,[obj.x_initial(1);obj.x_initial(2);0;],N);
                     obj.trackingFilterObject = PF_object;
                 

@@ -19,7 +19,6 @@ classdef multiTargetTracker
             obj.gatingThreshold = gatingThreshold;
             obj.filterType = filterType;
             obj.newtracksCreated = 0;
-
         end
         
         function obj = createNewTracks(obj,detections)
@@ -37,11 +36,11 @@ classdef multiTargetTracker
                     else
                         obj.tracks(end+1)=track([detections(1,i);detections(2,i)],[;],i,0,0,0,obj.filterType);
                         obj.newtracksCreated = 1;
-
                     end
                 end            
             end
         end
+
         function obj = updateStage(obj,detections)
             %disp("UpdateStage");
             %Assign Tracks to Detection using GNN and update filter with new measurements
@@ -154,7 +153,7 @@ classdef multiTargetTracker
         function [doppler_error, range_error,doppler_meas,range_meas] =getErrors(obj, i,doppler_error,range_error)
             
             % Calculate the Range and Doppler RMS
-            for j = 1:length(obj.tracks)
+            for j = 1:1
                 predictedTrack = obj.tracks(j).predictedTrack;
                 trueTrack = obj.tracks(j).trueTrack;
 
@@ -173,7 +172,8 @@ classdef multiTargetTracker
         function [doppler_ll, range_ll] = calculateLogLikelihood(obj, i,doppler_ll,range_ll)
             
             
-            for j = 1:length(obj.tracks)
+            %for j = 1:length(obj.tracks)
+            for j = 1:1
                 predictedTrack = obj.tracks(j).predictedTrack;
                 trueTrack = obj.tracks(j).trueTrack;
                 s_matrix = obj.tracks(j).trackingFilterObject.S;
@@ -200,7 +200,7 @@ classdef multiTargetTracker
             if(plotResults)
                 time = 1:1:i;            
             
-                for j = 1:length(obj.tracks)
+                 for j = 1:1
                     predictedTrack = obj.tracks(j).predictedTrack;
                     trueTrack = obj.tracks(j).trueTrack;
                     s_matrix = obj.tracks(j).trackingFilterObject.S;
@@ -315,6 +315,7 @@ classdef multiTargetTracker
         function [crlb_doppler,crlb_range] = calculateCRLB(obj, i,crlb_doppler,crlb_range,true_doppler,true_range)
             
             % Calculate the CRLB for each track
+            %{
             for j = 1:length(obj.tracks)
                 observedTrack = obj.tracks(j).trueTrack;
                 sample_variance_doppler = sum((observedTrack(2,i) - true_doppler(i)  ).^2) / 1;
@@ -331,7 +332,11 @@ classdef multiTargetTracker
                 crlb_range(i) = 1/Fisher_information_mu_range;
                 
             end
-      
+            %}
+            FIM = obj.tracks(1).trackingFilterObject.P;
+            crlb = FIM^(-1) ;
+            crlb_doppler(i) = crlb(1,1);
+            crlb_range(i) = crlb(2,2);
 
         end
     end

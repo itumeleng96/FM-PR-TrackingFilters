@@ -50,12 +50,12 @@ classdef EMP
             X_k = obj.X;
             %Calculate the Error
             e_n = [Y_n;0] -X_k;
-            disp(e_n);
+
             %Calculate weights
-            n = obj.n;
-            gamma = 30 / ((n + 3)*(n+2)*(n+1));
-            beta = 18 * (2 * n + 1) / ((n + 3)*(n+2)*(n+1));
-            alpha = 3 * (3 * n^2 + 3 * n + 2) /((n + 3)*(n+2)*(n+1));
+            %n=obj.n;
+            gamma = 30 / ((obj.n + 3)*(obj.n+2)*(obj.n+1));
+            beta = 18 * (2 * obj.n + 1) / ((obj.n + 3)*(obj.n+2)*(obj.n+1));
+            alpha = 3 * (3 * obj.n^2 + 3 * obj.n + 2) /((obj.n + 3)*(obj.n+2)*(obj.n+1));
             %T_n = [alpha;beta;gamma;];
 
             %Update
@@ -70,10 +70,12 @@ classdef EMP
             
             Z=[Temp0;Temp1;Temp2];
 
-            disp(Z);
             obj.X = Z;
             %Update Batch Number or Update number
-            obj.n = obj.n+1;
+            if obj.n<2
+                obj.n =obj.n+1;
+            end
+
             X_est = obj.X;
             EMP_obj = obj;
 

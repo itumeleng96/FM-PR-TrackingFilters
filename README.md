@@ -8,7 +8,7 @@
 <li>2.Particle Filter  </li>
 <li>3.Unscented Kalman Filter </l>
 <li>4.Recursive Gauss Newton Filter</li>
-<li>5.Polynomial Filters (To be implemented)</li>
+<li>5.Polynomial Filters (In progress)</li>
 
 
 #### Other algorithms implemented
@@ -28,8 +28,6 @@
 ## To Do's
 <li>Ground Truth Data for Multiple waypoints</li>
 <li>CRLB</li>
-<li>Polynomial Filter</li>
-<li>Validate Filter results</li>
 <li>Implement Polynomial Filters</li>
 <li>Implement Probalistic Data Association</li>
 

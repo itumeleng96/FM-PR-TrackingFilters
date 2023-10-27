@@ -1,7 +1,7 @@
 classdef EMP
 
     properties
-        dt,U,X,A,B,H,R,S,measured_x,measured_y,n,k_d;
+        dt,dp,U,X,A,B,H,R,S,measured_x,measured_y,n,k_d;
     end
     
     methods
@@ -21,6 +21,8 @@ classdef EMP
             obj.A = [1,dt,(1/2)*dt^2;
                      0, 1, dt;
                      0, 0, 1;];
+
+            obj.dp = [1;dt;(1/2)*dt^2;];
                     
             
             obj.H = [1,0,0;0,1,0;];                        % Measurement Function
@@ -48,8 +50,12 @@ classdef EMP
             %2nd degree Expanding Memory Polynomial Filter
             
             X_k = obj.X;
+            Z_k = X_k.*obj.dp;
+
             %Calculate the Error
-            e_n = [Y_n;0] -X_k;
+            E_n = [Y_n;0] -(Z_k);
+            
+            %e_doppler = Y_n(2) -(X_k(4)+X_k(5)+X_k(6));
 
             %Calculate weights
             %n=obj.n;
@@ -57,28 +63,21 @@ classdef EMP
             beta = 18 * (2 * obj.n + 1) / ((obj.n + 3)*(obj.n+2)*(obj.n+1));
             alpha = 3 * (3 * obj.n^2 + 3 * obj.n + 2) /((obj.n + 3)*(obj.n+2)*(obj.n+1));
             %T_n = [alpha;beta;gamma;];
-
-            %Update
-            z0=obj.X(1);
-            z1=obj.X(2);
-            z2=obj.X(3);
-
-            Temp0=z0+z1+z2+alpha*e_n(1);
-            Temp1=z1+2*z2+beta*e_n(2);
-            Temp2=z2+gamma*e_n(2);
             
+    
+            Temp2 = Z_k(3) + gamma * E_n(2);
+            Temp1 = Z_k(2) + 2 * Z_k(3) + beta *E_n(2);
+            Temp0 = Z_k(1) + Z_k(2) - Z_k(3) + alpha * E_n(1);
+   
             
-            Z=[Temp0;Temp1;Temp2];
+            X_k = [Temp0;(1/obj.dt)*Temp1;(2/(obj.dt^2))*Temp2];
 
-            obj.X = Z;
-            %Update Batch Number or Update number
-            if obj.n<2
-                obj.n =obj.n+1;
-            end
-
+            obj.X = X_k;
             X_est = obj.X;
-            EMP_obj = obj;
 
+            obj.n = obj.n+1;
+            
+            EMP_obj = obj;
         end
 
     end

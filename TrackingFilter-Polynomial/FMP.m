@@ -52,7 +52,7 @@ classdef FMP
             e_n = [Y_n;0] -X_k;
             
             %Calculate weights
-            theta = obj.n;
+            theta = 0.83;
             gamma = 0.5 *((1-theta)^3);
             beta =  1.5 * (1-theta)^2*(1+theta);
             alpha = 1 - theta^3;

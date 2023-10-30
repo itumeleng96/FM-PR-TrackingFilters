@@ -45,7 +45,7 @@ classdef FMP
 
 
         function [X_est, FMP_obj] = update(obj, Y_n)
-            %2nd degree Expanding Memory Polynomial Filter
+            %2nd degree Fading Memory Polynomial Filter
             
             X_k = obj.X;
             %Calculate the Error

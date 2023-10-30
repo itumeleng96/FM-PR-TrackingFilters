@@ -55,14 +55,10 @@ classdef EMP
             %Calculate the Error
             E_n = [Y_n;0] -(Z_k);
             
-            %e_doppler = Y_n(2) -(X_k(4)+X_k(5)+X_k(6));
-
             %Calculate weights
-            %n=obj.n;
             gamma = 30 / ((obj.n + 3)*(obj.n+2)*(obj.n+1));
             beta = 18 * (2 * obj.n + 1) / ((obj.n + 3)*(obj.n+2)*(obj.n+1));
             alpha = 3 * (3 * obj.n^2 + 3 * obj.n + 2) /((obj.n + 3)*(obj.n+2)*(obj.n+1));
-            %T_n = [alpha;beta;gamma;];
             
     
             Temp2 = Z_k(3) + gamma * E_n(2);

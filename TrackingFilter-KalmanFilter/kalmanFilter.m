@@ -1,7 +1,7 @@
 classdef kalmanFilter
 
     properties
-        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc,k_d;
+        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc,k_d,w_k;
     end
     
     methods
@@ -19,7 +19,7 @@ classdef kalmanFilter
             obj.k_d = -c/94e6;                             % Wave number k=-lambda=c/f
 
                     
-            obj.F = [1,obj.k_d*dt,obj.k_d*(1/2)*dt^2;
+            obj.F = [1,obj.k_d*dt,dt^2;
                      0, 1, dt;
                      0, 0, 1;];
                     
@@ -40,18 +40,20 @@ classdef kalmanFilter
             obj.A = [1, dt, dt^2;
                      0, 1, dt ;
                      0, 0, 1];
+
+            obj.w_k = [(dt^2)/2;dt;1];
       
         end
         
         function [X_pred,KF_obj1] = predict(obj)
 
             %Predict next state (prior)
-            
+           
             % x = Fx
-            obj.X = obj.F*obj.X ;
+            obj.X = obj.F*obj.X;
             
             % P = FPF' + Q
-            obj.P = obj.A * obj.P * obj.A.' + obj.Q;
+            obj.P = obj.F * obj.P * obj.F.' + obj.Q;
 
             %Return Prior
             X_pred = obj.X;
@@ -61,19 +63,24 @@ classdef kalmanFilter
         function [X_est,KF_obj2] = update(obj,z)
             %UPDATE STAGE
             
-            %S = H*P*H'+ R
-            obj.S = obj.H * obj.P * obj.H.' + obj.R;
+            Doppler_threshold = 5; % Set an appropriate threshold value
+            if abs(z(2)) > Doppler_threshold
+                % Doppler measurement is reliable, perform the Kalman update
+                %S = H*P*H'+ R
+                obj.S = obj.H * obj.P * obj.H.' + obj.R;
+                
+                %K = PH'inv(S)
+                K = (obj.P * obj.H.') / obj.S;
+                %x = x + Ky
+                obj.X = obj.X + K * (z-obj.H * obj.X);
+                I = eye(size(obj.H,2));
+    
+                %UPDATE ERROR COVARIANCE MATRIX
+                obj.P = (I - (K * obj.H)) * obj.P ;
+            end
 
-            %K = PH'inv(S)
-            K = (obj.P * obj.H.') / obj.S;
-
-            %x = x + Ky
-            obj.X = obj.X + K * (z-obj.H * obj.X);
-            I = eye(size(obj.H,2));
-
-            %UPDATE ERROR COVARIANCE MATRIX
-            obj.P = (I - (K * obj.H)) * obj.P ;
             
+          
             X_est = obj.X;
             KF_obj2 = obj;
         end

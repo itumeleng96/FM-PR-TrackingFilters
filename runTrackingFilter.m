@@ -9,10 +9,14 @@ addpath('FERS/', ...
         'DPI_Suppression', ...
         'TrackingFilter-KalmanFilter/', ...
         'TrackingFilter-ParticleFilter/', ...
-        'TrackingFilter-RGNF/');
+        'TrackingFilter-UKF/', ... 
+        'TrackingFilter-RGNF/',...
+        'TrackingFilter-Polynomial/');
 
 
-system("fers FERS/scenario_1_singleFile.fersxml");
+%system("fers FERS/scenario_1_singleFile.fersxml");
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/scenario_1_singleFile.fersxml');
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % h5 Import from FERS simulation
 [Ino, Qno, scale_no] = loadfersHDF5('direct.h5');
@@ -51,7 +55,6 @@ initial=1;
 
 current=fs;                                %based on samples in transmitted signal
 simulation_time = size(I_Qmov,1)/fs;       %Simulation time: number of data points/sampling frequency
-disp(simulation_time);
 
 ard = [];
 rdm =[];
@@ -87,11 +90,17 @@ movegui(f5,'southeast');
 %Create MTT object
 confirmationThreshold=4;
 deletionThreshold=6;
-gatingThreshold=[10000,30];
+gatingThreshold=[5000,20];
 
 %FilterType 1: Kalman Filter
 %FilterType 2: Particle Filter
-filterType =2;
+%FilterType 3: UKF  Filter
+%FilterType 4: RGNF  Filter
+%FilterType 5: FMP Filter
+%FilterType 6: EMP Filter
+%FilterType 7: Composite Polynomial Filter
+
+filterType =1;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -119,28 +128,30 @@ for i = 1:simulation_time
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,0.5e4,10);
+    [clusterCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,0.5e4,4);
 
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
 
+   
     %DELETE and CONFIRM Tracks
     multiTargetTracker = multiTargetTracker.maintainTracks();
 
     %Filter Prediction Stage
     multiTargetTracker = multiTargetTracker.predictionStage();
 
+   
     %PLOT Prediction and True Tracks
-    multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM)
+    multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
 
     %UPDATE Tracks from measurements
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
-
+   
     %CALCULATE Likelihoods 
     [doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihood(f4,f5,i,doppler_ll,range_ll,true);
-    
+   
     %CALCULATE ERROR 
-    [doppler_error,range_error]=multiTargetTracker.calculateError(i,doppler_error,range_error);
+    [doppler_error,range_error,doppler_meas,range_meas]=multiTargetTracker.getErrors(i,doppler_error,range_error);
     
 
     % Create comparison plots for Doppler Error
@@ -148,11 +159,13 @@ for i = 1:simulation_time
     plot(doppler_error, 'b--^');
     hold on;
     plot(dopplerTrueData(1:i), 'r-*');
+    hold on;
+    plot(doppler_meas(1:i), '-o');
     
     title('Bistatic Doppler Error Comparison');
     xlabel('Time(s)');
     ylabel('Doppler (Hz)  ');
-    legend('Kalman Filter','True Trajectory');
+    legend('Tracking Filter','Ground Truth','Measurement');
     grid on;
     
     % Create comparison plots for Range Errors
@@ -160,14 +173,15 @@ for i = 1:simulation_time
     plot(range_error, 'b--^');
     hold on;
     plot(rangeTrueData(1:i), 'r-*');
-
+    hold on;
+    plot(range_meas(1:i), '-o');
+    
     title('Bistatic Range Error Comparison');
     xlabel('Time(s)');
     ylabel('Bistatic range(m)');
-    legend('Kalman Filter','True Trajectory');
+    legend('Tracking Filter','Ground Truth','Measurement');
     grid on;
-
-
+    %}
     ard = ard_;
     rdm= rdm_;
 

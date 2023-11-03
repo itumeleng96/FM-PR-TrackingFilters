@@ -31,16 +31,16 @@ classdef track
             switch filterType
                 case 1
                     disp("Initializing Kalman Filter");
-                    std_meas=[100,0.1];                                %Standard Deviation of the measurements in the x and y
-                    std_acc=0.1;                                       %Standard Deviation of the process noise
+                    std_meas=[sqrt(100),sqrt(0.1)];                                %Standard Deviation of the measurements in the x and y
+                    std_acc=1;                                       %Standard Deviation of the process noise
                     KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;]);
                     obj.trackingFilterObject = KF_object;
                                    
                 case 2
                     disp("Initializing Particle Filter");
                     N=5000;                                          %Number of particles
-                    std_acc=0.1;                                       %Standard Deviation of the process noise
-                    std_meas=[500,1];                              %Standard Deviation of the measurements in the x and y
+                    std_acc=0.1;                                     %Standard Deviation of the process noise
+                    std_meas=[500,1];                                %Standard Deviation of the measurements in the x and y
                     PF_object = particleFilter(dt,std_acc,std_meas,[obj.x_initial(1);obj.x_initial(2);0;],N);
                     obj.trackingFilterObject = PF_object;
                 
@@ -54,21 +54,35 @@ classdef track
                 case 4
                     disp("Initializing Recursive Gauss Newton Filter");
                     std_acc=0.01;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[100,0.1];                              %Standard Deviation of the measurements in the x and y
+                    std_meas=[100,0.1];                               %Standard Deviation of the measurements in the x and y
                     RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;],100);
                     obj.trackingFilterObject = RGNF_object;
     
                 case 5
-                    disp("Initializing Polynomial Filter");
+                    disp("Initializing Fading Polynomial Filter");
                     std_acc=0.01;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[100,0.1];                              %Standard Deviation of the measurements in the x and y
-                    PF_object = EMP(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;]);
-                    obj.trackingFilterObject = PF_object;
+                    std_meas=[100,0.1];                               %Standard Deviation of the measurements in the x and y
+                    EMP_object = FMP(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;]);
+                    obj.trackingFilterObject = EMP_object;
+                
+                case 6
+                    disp("Initializing Expanding Polynomial Filter");
+                    std_acc=0.01;                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[100,0.1];                               %Standard Deviation of the measurements in the x and y
+                    EMP_object = EMP(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;]);
+                    obj.trackingFilterObject = EMP_object;
+
+                case 7
+                    disp("Initializing Composite Polynomial Filter");
+                    std_acc=0.01;                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[100,0.1];                               %Standard Deviation of the measurements in the x and y
+                    compositePF_object = compositePF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;]);
+                    obj.trackingFilterObject = compositePF_object;
                     
                 otherwise
                     dt=1;
                     std_meas=[25,0.001];                              %Standard Deviation of the measurements in the x and y
-                    std_acc=[1e-3,1];                               %Standard Deviation of the acceleration in ms^2
+                    std_acc=[1e-3,1];                                 %Standard Deviation of the acceleration in ms^2
                     KF_object = kalmanFilter(dt,U(1),U(2),std_acc,std_meas(1),std_meas(2),[x_initial(1);0;0;x_initial(2);0;0]);
                     obj.trackingFilterObject = KF_object;
             end

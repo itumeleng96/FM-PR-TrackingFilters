@@ -63,21 +63,18 @@ classdef kalmanFilter
         function [X_est,KF_obj2] = update(obj,z)
             %UPDATE STAGE
             
-            Doppler_threshold = 5; % Set an appropriate threshold value
-            if abs(z(2)) > Doppler_threshold
-                % Doppler measurement is reliable, perform the Kalman update
-                %S = H*P*H'+ R
-                obj.S = obj.H * obj.P * obj.H.' + obj.R;
-                
-                %K = PH'inv(S)
-                K = (obj.P * obj.H.') / obj.S;
-                %x = x + Ky
-                obj.X = obj.X + K * (z-obj.H * obj.X);
-                I = eye(size(obj.H,2));
+            % Doppler measurement is reliable, perform the Kalman update
+            %S = H*P*H'+ R
+            obj.S = obj.H * obj.P * obj.H.' + obj.R;
+            
+            %K = PH'inv(S)
+            K = (obj.P * obj.H.') / obj.S;
+            %x = x + Ky
+            obj.X = obj.X + K * (z-obj.H * obj.X);
+            I = eye(size(obj.H,2));
     
-                %UPDATE ERROR COVARIANCE MATRIX
-                obj.P = (I - (K * obj.H)) * obj.P ;
-            end
+            %UPDATE ERROR COVARIANCE MATRIX
+            obj.P = (I - (K * obj.H)) * obj.P ;
 
             
           

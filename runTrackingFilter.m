@@ -78,12 +78,21 @@ movegui(f3,'southeast');
 
 f4=figure(4);
 f4.Position = [4000 10 1000 800]; 
-movegui(f4,'northeast');
+movegui(f4,'southwest');
 
 %Range Error
 f5=figure(5);
 f5.Position = [4000 10 1000 800]; 
 movegui(f5,'southeast');
+
+
+f6=figure(6);
+f6.Position = [4000 10 1000 800]; 
+movegui(f6,'southeast');
+
+f7=figure(7);
+f7.Position = [4000 10 1000 800]; 
+movegui(f7,'southeast');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -155,7 +164,7 @@ for i = 1:simulation_time
     
 
     % Create comparison plots for Doppler Error
-    figure(6);
+    figure(f6);
     plot(doppler_error, 'b--^');
     hold on;
     plot(dopplerTrueData(1:i), 'r-*');
@@ -169,7 +178,7 @@ for i = 1:simulation_time
     grid on;
     
     % Create comparison plots for Range Errors
-    figure(7);
+    figure(f7);
     plot(range_error, 'b--^');
     hold on;
     plot(rangeTrueData(1:i), 'r-*');

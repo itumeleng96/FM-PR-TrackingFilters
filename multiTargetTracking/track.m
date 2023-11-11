@@ -31,17 +31,17 @@ classdef track
             switch filterType
                 case 1
                     disp("Initializing Kalman Filter");
-                    std_meas=[sqrt(100),sqrt(0.1)];                                %Standard Deviation of the measurements in the x and y
+                    std_meas=[10,0.5];                                %Standard Deviation of the measurements in the x and y
                     std_acc=1;                                       %Standard Deviation of the process noise
-                    KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;]);
+                    KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);]);
                     obj.trackingFilterObject = KF_object;
                                    
                 case 2
                     disp("Initializing Particle Filter");
                     N=5000;                                          %Number of particles
-                    std_acc=0.1;                                     %Standard Deviation of the process noise
-                    std_meas=[500,1];                                %Standard Deviation of the measurements in the x and y
-                    PF_object = particleFilter(dt,std_acc,std_meas,[obj.x_initial(1);obj.x_initial(2);0;],N);
+                    std_acc=10;                                     %Standard Deviation of the process noise
+                    std_meas=[100,0.1];                                %Standard Deviation of the measurements in the x and y
+                    PF_object = particleFilter(dt,std_acc,std_meas,[obj.x_initial(1);obj.x_initial(2);],N);
                     obj.trackingFilterObject = PF_object;
                 
                 case 3
@@ -53,9 +53,9 @@ classdef track
 
                 case 4
                     disp("Initializing Recursive Gauss Newton Filter");
-                    std_acc=0.01;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[100,0.1];                               %Standard Deviation of the measurements in the x and y
-                    RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;],100);
+                    std_acc=1;                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[1,0.2];                               %Standard Deviation of the measurements in the x and y
+                    RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);],100);
                     obj.trackingFilterObject = RGNF_object;
     
                 case 5

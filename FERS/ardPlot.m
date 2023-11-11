@@ -17,7 +17,7 @@ s2_pad = [zeros(Ndelay,1);s2];
 y1=zeros(Ndelay+1,2*fd_max+1);
 
 
-tic
+%tic
 for k = 1:Ndelay+1
     temp = s1.*conj(s2_pad(Ndelay+2-k:N+Ndelay+1-k));       %dot-product of the reference and scattered signals
     temp = temp.*hanning(N);                                %windowing the result |Using chebyshev window
@@ -25,7 +25,7 @@ for k = 1:Ndelay+1
     y1(k,:) = temp2(floor(N/2)+1-Ndop:floor(N/2)+1+Ndop);   %Discarding frequency bins not of interest
 end
 %display('Range-Doppler computation')
-toc
+%toc
 
 
 y = abs(y1).^2;                                             %Power conversion
@@ -37,7 +37,7 @@ range = time*c;
 frequency = -fd_max:1:fd_max;
 Dyn_dB = 40;                                                %Dynamic range (dB)
 max_dB = 10*log10(max(max(abs(y))));
-tic
+%tic
 
 
 %figure('Name','2D image');
@@ -53,10 +53,10 @@ end
 ard_ = ard;
 
 figure(f);
-imagesc(range,frequency,10*log10(ard.'),[max_dB-40 max_dB]);
+imagesc(range*1e-3,frequency,10*log10(ard.'),[max_dB-40 max_dB]);
 axis xy;
 colorbar;
-xlabel('Bistatic range [m]','Fontsize',10);
+xlabel('Bistatic range [km]','Fontsize',10);
 ylabel('Doppler frequency [Hz]','Fontsize',10);
 grid on;
 title('Range-Doppler response')

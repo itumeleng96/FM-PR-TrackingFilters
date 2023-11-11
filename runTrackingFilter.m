@@ -78,19 +78,24 @@ movegui(f3,'southeast');
 
 f4=figure(4);
 f4.Position = [4000 10 1000 800]; 
-movegui(f4,'northeast');
+movegui(f4,'southwest');
 
 %Range Error
 f5=figure(5);
 f5.Position = [4000 10 1000 800]; 
-movegui(f5,'southeast');
+
+f6=figure(6);
+f6.Position = [4000 10 1000 800]; 
+
+f7=figure(7);
+f7.Position = [4000 10 1000 800]; 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Create MTT object
 confirmationThreshold=4;
 deletionThreshold=6;
-gatingThreshold=[5000,20];
+gatingThreshold=[10000,20];
 
 %FilterType 1: Kalman Filter
 %FilterType 2: Particle Filter
@@ -155,8 +160,8 @@ for i = 1:simulation_time
     
 
     % Create comparison plots for Doppler Error
-    figure(6);
-    plot(doppler_error, 'b--^');
+    figure(f6);
+    plot(abs(doppler_error), 'b--^');
     hold on;
     plot(dopplerTrueData(1:i), 'r-*');
     hold on;
@@ -169,8 +174,8 @@ for i = 1:simulation_time
     grid on;
     
     % Create comparison plots for Range Errors
-    figure(7);
-    plot(range_error, 'b--^');
+    figure(f7);
+    plot(abs(range_error), 'b--^');
     hold on;
     plot(rangeTrueData(1:i), 'r-*');
     hold on;

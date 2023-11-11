@@ -19,67 +19,63 @@ classdef kalmanFilter
             obj.k_d = -c/94e6;                             % Wave number k=-lambda=c/f
 
                     
-            obj.F = [1,obj.k_d*dt,dt^2;
-                     0, 1, dt;
-                     0, 0, 1;];
+            obj.F = [1,obj.k_d*dt;
+                     0, 1;];
                     
             
-            obj.H = [1,0,0;0,1,0;];                        % Measurement Function
-
-            
-
-            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2;
-                     (dt^3)/2, dt^2, dt;
-                     (dt^2)/2, dt , 1]*std_acc;
+            obj.H = [1,0;
+                     0,1;];                                % Measurement Function
 
 
-            obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty
-            obj.S = [0,0;0,0.0];                           % System Uncertainty  
+            obj.Q = [(dt^4)/4,(dt^3)/2;
+                     (dt^3)/2, dt^2;]*std_acc;
+
+            obj.R = [r_std^2,     0;                       % Measurement noise covariance matrix   
+                     0,     rdot_std^2];
+
             obj.P = eye(size(obj.F,2));                    % Uncertainty Covariance
            
-            obj.A = [1, dt, dt^2;
-                     0, 1, dt ;
-                     0, 0, 1];
+            obj.A = [1, dt;
+                     0, 1;];
 
-            obj.w_k = [(dt^2)/2;dt;1];
+            obj.w_k =  [(dt^2)/2;dt;]*std_acc;
       
         end
         
         function [X_pred,KF_obj1] = predict(obj)
 
-            %Predict next state (prior)
+            % Predict next state (prior)
            
             % x = Fx
-            obj.X = obj.F*obj.X;
+            obj.X(1,1) = obj.X(1,1);
+            obj.X = obj.F*obj.X+obj.w_k;
             
             % P = FPF' + Q
             obj.P = obj.F * obj.P * obj.F.' + obj.Q;
 
-            %Return Prior
+            % Return Prior
+            obj.X(1,1) = obj.X(1,1);
             X_pred = obj.X;
             KF_obj1  = obj;
         end
         
         function [X_est,KF_obj2] = update(obj,z)
-            %UPDATE STAGE
+            % UPDATE STAGE
             
-            Doppler_threshold = 5; % Set an appropriate threshold value
-            if abs(z(2)) > Doppler_threshold
-                % Doppler measurement is reliable, perform the Kalman update
-                %S = H*P*H'+ R
-                obj.S = obj.H * obj.P * obj.H.' + obj.R;
-                
-                %K = PH'inv(S)
-                K = (obj.P * obj.H.') / obj.S;
-                %x = x + Ky
-                obj.X = obj.X + K * (z-obj.H * obj.X);
-                I = eye(size(obj.H,2));
-    
-                %UPDATE ERROR COVARIANCE MATRIX
-                obj.P = (I - (K * obj.H)) * obj.P ;
-            end
+            % Doppler measurement is reliable, perform the Kalman update
+            % S = H*P*H'+ R
+            disp("Z");
+            disp(z);
+            obj.S = obj.H * obj.P * obj.H.' + obj.R;
+            % K = PH'inv(S)
+            K = (obj.P * obj.H.') \obj.S;
+            K = [K(1,1),0;0,K(2,2)];
+            disp(K);
+            obj.X = obj.X + K * (z-obj.H * obj.X);
 
-            
+            I = eye(2);
+            % UPDATE ERROR COVARIANCE MATRIX
+            obj.P = (I - (K * obj.H)) * obj.P;
           
             X_est = obj.X;
             KF_obj2 = obj;

@@ -30,13 +30,11 @@ classdef particleFilter
             %wave number c/f
             obj.k_d = -299792458/94e6; 
 
-            obj.A = [1,obj.k_d*dt,obj.k_d*(1/2)*dt^2;
-                     0, 1, dt;
-                     0, 0, 1;];
+            obj.A = [1,dt;
+                     0, 1;];
 
-            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2;
-                     (dt^3)/2, dt^2, dt;
-                     (dt^2)/2, dt , 1]*std_acc;
+            obj.Q = [(dt^4)/4, (dt^3)/2;
+                     (dt^3)/2, dt^2;]*std_acc;
             
 
             obj.S = [0,0;
@@ -50,11 +48,11 @@ classdef particleFilter
             %noise = zeros(obj.N, size(obj.Q, 1));
         
             % Generate random Gaussian noise with zero mean and covariance matrix Q
-            noise = mvnrnd([0, 0, 0], obj.Q, obj.N);
+            noise = mvnrnd([0, 0], obj.Q, obj.N);
 
 
             % Add process noise to particle states
-            obj.particles(:, 1:3) = (obj.A(1:3, 1:3) * obj.particles(:, 1:3)' + noise(:, 1:3)')';
+            obj.particles(:, 1:2) = (obj.A(1:2, 1:2) * obj.particles(:, 1:2)' + noise(:, 1:2)')';
         
             % Update the covariance matrix of the particles based on the noise added
             

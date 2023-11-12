@@ -33,7 +33,7 @@ classdef kalmanFilter
             obj.R = [r_std^2,     0;                       % Measurement noise covariance matrix   
                      0,     rdot_std^2];
 
-            obj.P = eye(size(obj.F,2));                    % Uncertainty Covariance
+            obj.P = eye(2);                    % Uncertainty Covariance
            
             obj.A = [1, dt;
                      0, 1;];
@@ -47,14 +47,12 @@ classdef kalmanFilter
             % Predict next state (prior)
            
             % x = Fx
-            obj.X(1,1) = obj.X(1,1);
             obj.X = obj.F*obj.X+obj.w_k;
             
             % P = FPF' + Q
-            obj.P = obj.F * obj.P * obj.F.' + obj.Q;
+            obj.P = obj.A * obj.P * obj.A.' + obj.Q;
 
             % Return Prior
-            obj.X(1,1) = obj.X(1,1);
             X_pred = obj.X;
             KF_obj1  = obj;
         end
@@ -64,13 +62,9 @@ classdef kalmanFilter
             
             % Doppler measurement is reliable, perform the Kalman update
             % S = H*P*H'+ R
-            disp("Z");
-            disp(z);
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
             % K = PH'inv(S)
-            K = (obj.P * obj.H.') \obj.S;
-            K = [K(1,1),0;0,K(2,2)];
-            disp(K);
+            K = (obj.P * obj.H.') *obj.S^(-1);
             obj.X = obj.X + K * (z-obj.H * obj.X);
 
             I = eye(2);

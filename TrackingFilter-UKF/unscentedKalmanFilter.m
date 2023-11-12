@@ -25,35 +25,32 @@ classdef unscentedKalmanFilter
             obj.k_d = -c/94e6; 
 
             %State transition matrix
-            obj.F = [1,obj.k_d*dt,obj.k_d*(1/2)*dt^2;
-                     0, 1, dt;
-                     0, 0, 1;];
+            obj.F =[1,obj.k_d*dt;
+                     0, 1;];
 
             %Process Noise Covariance Matrix For Random Acceleration
             
-            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2;
-                     (dt^3)/2, dt^2, dt;
-                     (dt^2)/2, dt , 1]*std_acc;
+
+            obj.Q = [(dt^4)/4,(dt^3)/2;
+                     (dt^3)/2, dt^2;]*std_acc;
             
             %Measurement Error covariance matrix
-            obj.R = [r_std^2,0,0;
-                     0,rdot_std^2,0;
-                     0,0,0.1];
+            obj.R = [r_std^2,0;                       % Measurement noise covariance matrix   
+                     0, rdot_std^2];
 
 
-            obj.P = eye(size(obj.F,2));
+            obj.P = eye(2);
 
-            obj.S = [0,0;0,0.0];                  % System Uncertainty  
 
             %Constants for sigma points
             obj.alpha =1;
             obj.kappa =0;
             obj.beta =2;
-            obj.n = 3;
+            obj.n = 2;
             obj.lambda = obj.alpha^2*(obj.n+obj.kappa) -obj.n;
             
             [obj.Wc,obj.Wm] =obj.createWeights();
-            obj.H = [1,0,0;0,1,0;0,0,0;];
+            obj.H = [1,0;0,1;];
 
         end
         
@@ -63,7 +60,7 @@ classdef unscentedKalmanFilter
             %calculate sigma points for given mean and covariance
             obj.sigmaPoints = obj.createSigmaPoints(obj.X');
                       
-            obj.sigmaPoints = obj.F(1:3, 1:3) * obj.sigmaPoints(:, 1:3)';
+            obj.sigmaPoints = obj.F(1:2, 1:2) * obj.sigmaPoints(:, 1:2)';
 
             [obj.X,obj.P] = obj.unscentedTransform();
 
@@ -73,7 +70,7 @@ classdef unscentedKalmanFilter
         end
         
         function [Xest,KF_obj2] = update(obj,z)
-            z= [z;0];
+            
             muZ = sum(obj.sigmaPoints' .* obj.Wm,1);
             Xu = sum(obj.sigmaPoints' .* obj.Wm,1);
             
@@ -113,7 +110,7 @@ classdef unscentedKalmanFilter
             obj.n = obj.n;
             obj.P = obj.P;
             
-            sigmaPoints = zeros(2 * obj.n + 1, 3);
+            sigmaPoints = zeros(2 * obj.n + 1, obj.n);
             %U = chol((obj.n + obj.kappa) * obj.P);
             epsilon = 1e-6;  % Small positive perturbation
             U = chol((obj.n + obj.kappa) * obj.P + epsilon * eye(size(obj.P)));

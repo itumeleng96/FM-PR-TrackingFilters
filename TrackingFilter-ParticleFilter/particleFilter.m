@@ -30,15 +30,13 @@ classdef particleFilter
             %wave number c/f
             obj.k_d = -299792458/94e6; 
 
-            obj.A = [1,dt;
+            obj.A =  [1,obj.k_d*dt;
                      0, 1;];
+                    
 
             obj.Q = [(dt^4)/4, (dt^3)/2;
                      (dt^3)/2, dt^2;]*std_acc;
             
-
-            obj.S = [0,0;
-                     0,0];
 
         end
         

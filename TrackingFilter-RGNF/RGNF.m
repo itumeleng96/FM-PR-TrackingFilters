@@ -1,7 +1,7 @@
 classdef RGNF
 
     properties
-        dt,U,X,A,B,H,Q,R,P,S,coeff,measured_x,measured_y,max_iter,k_d;
+        dt,U,X,F,A,B,H,Q,R,P,S,coeff,measured_x,measured_y,max_iter,k_d;
     end
     
     methods
@@ -21,21 +21,23 @@ classdef RGNF
             obj.k_d = -299792458/94e6; 
 
             %State transition matrix
-            obj.A = [1,dt;
+            obj.F = [1,obj.k_d*dt;
                      0, 1;];
+                    
                     
             
             obj.H = [1,0;0,1;];                        % Measurement Function
 
             
 
-            obj.Q = [(dt^4)/4, 0;
-                     0, dt^2]*std_acc;
-
+            obj.Q = [(dt^4)/4,(dt^3)/2;
+                     (dt^3)/2, dt^2;]*std_acc;
 
             obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty
-            obj.P = eye(size(obj.A,2));                    % Filter Covariance matrix
-            obj.S = [0,0;0,0.0];                            
+            obj.P = eye(2);                                % Filter Covariance matrix
+            
+             obj.A = [1,dt;
+                     0, 1;];
 
 
         end
@@ -43,7 +45,7 @@ classdef RGNF
         % Function to predict the next state
         function [X_pred, GN_Obj] = predict(obj)
            
-            obj.X = obj.A*obj.X ;
+            obj.X = obj.F*obj.X ;
         
             % Initial covariance matrix
             obj.P = (obj.A * obj.P * obj.A.') + obj.Q;
@@ -66,7 +68,7 @@ classdef RGNF
 
             for i = 1:obj.max_iter
                 % Observer gain Kn
-                K_n = obj.P * obj.H.' / (obj.R + obj.H * obj.P * obj.H.');
+                K_n = obj.P * obj.H.' *(obj.R + obj.H * obj.P * obj.H.')^(-1);
                 
                 % Delta Error 
                 dx = K_n * (Y_n - obj.H *x_new -obj.H*(obj.X-x_new)); 

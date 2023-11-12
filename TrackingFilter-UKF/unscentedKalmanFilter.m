@@ -31,9 +31,10 @@ classdef unscentedKalmanFilter
 
             %Process Noise Covariance Matrix For Random Acceleration
             
-            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2;
-                     (dt^3)/2, dt^2, dt;
-                     (dt^2)/2, dt , 1]*std_acc;
+
+            obj.Q = [(dt^4)/4,0,0;
+                     0, dt^2,0;
+                     0, 0, 1]*std_acc;
             
             %Measurement Error covariance matrix
             obj.R = [r_std^2,0,0;

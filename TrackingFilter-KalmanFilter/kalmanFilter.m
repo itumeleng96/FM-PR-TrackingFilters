@@ -28,13 +28,13 @@ classdef kalmanFilter
 
             
 
-            obj.Q = [(dt^4)/4, (dt^3)/2, (dt^2)/2;
-                     (dt^3)/2, dt^2, dt;
-                     (dt^2)/2, dt , 1]*std_acc;
+            obj.Q = [(dt^4)/4,0,0;
+                     0, dt^2,0;
+                     0, 0, 1]*std_acc;
 
 
             obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty
-            obj.S = [0,0;0,0.0];                           % System Uncertainty  
+            
             obj.P = eye(size(obj.F,2));                    % Uncertainty Covariance
            
             obj.A = [1, dt, dt^2;
@@ -50,10 +50,10 @@ classdef kalmanFilter
             %Predict next state (prior)
            
             % x = Fx
-            obj.X = obj.F*obj.X;
+            obj.X = obj.F*obj.X ; 
             
             % P = FPF' + Q
-            obj.P = obj.F * obj.P * obj.F.' + obj.Q;
+            obj.P = obj.A * obj.P * obj.A.' + obj.Q;
 
             %Return Prior
             X_pred = obj.X;
@@ -65,6 +65,7 @@ classdef kalmanFilter
             
             % Doppler measurement is reliable, perform the Kalman update
             %S = H*P*H'+ R
+
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
             
             %K = PH'inv(S)

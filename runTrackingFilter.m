@@ -109,7 +109,7 @@ gatingThreshold=[5000,20];
 %FilterType 6: EMP Filter
 %FilterType 7: Composite Polynomial Filter
 
-filterType =1;
+filterType =3;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 

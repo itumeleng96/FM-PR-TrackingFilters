@@ -1,7 +1,7 @@
 classdef kalmanFilter
 
     properties
-        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc,k_d,w_k;
+        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc,k_d,w_k,count;
     end
     
     methods
@@ -42,6 +42,7 @@ classdef kalmanFilter
                      0, 0, 1];
 
             obj.w_k = [(dt^2)/2;dt;1];
+            obj.count =0;
       
         end
         
@@ -65,11 +66,20 @@ classdef kalmanFilter
             
             % Doppler measurement is reliable, perform the Kalman update
             %S = H*P*H'+ R
-
+                        
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
             
+            y = abs(obj.X(2,1)-z(2));
+
+            if(y < obj.R(2,2) && obj.count<4)
+                %decrease Q
+                obj.count = obj.count+1;
+                obj.Q = obj.Q*0.1;
+            end
+
+
             %K = PH'inv(S)
-            K = (obj.P * obj.H.') / obj.S;
+            K = (obj.P * obj.H.') * obj.S^(-1);
             %x = x + Ky
             obj.X = obj.X + K * (z-obj.H * obj.X);
             I = eye(size(obj.H,2));

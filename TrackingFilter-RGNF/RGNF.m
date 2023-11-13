@@ -1,7 +1,7 @@
 classdef RGNF
 
     properties
-        dt,U,X,A,B,H,Q,R,P,S,coeff,measured_x,measured_y,max_iter,k_d;
+        dt,U,X,A,B,H,Q,R,P,S,coeff,measured_x,measured_y,max_iter,k_d,count;
     end
     
     methods
@@ -38,8 +38,7 @@ classdef RGNF
 
             obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty
             obj.P = eye(size(obj.A,2));                    % Filter Covariance matrix
-            obj.S = [0,0;0,0.0];                            
-
+            obj.count =0;
 
         end
 
@@ -66,6 +65,16 @@ classdef RGNF
 
             %S = H*P*H'+ R - Innovation Covariance Matrix
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
+
+            y = abs(x_new(2,1)-Y_n(2));
+
+
+            if(y < obj.R(2,2) && obj.count<4)
+                %decrease Q
+                obj.count = obj.count+1;
+                obj.Q = obj.Q*0.1;
+            end
+
 
             for i = 1:obj.max_iter
                 % Observer gain Kn

@@ -3,7 +3,7 @@ classdef unscentedKalmanFilter
     properties
         dt,X,F,A,H,Q,R,P,S,
         coeff,measured_x,measured_y,std_acc,k_d,Wm,Wc,
-        lambda,alpha,kappa,n,beta,sigmaPoints;
+        lambda,alpha,kappa,n,beta,sigmaPoints,count;
     end
     
     methods
@@ -55,6 +55,7 @@ classdef unscentedKalmanFilter
             
             [obj.Wc,obj.Wm] =obj.createWeights();
             obj.H = [1,0,0;0,1,0;0,0,0;];
+            obj.count = 0;
 
         end
         
@@ -79,6 +80,12 @@ classdef unscentedKalmanFilter
             Xu = sum(obj.sigmaPoints' .* obj.Wm,1);
             
             y = z-muZ';
+
+            if(abs(y(2)) < obj.R(2,2) && obj.count<4)
+                %decrease Q
+                obj.count = obj.count+1;
+                obj.Q = obj.Q*0.1;
+            end
 
             [~,Pz] = obj.unscentedTransformZ();  
             Pxz=obj.unscentedTransformCross(Xu,muZ);

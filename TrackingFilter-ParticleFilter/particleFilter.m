@@ -11,6 +11,7 @@ classdef particleFilter
         std_meas;
         S;
         k_d;
+        count,
     end
     
     methods
@@ -37,36 +38,38 @@ classdef particleFilter
             obj.Q = [(dt^4)/4, 0,0;
                      0, dt^2, 0;
                      0, 0, 1]*std_acc;
-            
+            obj.count =0;
 
-            obj.S = [0,0;
-                     0,0];
+            
 
         end
         
         function [X_pred, PF_obj] = predict(obj)
 
             % Generate random Gaussian noise with zero mean and covariance matrix Q
-            %noise = zeros(obj.N, size(obj.Q, 1));
-        
-            % Generate random Gaussian noise with zero mean and covariance matrix Q
             noise = mvnrnd([0, 0, 0], obj.Q, obj.N);
 
 
             % Add process noise to particle states
             obj.particles(:, 1:3) = (obj.A(1:3, 1:3) * obj.particles(:, 1:3)' + noise(:, 1:3)')';
-        
-            % Update the covariance matrix of the particles based on the noise added
-            
+                    
             X_pred = mean(obj.particles, 1)';
-            %std_dev = var(obj.particles, 1);
-            %obj.S(1, 1) = std_dev(1);
-            %obj.S(2, 2) = std_dev(2);
+
             PF_obj = obj;
         end
         
         function [X_est, PF_obj] = update(obj, z)
         
+            xestValue = mean(obj.particles, 1)';            
+            y = abs(xestValue(2)-z(2));
+
+            if(y < obj.std_meas(2) && obj.count<4)
+                %decrease Q]
+                disp("dec");
+                obj.count = obj.count+1;
+                obj.Q = obj.Q*0.1;
+            end
+
             % Calculate the particle likelihoods based on a Gaussian PDF
             % p(z t​∣x t(i))=p(zx∣x t(i),σx)⋅p(z y∣y t(i),σy)
             diffs = (obj.particles(:, 1:2)' - z)';

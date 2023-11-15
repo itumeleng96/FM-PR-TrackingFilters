@@ -28,9 +28,9 @@ classdef kalmanFilter
 
             
 
-            obj.Q = [(dt^4)/4,0,0;
-                     0, dt^2,0;
-                     0, 0, 1]*std_acc;
+            obj.Q = [1500,0,0;
+                     0, 1,0;
+                     0, 0, 0.1]*std_acc;
 
 
             obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty
@@ -69,19 +69,19 @@ classdef kalmanFilter
                         
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
             
-            y = abs(obj.X(2,1)-z(2));
+            %y = abs(obj.X(2,1)-z(2));
 
-            if(y < obj.R(2,2) && obj.count<4)
+            %if(y < obj.R(2,2) && obj.count<4)
                 %decrease Q
-                obj.count = obj.count+1;
-                obj.Q = obj.Q*0.1;
-            end
+             %   obj.count = obj.count+1;
+             %   obj.Q = obj.Q*0.1;
+            %end
 
 
             %K = PH'inv(S)
             K = (obj.P * obj.H.') * obj.S^(-1);
             %x = x + Ky
-            obj.X = obj.X + K * (z-obj.H * obj.X);
+            obj.X = obj.X + K * (z-obj.H * obj.X);1
             I = eye(size(obj.H,2));
     
             %UPDATE ERROR COVARIANCE MATRIX

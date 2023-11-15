@@ -1,7 +1,7 @@
 classdef RGNF
 
     properties
-        dt,U,X,A,B,H,Q,R,P,S,coeff,measured_x,measured_y,max_iter,k_d,count;
+        dt,U,X,F,A,B,H,Q,R,P,S,coeff,measured_x,measured_y,max_iter;
     end
     
     methods
@@ -18,34 +18,43 @@ classdef RGNF
             % State transition matrix
             obj.dt = dt;
             %wave number k=-lambda=c/f
-            obj.k_d = -299792458/94e6; 
+            k= -299792458/94e6; 
 
-            %State transition matrix
-            obj.A = [1,obj.k_d*dt,obj.k_d*(1/2)*dt^2;
-                     0, 1, dt;
-                     0, 0, 1;];
+            obj.F = [1, 0, k*dt,0;
+                     0, 0, k, k*dt;
+                     0, 0, 1, dt;
+                     0, 0, 0, 1;];
                     
             
-            obj.H = [1,0,0;0,1,0;];                        % Measurement Function
+            obj.H = [1,0,0,0;
+                     0,0,1,0;];                             % Measurement Function
 
             
 
-           
-            obj.Q = [(dt^4)/4,0,0;
-                     0, dt^2,0;
-                     0, 0, 1]*std_acc;
+            obj.Q = [5,0,0,0;
+                     0, 0.02, 0, 0;
+                     0, 0, 0.2,0;
+                     0, 0, 0, 0.05];
 
 
             obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty
-            obj.P = eye(size(obj.A,2));                    % Filter Covariance matrix
-            obj.count =0;
+            
+            obj.P = [5,0,0,0;                              % Initial Error Covariance Matrix
+                     0, 0.02, 0, 0;
+                     0, 0, 0.4,0;
+                     0, 0, 0, 0.1];                           
+
+            obj.A = [1, dt, 0, 0;
+                     0, 1, 0, 0;
+                     0, 0, 1, dt;
+                     0, 0, 0, 1;];
 
         end
 
         % Function to predict the next state
         function [X_pred, GN_Obj] = predict(obj)
            
-            obj.X = obj.A*obj.X ;
+            obj.X = obj.F*obj.X ;
         
             % Initial covariance matrix
             obj.P = (obj.A * obj.P * obj.A.') + obj.Q;

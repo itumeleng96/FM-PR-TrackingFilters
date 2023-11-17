@@ -22,40 +22,42 @@ classdef unscentedKalmanFilter
 
             %wave number k=-lambda=c/f
             c=299792458;
-            obj.k_d = -c/94e6; 
-
-            %State transition matrix
-            obj.F = [1,obj.k_d*dt,obj.k_d*(1/2)*dt^2;
-                     0, 1, dt;
-                     0, 0, 1;];
-
+            k = -c/94e6;                                    
+                    
+            obj.F = [1, 0, k*dt,0;
+                     0, 0, k, k*dt;
+                     0, 0, 1, dt;
+                     0, 0, 0, 1;];
+                    
             %Process Noise Covariance Matrix For Random Acceleration
             
 
-            obj.Q = [(dt^4)/4,0,0;
-                     0, dt^2,0;
-                     0, 0, 1]*std_acc;
-            
+            obj.Q = [5,0,0,0;
+                     0, 0.02, 0, 0;
+                     0, 0, 0.0002,0;
+                     0, 0, 0, 0.005];
+
             %Measurement Error covariance matrix
-            obj.R = [r_std^2,0,0;
-                     0,rdot_std^2,0;
-                     0,0,0.1];
+            obj.R = [r_std^2,0;
+                     0,rdot_std^2;];
 
 
-            obj.P = eye(size(obj.F,2));
+            obj.P = [5,0,0,0;                             
+                     0, 0.02, 0, 0;
+                     0, 0, 0.4,0;
+                     0, 0, 0, 0.1];    
 
-            obj.S = [0,0;0,0.0];                  % System Uncertainty  
+            obj.H = [1,0,0,0;
+                     0,0,1,0;];                             % Measurement Function'
 
             %Constants for sigma points
             obj.alpha =1;
             obj.kappa =0;
             obj.beta =2;
-            obj.n = 3;
+            obj.n = 4;
             obj.lambda = obj.alpha^2*(obj.n+obj.kappa) -obj.n;
             
             [obj.Wc,obj.Wm] =obj.createWeights();
-            obj.H = [1,0,0;0,1,0;0,0,0;];
-            obj.count = 0;
 
         end
         
@@ -65,7 +67,7 @@ classdef unscentedKalmanFilter
             %calculate sigma points for given mean and covariance
             obj.sigmaPoints = obj.createSigmaPoints(obj.X');
                       
-            obj.sigmaPoints = obj.F(1:3, 1:3) * obj.sigmaPoints(:, 1:3)';
+            obj.sigmaPoints = obj.F(1:4, 1:4) * obj.sigmaPoints(:, 1:4)';
 
             [obj.X,obj.P] = obj.unscentedTransform();
 
@@ -75,24 +77,18 @@ classdef unscentedKalmanFilter
         end
         
         function [Xest,KF_obj2] = update(obj,z)
-            z= [z;0];
             muZ = sum(obj.sigmaPoints' .* obj.Wm,1);
             Xu = sum(obj.sigmaPoints' .* obj.Wm,1);
             
-            y = z-muZ';
+            y = z-obj.H*muZ';
 
-            if(abs(y(2)) < obj.R(2,2) && obj.count<4)
-                %decrease Q
-                obj.count = obj.count+1;
-                obj.Q = obj.Q*0.1;
-            end
 
-            [~,Pz] = obj.unscentedTransformZ();  
+            Pz = obj.unscentedTransformZ(muZ);  
             Pxz=obj.unscentedTransformCross(Xu,muZ);
             obj.S =Pxz;
             
             %Kalman Gain 
-            K =Pxz* Pz^-1 ;  
+            K =Pxz' * Pz^(-1) ;  
             
             obj.X  = obj.X' + K*y;
             obj.X=obj.X';
@@ -121,10 +117,10 @@ classdef unscentedKalmanFilter
             obj.n = obj.n;
             obj.P = obj.P;
             
-            sigmaPoints = zeros(2 * obj.n + 1, 3);
+            sigmaPoints = zeros(2 * obj.n + 1, 4);
             %U = chol((obj.n + obj.kappa) * obj.P);
             epsilon = 1e-6;  % Small positive perturbation
-            U = chol((obj.n + obj.kappa) * obj.P + epsilon * eye(size(obj.P)));
+            U = chol((obj.n + obj.kappa) * obj.P + epsilon * eye(4));
             
             sigmaPoints(1, :) = meanValue;
             for k = 1:obj.n
@@ -141,12 +137,12 @@ classdef unscentedKalmanFilter
             % Calculate the weighted sum of outer products using matrix operations
 
             [num,kmax] = size(obj.sigmaPoints);
-            P = zeros(num, num);
+            P = 0;
 
 
                         
             for k = 1:kmax
-                y_diff = obj.sigmaPoints(:, k)' - meanValue;
+                y_diff = obj.sigmaPoints(:, k) - meanValue';
                 P = P + obj.Wc(k) * (y_diff * y_diff');
             end
 
@@ -154,15 +150,15 @@ classdef unscentedKalmanFilter
 
         end
 
-        function [meanValueZ,PZ] = unscentedTransformZ(obj)
-            meanValueZ = sum(obj.sigmaPoints' .* obj.Wm,1);
+        function PZ = unscentedTransformZ(obj,muZ)
+            
             [num,kmax] = size(obj.sigmaPoints);
 
-            PZ = zeros(num,num);
+            PZ = zeros(2,2);
             
             % Calculate PZ using a for loop
             for k = 1:kmax
-                y_diff = obj.sigmaPoints(:,k)' - meanValueZ;
+                y_diff = obj.H*obj.sigmaPoints(:,k) - obj.H*muZ';
                 PZ = PZ + obj.Wc(k) * (y_diff * y_diff');
             end
             
@@ -177,14 +173,14 @@ classdef unscentedKalmanFilter
             
             [num,kmax] = size(obj.sigmaPoints);
 
-            Pxz = zeros(num,num);
+            Pxz = 0;
             
             % Calculate PZ using a for loop
             for k = 1:kmax
-                y_diff = obj.sigmaPoints(:,k)' - measMean;
+                y_diff = obj.H*obj.sigmaPoints(:,k) - obj.H*measMean';
                 x_diff = obj.sigmaPoints(:,k)' - stateMean;
                 
-                Pxz = Pxz + obj.Wc(k) * (y_diff * x_diff');
+                Pxz = Pxz + obj.Wc(k) * (x_diff.* y_diff);
             end
             
         end
@@ -195,5 +191,3 @@ classdef unscentedKalmanFilter
  end
         
     
-
-

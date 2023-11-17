@@ -32,8 +32,8 @@ classdef kalmanFilter
 
             obj.Q = [5,0,0,0;
                      0, 0.02, 0, 0;
-                     0, 0, 0.2,0;
-                     0, 0, 0, 0.05];
+                     0, 0, 0.0002,0;
+                     0, 0, 0, 0.005];
 
 
             obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty
@@ -76,6 +76,7 @@ classdef kalmanFilter
 
 
             %K = PH'inv(S)
+            
             K = (obj.P * obj.H.') * obj.S^(-1);
             %x = x + Ky
             obj.X = obj.X + K * (z-obj.H * obj.X);

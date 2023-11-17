@@ -2,7 +2,7 @@ classdef particleFilter
 
     properties
         dt,             %%Sampling Time
-        A,              %The state transition matrix
+        F,              %The state transition matrix
         Q,              %The Process Noise Covariance Matrix
         particles,      %Matrix containing the current State of the Particles
         weights,        %A vector containig the current weights of the particles
@@ -10,7 +10,6 @@ classdef particleFilter
         scaling_factor; % 
         std_meas;
         S;
-        k_d;
         count,
     end
     
@@ -22,23 +21,27 @@ classdef particleFilter
             obj.std_meas=std_meas;
            
             %Create  Gaussian  distributed particles on Initialization
-            obj.particles = obj.createGaussianParticles(initialCentroid,[10000,10],N);
+            obj.particles = obj.createGaussianParticles(initialCentroid,[1000,10],N);
             
             %Set Equal weights
             obj.weights = ones(N,1)/N;
             obj.dt = dt;
 
             %wave number c/f
-            obj.k_d = -299792458/94e6; 
+            k = -299792458/94e6; 
 
-            obj.A = [1,obj.k_d*dt,(1/2)*dt^2;
-                     0, 1, dt;
-                     0, 0, 1;];
+            obj.F = [1, 0, k*dt,0;
+                     0, 0, k, k*dt;
+                     0, 0, 1, dt;
+                     0, 0, 0, 1;];
+                    
+           
+            
 
-            obj.Q = [(dt^4)/4, 0,0;
-                     0, dt^2, 0;
-                     0, 0, 1]*std_acc;
-            obj.count =0;
+            obj.Q = [5,0,0,0;
+                     0, 0.02, 0, 0;
+                     0, 0, 0.2,0;
+                     0, 0, 0, 0.05];
 
             
 
@@ -47,11 +50,11 @@ classdef particleFilter
         function [X_pred, PF_obj] = predict(obj)
 
             % Generate random Gaussian noise with zero mean and covariance matrix Q
-            noise = mvnrnd([0, 0, 0], obj.Q, obj.N);
+            noise = mvnrnd([0, 0, 0, 0], obj.Q, obj.N);
 
 
             % Add process noise to particle states
-            obj.particles(:, 1:3) = (obj.A(1:3, 1:3) * obj.particles(:, 1:3)' + noise(:, 1:3)')';
+            obj.particles(:, 1:4) = (obj.F(1:4, 1:4) * obj.particles(:, 1:4)' + noise(:, 1:4)')';
                     
             X_pred = mean(obj.particles, 1)';
 
@@ -60,19 +63,10 @@ classdef particleFilter
         
         function [X_est, PF_obj] = update(obj, z)
         
-            xestValue = mean(obj.particles, 1)';            
-            y = abs(xestValue(2)-z(2));
-
-            if(y < obj.std_meas(2) && obj.count<4)
-                %decrease Q]
-                disp("dec");
-                obj.count = obj.count+1;
-                obj.Q = obj.Q*0.1;
-            end
-
+        
             % Calculate the particle likelihoods based on a Gaussian PDF
             % p(z t​∣x t(i))=p(zx∣x t(i),σx)⋅p(z y∣y t(i),σy)
-            diffs = (obj.particles(:, 1:2)' - z)';
+            diffs = (obj.particles(:, [1 3])' - z)';
             likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
             likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
             likelihood = likelihood_x .* likelihood_y;
@@ -130,9 +124,9 @@ classdef particleFilter
         function [particles] = createGaussianParticles(mean,std,N)
             %Create a Gaussian Distribution of particles over a region
             % N : number of particles
-                particles = zeros(N,3);
+                particles = zeros(N,4);
                 particles(:,1) = mean(1) + (randn(N,1))*std(1) ; 
-                particles(:,2) = mean(2) + (randn(N,1))*std(2) ;
+                particles(:,3) = mean(3) + (randn(N,1))*std(2) ;
                     
         end
         
@@ -142,6 +136,8 @@ classdef particleFilter
                 particles(:,1) = particles(indexes,1);
                 particles(:,2) = particles(indexes,2);
                 particles(:,3) = particles(indexes,3);
+                particles(:,4) = particles(indexes,4);
+                
                 
                 N = size(particles,1);
                 weights = zeros(N,1);
@@ -159,7 +155,7 @@ classdef particleFilter
                 
                 % Calculate the mean of particles using only columns 1 and 2
                 mean(1) = sum(particles(:, 1).*weights)/sum(weights);
-                mean(2) = sum(particles(:, 2).*weights)/sum(weights);
+                mean(2) = sum(particles(:, 3).*weights)/sum(weights);
                 
                 % Calculate the variance of particles using only columns 1 and 2
                 var_particles = zeros(size(particles, 1),2);

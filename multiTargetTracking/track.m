@@ -31,7 +31,7 @@ classdef track
             switch filterType
                 case 1
                     disp("Initializing Kalman Filter");
-                    std_meas=[100,0.5];                                %Standard Deviation of the measurements in the x and y
+                    std_meas=[50,0.2];                                %Standard Deviation of the measurements in the x and y
                     std_acc=1;                                       %Standard Deviation of the process noise
                     KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;]);
                     obj.trackingFilterObject = KF_object;
@@ -46,15 +46,15 @@ classdef track
                 
                 case 3
                     disp("Initializing Unscented Kalman Filter");
-                    std_acc=1e3;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[5,0.2];                              %Standard Deviation of the measurements in the x and y
+                    std_acc=1;                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[100,0.5];                              %Standard Deviation of the measurements in the x and y
                     UKF_object = unscentedKalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),0,obj.x_initial(2),0;]);
                     obj.trackingFilterObject = UKF_object;
 
                 case 4
                     disp("Initializing Recursive Gauss Newton Filter");
                     std_acc=1e3;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[500,1];                               %Standard Deviation of the measurements in the x and y
+                    std_meas=[100,0.5];                               %Standard Deviation of the measurements in the x and y
                     RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;],100);
                     obj.trackingFilterObject = RGNF_object;
     

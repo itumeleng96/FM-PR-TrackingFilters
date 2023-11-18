@@ -1,7 +1,7 @@
 classdef kalmanFilter
 
     properties
-        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc;
+        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc,dk,ek;
     end
     
     methods
@@ -47,6 +47,8 @@ classdef kalmanFilter
                      0, 1, 0, 0;
                      0, 0, 1, dt;
                      0, 0, 0, 1;];
+            obj.dk = [0;0;];
+            obj.ek = [0;0;];
 
 
         end
@@ -71,6 +73,19 @@ classdef kalmanFilter
             
             % Doppler measurement is reliable, perform the Kalman update
             %S = H*P*H'+ R
+            alpha =1;
+            obj.dk= z-obj.H*obj.X;
+            
+            obj.R = alpha*obj.R + (1-alpha)*(obj.ek*obj.ek' +obj.H*obj.P*obj.H');
+            disp(obj.R);
+
+            
+            %if(ek>sqrt(obj.S(2,2)))
+            %    disp("Treshold exceed!!!");
+            %end
+            %Innovation analyis
+            %test=logLikelihood(obj.X(3,1),obj.S(2,2),z(2));
+
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
 
 
@@ -82,11 +97,16 @@ classdef kalmanFilter
             I = eye(size(obj.H,2));
     
             %UPDATE ERROR COVARIANCE MATRIX
-            obj.P = (I - (K * obj.H)) * obj.P ;            
+            obj.P = (I - (K * obj.H)) * obj.P ;
+            obj.Q = alpha*obj.Q +(1-alpha)*(K*obj.dk*obj.dk'*K');
+
+            obj.ek = z-obj.H*obj.X;
+            
           
             X_est = obj.X;
             KF_obj2 = obj;
         end
+
         
      end
  end

@@ -1,7 +1,7 @@
 classdef kalmanFilter
 
     properties
-        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc,dk,ek;
+        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc,dk_history;
     end
     
     methods
@@ -40,30 +40,26 @@ classdef kalmanFilter
             
             obj.P = [5,0,0,0;                              % Initial Error Covariance Matrix
                      0, 0.02, 0, 0;
-                     0, 0, 0.4,0;
+                     0, 0, 0.04,0;
                      0, 0, 0, 0.1];                           
 
             obj.A = [1, dt, 0, 0;
                      0, 1, 0, 0;
                      0, 0, 1, dt;
                      0, 0, 0, 1;];
-            obj.dk = [0;0;];
-            obj.ek = [0;0;];
-
+            obj.dk_history = zeros(1,);
 
         end
         
         function [X_pred,KF_obj1] = predict(obj)
 
-            %Predict next state (prior)
-           
+            %PREDICT NEXT STATE (prior)
             % x = Fx
             obj.X = obj.F*obj.X ; 
             
             % P = FPF' + Q
             obj.P = obj.A * obj.P * obj.A.' + obj.Q;
 
-            %Return Prior
             X_pred = obj.X;
             KF_obj1  = obj;
         end
@@ -71,36 +67,35 @@ classdef kalmanFilter
         function [X_est,KF_obj2] = update(obj,z)
             %UPDATE STAGE
             
-            % Doppler measurement is reliable, perform the Kalman update
+            %Adaptive Filtering
+            threshold=10;
+            dk = obj.X(3,1)-z(2);
+            obj.dk_history = circshift(obj.dk_history, [0, 1]);
+            obj.dk_history(1) = dk*dk;
+
+            dk_average = movmean(obj.dk_history, 1);
+            
             %S = H*P*H'+ R
-            alpha =1;
-            obj.dk= z-obj.H*obj.X;
-            
-            obj.R = alpha*obj.R + (1-alpha)*(obj.ek*obj.ek' +obj.H*obj.P*obj.H');
-            disp(obj.R);
-
-            
-            %if(ek>sqrt(obj.S(2,2)))
-            %    disp("Treshold exceed!!!");
-            %end
-            %Innovation analyis
-            %test=logLikelihood(obj.X(3,1),obj.S(2,2),z(2));
-
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
 
+         
+            alpha = dk_average(1)/obj.S(2,2);
+            
+            if(abs(alpha)>threshold)
+                r_adapt = obj.R;
+                r_adapt(2,2) =r_adapt(2,2)*1000;
+                obj.S = obj.H * obj.P * obj.H.' + r_adapt;
+            else
+                obj.S = obj.H * obj.P * obj.H.' + obj.R;
+            end
 
             %K = PH'inv(S)
-            
             K = (obj.P * obj.H.') * obj.S^(-1);
-            %x = x + R
             obj.X = obj.X + K * (z-obj.H * obj.X);
             I = eye(size(obj.H,2));
     
             %UPDATE ERROR COVARIANCE MATRIX
             obj.P = (I - (K * obj.H)) * obj.P ;
-            obj.Q = alpha*obj.Q +(1-alpha)*(K*obj.dk*obj.dk'*K');
-
-            obj.ek = z-obj.H*obj.X;
             
           
             X_est = obj.X;

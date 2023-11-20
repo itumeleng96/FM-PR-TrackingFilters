@@ -34,7 +34,7 @@ classdef unscentedKalmanFilter
 
             obj.Q = [5,0,0,0;
                      0, 0.02, 0, 0;
-                     0, 0, 0.0002,0;
+                     0, 0, 0.2,0;
                      0, 0, 0, 0.005];
 
             %Measurement Error covariance matrix
@@ -77,6 +77,9 @@ classdef unscentedKalmanFilter
         end
         
         function [Xest,KF_obj2] = update(obj,z)
+
+            threshold=10;
+
             muZ = sum(obj.sigmaPoints' .* obj.Wm,1);
             Xu = sum(obj.sigmaPoints' .* obj.Wm,1);
             
@@ -87,12 +90,30 @@ classdef unscentedKalmanFilter
             Pxz=obj.unscentedTransformCross(Xu,muZ);
             obj.S =Pxz;
             
-            %Kalman Gain 
-            K =Pxz' * Pz^(-1) ;  
+            dk = obj.X(1,3)-z(2);
+            dk_average = dk*dk;
+            alpha1 = dk_average/obj.S(2,2);
             
-            obj.X  = obj.X' + K*y;
-            obj.X=obj.X';
-            obj.P = obj.P - K*Pz*K';
+            if(abs(alpha1)>threshold)
+                r_adapt = obj.R;
+                r_adapt(2,2) =r_adapt(2,2)*1000;
+                Pz = Pz-obj.R+r_adapt;
+                K =Pxz' * Pz^(-1) ;  
+            
+                obj.X  = obj.X' + K*y;
+                obj.X=obj.X';
+
+            
+            else
+                K =Pxz' * Pz^(-1) ;  
+            
+                obj.X  = obj.X' + K*y;
+                obj.X=obj.X';
+                obj.P = obj.P - K*Pz*K';
+                
+            end
+
+            %Kalman Gain 
             Xest=0;
             KF_obj2 = obj;
         end

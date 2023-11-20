@@ -31,15 +31,15 @@ classdef RGNF
 
             
 
-            obj.Q = [5,0,0,0;
+            obj.Q = [1,0,0,0;
                      0, 0.02, 0, 0;
                      0, 0, 0.2,0;
-                     0, 0, 0, 0.05];
+                     0, 0, 0, 0.005];
 
 
             obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty
             
-            obj.P = [5,0,0,0;                              % Initial Error Covariance Matrix
+            obj.P = [1,0,0,0;                              % Initial Error Covariance Matrix
                      0, 0.02, 0, 0;
                      0, 0, 0.4,0;
                      0, 0, 0, 0.1];                           
@@ -69,25 +69,31 @@ classdef RGNF
 
             %Convergence tolerance 
             tolerance = 1e-6; 
+            threshold=10;
+
             %The forgetting  factor(Lambda) - between 0 and 1
             lambda = 1;
 
             %S = H*P*H'+ R - Innovation Covariance Matrix
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
 
-            y = abs(x_new(2,1)-Y_n(2));
+            dk = obj.X(3,1)-Y_n(2);
+            dk_average = dk*dk;
+            alpha = dk_average/obj.S(2,2);
 
-
-            if(y < obj.R(2,2) && obj.count<4)
-                %decrease Q
-                obj.count = obj.count+1;
-                obj.Q = obj.Q*0.1;
+            if(abs(alpha)>threshold)
+                r_adapt = obj.R;
+                r_adapt(2,2) =r_adapt(2,2)*1000;
+                obj.S = obj.H * obj.P * obj.H.' + r_adapt;
+            else
+                obj.S = obj.H * obj.P * obj.H.' + obj.R;
             end
+            
 
 
             for i = 1:obj.max_iter
                 % Observer gain Kn
-                K_n = obj.P * obj.H.' / (obj.R + obj.H * obj.P * obj.H.');
+                K_n = obj.P * obj.H.' *obj.S^(-1);
                 
                 % Delta Error 
                 dx = K_n * (Y_n - obj.H *x_new -obj.H*(obj.X-x_new)); 

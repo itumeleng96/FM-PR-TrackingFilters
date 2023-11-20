@@ -47,7 +47,7 @@ classdef kalmanFilter
                      0, 1, 0, 0;
                      0, 0, 1, dt;
                      0, 0, 0, 1;];
-            obj.dk_history = zeros(1,);
+            obj.dk_history = zeros(1,1);
 
         end
         

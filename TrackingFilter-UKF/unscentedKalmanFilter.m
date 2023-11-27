@@ -3,7 +3,7 @@ classdef unscentedKalmanFilter
     properties
         dt,X,F,A,H,Q,R,P,S,
         coeff,measured_x,measured_y,std_acc,k_d,Wm,Wc,
-        lambda,alpha,kappa,n,beta,sigmaPoints,count;
+        lambda,alpha,kappa,n,beta,sigmaPoints,wk,count,updater,update1;
     end
     
     methods
@@ -31,11 +31,10 @@ classdef unscentedKalmanFilter
                     
             %Process Noise Covariance Matrix For Random Acceleration
             
-
-            obj.Q = [5,0,0,0;
-                     0, 0.02, 0, 0;
-                     0, 0, 0.2,0;
-                     0, 0, 0, 0.005];
+            obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
+                     (dt^3)/2, dt^2, 0, 0;
+                     0, 0, (dt^4)/4,(dt^3)/2;
+                     0, 0, (dt^3)/2, dt^2];
 
             %Measurement Error covariance matrix
             obj.R = [r_std^2,0;
@@ -58,6 +57,11 @@ classdef unscentedKalmanFilter
             obj.lambda = obj.alpha^2*(obj.n+obj.kappa) -obj.n;
             
             [obj.Wc,obj.Wm] =obj.createWeights();
+            obj.wk = 0.2*[dt^2;dt;dt^2;dt];
+
+            obj.count =0;
+            obj.updater =0;
+            obj.update1 =0;
 
         end
         
@@ -67,7 +71,7 @@ classdef unscentedKalmanFilter
             %calculate sigma points for given mean and covariance
             obj.sigmaPoints = obj.createSigmaPoints(obj.X');
                       
-            obj.sigmaPoints = obj.F(1:4, 1:4) * obj.sigmaPoints(:, 1:4)';
+            obj.sigmaPoints = obj.F(1:4, 1:4) * obj.sigmaPoints(:, 1:4)' +obj.wk;
 
             [obj.X,obj.P] = obj.unscentedTransform();
 
@@ -78,41 +82,64 @@ classdef unscentedKalmanFilter
         
         function [Xest,KF_obj2] = update(obj,z)
 
-            threshold=10;
+            threshold=3;
+            max_adapt=4;
+
+            %%To be replaced with another scheme to detect steady state
+            obj.count = obj.count+1;    
+
 
             muZ = sum(obj.sigmaPoints' .* obj.Wm,1);
             Xu = sum(obj.sigmaPoints' .* obj.Wm,1);
             
             y = z-obj.H*muZ';
 
-
+            disp(y);
             Pz = obj.unscentedTransformZ(muZ);  
             Pxz=obj.unscentedTransformCross(Xu,muZ);
-            obj.S =Pxz;
+
+            obj.S =[0,0;0,0];
+            obj.S(1,1) =Pxz(1,1);
+            obj.S(2,2) =Pxz(3,2);
             
-            dk = obj.X(1,3)-z(2);
-            dk_average = dk*dk;
-            alpha1 = dk_average/obj.S(2,2);
-            
-            if(abs(alpha1)>threshold)
+            eps_ =log(normpdf(z(2),obj.X(1,3),obj.S(2,2)));
+            disp(eps_);
+            if(abs(eps_)>threshold && obj.count>10 && obj.updater<max_adapt && obj.update1>max_adapt)
+
+                obj.updater = obj.updater+1;
+                if(obj.updater==max_adapt)
+                    obj.update1=0;
+                end
+                k_p = Pxz * Pz^(-1) ;  
+
+
+                disp('Threshold');
                 r_adapt = obj.R;
                 r_adapt(2,2) =r_adapt(2,2)*1000;
+                Pz_adapt = Pz;
                 Pz = Pz-obj.R+r_adapt;
-                K =Pxz' * Pz^(-1) ;  
-            
+                K =Pxz * Pz^(-1) ;  
+                Kp = Pxz * Pz_adapt^(-1);
+                disp(K);
                 obj.X  = obj.X' + K*y;
                 obj.X=obj.X';
 
+                obj.P = obj.P - Kp*Pz_adapt*Kp';
+
+                
             
             else
-                K =Pxz' * Pz^(-1) ;  
-            
+                obj.updater =0;
+                obj.update1=obj.update1+1;
+
+                K =Pxz * Pz^(-1) ;  
+                disp(K);
                 obj.X  = obj.X' + K*y;
                 obj.X=obj.X';
                 obj.P = obj.P - K*Pz*K';
                 
             end
-
+            disp(obj.P);
             %Kalman Gain 
             Xest=0;
             KF_obj2 = obj;
@@ -199,9 +226,9 @@ classdef unscentedKalmanFilter
             % Calculate PZ using a for loop
             for k = 1:kmax
                 y_diff = obj.H*obj.sigmaPoints(:,k) - obj.H*measMean';
-                x_diff = obj.sigmaPoints(:,k)' - stateMean;
+                x_diff = obj.sigmaPoints(:,k) - stateMean';
                 
-                Pxz = Pxz + obj.Wc(k) * (x_diff.* y_diff);
+                Pxz = Pxz + obj.Wc(k) * (x_diff.* y_diff');
             end
             
         end

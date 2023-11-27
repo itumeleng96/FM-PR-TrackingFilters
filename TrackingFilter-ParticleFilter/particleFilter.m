@@ -10,7 +10,10 @@ classdef particleFilter
         scaling_factor; % 
         std_meas;
         S;
-        count,
+        count;
+        updater;
+        update1;
+
     end
     
     methods
@@ -38,12 +41,17 @@ classdef particleFilter
            
             
 
-            obj.Q = [5,0,0,0;
-                     0, 0.02, 0, 0;
-                     0, 0, 0.2,0;
-                     0, 0, 0, 0.05];
-
+            obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
+                     (dt^3)/2, dt^2, 0, 0;
+                     0, 0, (dt^4)/4,(dt^3)/2;
+                     0, 0, (dt^3)/2, dt^2];
             
+            obj.count =0;
+            obj.updater =0;
+            obj.update1 =0;
+
+
+
 
         end
         
@@ -66,39 +74,70 @@ classdef particleFilter
         
             % Calculate the particle likelihoods based on a Gaussian PDF
             % p(z t​∣x t(i))=p(zx∣x t(i),σx)⋅p(z y∣y t(i),σy)
-            diffs = (obj.particles(:, [1 3])' - z)';
-            likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
-            likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
-            likelihood = likelihood_x .* likelihood_y;
-            
-            % Normalize the likelihood
-            likelihood = likelihood / sum(likelihood);
-            
-            
-            % Update the particle weights
-            obj.weights = obj.weights .* likelihood;
-            obj.weights = obj.weights + 1.e-300;  % Add small constant to avoid zero weights
-            obj.weights = obj.weights / sum(obj.weights);
-        
-            % Resample if too few effective particles
-            neff = obj.NEFF(obj.weights);
-            if neff < obj.N / 2
-                indexes = obj.resampleSystematic(obj.weights);
-                [obj.particles, obj.weights] = obj.resampleFromIndex(obj.particles, indexes);
-            end
-        
-            % Calculate estimated state as weighted mean
-            [meanValue,varValue] = obj.estimate(obj.particles, obj.weights);
-            X_est = meanValue;
-            
-            %obj.S(1,1)=varValue(1);
-            %obj.S(2,2)=varValue(2);
-            
-            % Initialize the cross-covariance matrix (K) as a zero matrix
-        
+            %Adaptive filtering
+
             % Calculate the cross-covariance elements (K_ij) using the weighted particles
             % S = HPH' + R;
-            obj.S= sum(obj.weights .* (obj.particles(:, 1:2) - meanValue) .* (z - meanValue')', 3) + obj.std_meas;
+            threshold=2;
+
+            %max number of adaptive filtering
+            max_adapt=3;
+
+            %%To be replaced with another scheme to detect steady state
+            obj.count = obj.count+1;    
+
+            
+            [meanValueS,~] = obj.estimate(obj.particles, obj.weights);
+            slikelihood= sum(obj.weights .* (obj.particles(:, 1:2) - meanValueS) .* (z - meanValueS')', 3) + obj.std_meas;
+            obj.S = [mean(slikelihood(:,1)),0;0,mean(slikelihood(:,2));];
+            eps_ = log(normpdf(z(2),meanValueS(2),obj.S(2,2)));
+
+            if(abs(eps_)>threshold && obj.count>10 && obj.updater<max_adapt && obj.update1>max_adapt)
+                obj.updater = obj.updater+1;
+                if(obj.updater==max_adapt)
+                    obj.update1=0;
+                end
+
+                diffs = (obj.particles(:, [1 3])' - z)';
+                likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2*50);
+                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
+                likelihood = likelihood_x .* likelihood_y;
+                weights_adapt =obj.weights .*likelihood;
+
+
+                [meanValue,~] = obj.estimate(obj.particles, weights_adapt);
+                
+            else
+                obj.updater =0;
+                obj.update1=obj.update1+1;
+                    
+                diffs = (obj.particles(:, [1 3])' - z)';
+                likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
+                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
+                likelihood = likelihood_x .* likelihood_y;
+                
+                % Normalize the likelihood
+                likelihood = likelihood / sum(likelihood);
+                
+                
+                % Update the particle weights
+                obj.weights = obj.weights .* likelihood;
+                obj.weights = obj.weights + 1.e-300;  % Add small constant to avoid zero weights
+                obj.weights = obj.weights / sum(obj.weights);
+            
+                % Resample if too few effective particles
+                neff = obj.NEFF(obj.weights);
+                if neff < obj.N / 2
+                    indexes = obj.resampleSystematic(obj.weights);
+                    [obj.particles, obj.weights] = obj.resampleFromIndex(obj.particles, indexes);
+                end
+
+                [meanValue,~] = obj.estimate(obj.particles, obj.weights);
+
+
+            end
+
+            X_est = meanValue;            
             PF_obj = obj;
         end
     end

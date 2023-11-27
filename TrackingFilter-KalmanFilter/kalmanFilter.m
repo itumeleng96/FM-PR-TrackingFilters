@@ -1,7 +1,7 @@
 classdef kalmanFilter
 
     properties
-        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc,dk_history,P_adapt,wk,count,counter,updater,update1;
+        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc,wk,count,updater,update1;
     end
     
     methods
@@ -16,7 +16,7 @@ classdef kalmanFilter
             obj.X= X_initial;                              % Initial State
             obj.dt = dt;                                   % Update Interval
             c=299792458;    
-            k = -c/94e6;                                    % Wave number k=-lambda=c/f
+            k = -c/94e6;                                   % Wave number k=-lambda=c/f
 
                     
             obj.F = [1, 0, k*dt,0;
@@ -26,19 +26,19 @@ classdef kalmanFilter
                     
             
             obj.H = [1,0,0,0;
-                     0,0,1,0;];                             % Measurement Function
+                     0,0,1,0;];                            % Measurement Function
 
             
 
-            obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                              % Initial Error Covariance Matrix
+            obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
                      (dt^3)/2, dt^2, 0, 0;
                      0, 0, (dt^4)/4,(dt^3)/2;
                      0, 0, (dt^3)/2, dt^2];
 
             obj.R = [r_std,0;0,rdot_std];                  % Measurement Uncertainty
             
-            obj.P = [1,0,0,0;                              % Initial Error Covariance Matrix
-                     0, 0.02, 0, 0;
+            obj.P = [500,0,0,0;                              % Initial Error Covariance Matrix
+                     0, 10, 0, 0;
                      0, 0, 0.4,0;
                      0, 0, 0, 0.1];  
             
@@ -46,11 +46,10 @@ classdef kalmanFilter
                      0, 1, 0, 0;
                      0, 0, 1, dt;
                      0, 0, 0, 1;];
-            obj.dk_history = zeros(1,1);
-            obj.P_adapt = obj.P;
-            obj.wk = 0.09*[dt^2;dt;dt^2;dt];
+
+            obj.wk = std_acc*[dt^2;dt;dt^2;dt];
+
             obj.count =0;
-            obj.counter =0;
             obj.updater =0;
             obj.update1 =0;
 
@@ -72,27 +71,31 @@ classdef kalmanFilter
         
         function [X_est,KF_obj2] = update(obj,z)
             %UPDATE STAGE
-            obj.count = obj.count+1;
-            %Adaptive Filtering
+
+            %ADAPTIVE FILTERING
+            %Threshold to compare with Likelihood
             threshold=3;
-            dk = obj.X(3,1)-z(2);
-            y = dk*dk;
+
+            %max number of adaptive filtering
+            max_adapt=4;
+
+            %%To be replaced with another scheme to detect steady state
+            obj.count = obj.count+1;    
+
+            %Use only doppler for abnomarl measurments checking
             %S = H*P*H'+ R
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
 
             eps_ =log(normpdf(z(2),obj.X(3,1),obj.S(2,2)));
-            disp("eps_");
-            disp(eps_);
 
-            if(abs(eps_)>threshold && obj.count>10 && obj.updater<4 && obj.update1>4)
-                disp("Threshold");
+            if(abs(eps_)>threshold && obj.count>10 && obj.updater<max_adapt && obj.update1>max_adapt)
+
                 obj.updater = obj.updater+1;
-                if(obj.updater==4)
+                if(obj.updater==max_adapt)
                     obj.update1=0;
                 end
 
-                obj.P_adapt =obj.P;
-                k_p = (obj.P_adapt * obj.H.') * obj.S^(-1);
+                k_p = (obj.P * obj.H.') * obj.S^(-1);
 
                 r_adapt = obj.R;
                 r_adapt(2,2) =r_adapt(2,2)*1000;
@@ -100,9 +103,7 @@ classdef kalmanFilter
                 obj.S = obj.H * obj.P * obj.H.' + r_adapt;
 
                 K = (obj.P * obj.H.') * obj.S^(-1);
-                K(3,2) = 0;
-                K(4,2) = 0;
-                        
+
                 obj.X = obj.X + K * (z-obj.H * obj.X);
                 I = eye(size(obj.H,2));
         
@@ -112,7 +113,9 @@ classdef kalmanFilter
                 obj.updater =0;
                 obj.update1=obj.update1+1;
                 obj.S = obj.H * obj.P * obj.H.' + obj.R;
-                            %K = PH'inv(S)
+                
+                %K = PH'inv(S)
+                
                 K = (obj.P * obj.H.') * obj.S^(-1);
                 
                 obj.X = obj.X + K * (z-obj.H * obj.X);

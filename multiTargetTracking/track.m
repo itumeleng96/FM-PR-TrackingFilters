@@ -32,7 +32,7 @@ classdef track
                 case 1
                     disp("Initializing Kalman Filter");
                     std_meas=[1000,0.01];                                %Standard Deviation of the measurements in the x and y
-                    std_acc=0.1;                                       %Standard Deviation of the process noise
+                    std_acc=0.09;                                       %Standard Deviation of the process noise
                     KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;]);
                     obj.trackingFilterObject = KF_object;
                                    
@@ -47,7 +47,7 @@ classdef track
                 case 3
                     disp("Initializing Unscented Kalman Filter");
                     std_acc=1;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[100,0.1];                              %Standard Deviation of the measurements in the x and y
+                    std_meas=[100,0.01];                              %Standard Deviation of the measurements in the x and y
                     UKF_object = unscentedKalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),0,obj.x_initial(2),0;]);
                     obj.trackingFilterObject = UKF_object;
 
@@ -118,6 +118,7 @@ classdef track
             %Update the predicted track
             obj.predictedTrack(1,end+1)=X(1,1);
             obj.predictedTrack(2,end)=X(3,1);   
+            obj.sampleSinceLastUpdate  = obj.sampleSinceLastUpdate+1;
             %disp("predicted Track");
             %disp(obj.predictedTrack);
 

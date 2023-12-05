@@ -102,7 +102,6 @@ classdef unscentedKalmanFilter
             obj.S = Pz;
             
             eps_y =log(normpdf(z(2),obj.X(1,3),obj.S(2,2)));
-            eps_x =log(normpdf(z(1),obj.X(1,1),obj.S(1,1)));
             
             disp(eps_y)
             if(abs(eps_y)>threshold && obj.count>10 && obj.updater<max_adapt && obj.update1>max_adapt)

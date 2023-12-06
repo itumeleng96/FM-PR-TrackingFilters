@@ -88,7 +88,7 @@ classdef particleFilter
 
             
             [meanValueS,~] = obj.estimate(obj.particles, obj.weights);
-            slikelihood= sum(obj.weights .* (obj.particles(:, 1:2) - meanValueS) .* (z - meanValueS')', 3) + obj.std_meas;
+            slikelihood= sum(obj.weights .* (obj.particles(:, [1 3]) - meanValueS) .* (z - meanValueS')', 3) + obj.std_meas;
             obj.S = [mean(slikelihood(:,1)),0;0,mean(slikelihood(:,2));];
             eps_ = log(normpdf(z(2),meanValueS(2),obj.S(2,2)));
 

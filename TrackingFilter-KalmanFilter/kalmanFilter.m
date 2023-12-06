@@ -35,7 +35,8 @@ classdef kalmanFilter
                      0, 0, (dt^4)/4,(dt^3)/2;
                      0, 0, (dt^3)/2, dt^2];
 
-            obj.R = [r_std,0;0,rdot_std];                  % Measurement Uncertainty
+            obj.R = [r_std,0;
+                     0,rdot_std];                  % Measurement Uncertainty
             
             obj.P = [500,0,0,0;                              % Initial Error Covariance Matrix
                      0, 10, 0, 0;

@@ -18,13 +18,14 @@ classdef FMP
             obj.k_d = -299792458/94e6; 
 
             %State transition matrix
-            obj.A = [1,dt,(1/2)*dt^2;
-                     0, 1, dt;
-                     0, 0, 1;];
+            obj.A = [1, dt, 0, 0;
+                     0, 1, 0, 0;
+                     0, 0, 1, dt;
+                     0, 0, 0, 1;];
                     
             
-            obj.H = [1,0,0;0,1,0;];                        % Measurement Function
-
+            obj.H = [1,0,0,0;
+                     0,0,1,0;];     
            
 
             obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty
@@ -38,7 +39,6 @@ classdef FMP
            
             obj.X = obj.A*obj.X ;
         
-
             X_pred = obj.X;
             FMP_Obj = obj;
         end
@@ -49,13 +49,12 @@ classdef FMP
             
             X_k = obj.X;
             %Calculate the Error
-            e_n = [Y_n;0] -X_k;
+            e_n = Y_n-obj.H*X_k;
             
             %Calculate weights
             theta = 0.83;
-            gamma = 0.5 *((1-theta)^3);
-            beta =  1.5 * (1-theta)^2*(1+theta);
-            alpha = 1 - theta^3;
+            beta =  (1-theta)^2;
+            alpha = 1 - theta^2;
 
             %T_n = [alpha;beta;gamma;];
 
@@ -63,13 +62,17 @@ classdef FMP
             z0=obj.X(1);
             z1=obj.X(2);
             z2=obj.X(3);
+            z3=obj.X(4);
 
-            Temp0=z0+z1+z2+alpha*e_n(1);
-            Temp1=z1+2*z2+beta*e_n(2);
-            Temp2=z2+gamma*e_n(2);
+            Temp0=z0+alpha*e_n(1);
+            Temp1=z1+beta*e_n(1);
+            
+            Temp2=z2+alpha*e_n(2);
+            Temp3=z3+beta*e_n(2);
             
             
-            Z=[Temp0;Temp1;Temp2];
+            
+            Z=[Temp0;Temp1;Temp2;Temp3];
 
             obj.X = Z;
             %Update Batch Number or Update number

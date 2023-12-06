@@ -41,7 +41,7 @@ classdef unscentedKalmanFilter
                      0,rdot_std;];
 
 
-            obj.P = [500,0,0,0;                             
+            obj.P = [100,0,0,0;                             
                      0, 10, 0, 0;
                      0, 0, 0.5,0;
                      0, 0, 0, 0.5];    
@@ -68,7 +68,7 @@ classdef unscentedKalmanFilter
         
         function [X_pred,UKF_obj1] = predict(obj)
             %PREDICTION STAGE
-            noise = mvnrnd([0, 0, 0, 0], obj.Q,9);
+            %noise = mvnrnd([0, 0, 0, 0], obj.Q,9);
 
             %calculate sigma points for given mean and covariance
             obj.sigmaPoints = obj.createSigmaPoints(obj.X');
@@ -103,22 +103,20 @@ classdef unscentedKalmanFilter
             
             eps_y =log(normpdf(z(2),obj.X(1,3),obj.S(2,2)));
             
-            disp(eps_y)
             if(abs(eps_y)>threshold && obj.count>10 && obj.updater<max_adapt && obj.update1>max_adapt)
 
                 obj.updater = obj.updater+1;
                 if(obj.updater==max_adapt)
                     obj.update1=0;
                 end
-                disp("Threshold");
-                K =Pxz * Pz^(-1) ;  
 
+                adapt_factor = [1;1/abs(eps_y)];
+
+                K =Pxz * Pz^(-1) ;  
                 obj.P = obj.Pk - K*Pz*K';
 
-                K(3,2) =0.01;
-                K(4,2) =0.01;
-                
-                obj.X  = obj.X' + K*y;
+                obj.X  = obj.X' + K*(y.*adapt_factor);
+
             else
                 obj.updater =0;
                 obj.update1=obj.update1+1;
@@ -163,7 +161,7 @@ classdef unscentedKalmanFilter
             U = chol((obj.n + obj.lambda) * obj.P + epsilon * eye(4));
             
             sigmaPoints(1, :) = meanValue;
-            disp(U(1,:));
+
             for k = 1:obj.n
                 sigmaPoints(k + 1, :) = meanValue' + U(k, :);
                 sigmaPoints(obj.n + k + 1, :) = meanValue' - U(k, :);

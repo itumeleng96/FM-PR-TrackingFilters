@@ -14,20 +14,19 @@ classdef EMP
          
             % State transition matrix
             obj.dt = dt;
-            %wave number k=-lambda=c/f
-            obj.k_d = -299792458/94e6; 
 
             %State transition matrix
-            obj.A = [1,dt,(1/2)*dt^2;
-                     0, 1, dt;
-                     0, 0, 1;];
-
-            obj.dp = [1;dt;(1/2)*dt^2;];
+            obj.A = [1, dt, 0, 0;
+                     0, 1, 0, 0;
+                     0, 0, 1, dt;
+                     0, 0, 0, 1;];
                     
             
-            obj.H = [1,0,0;0,1,0;];                        % Measurement Function
+            obj.H = [1,0,0,0;
+                     0,0,1,0;];     
 
-           
+            obj.dp = [1;dt;1;dt;];
+            
 
             obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty
             obj.S = [0,0;0,0.0];  
@@ -53,20 +52,20 @@ classdef EMP
             Z_k = X_k.*obj.dp;
 
             %Calculate the Error
-            E_n = [Y_n;0] -(Z_k);
+            E_n = Y_n-obj.H*X_k;
             
             %Calculate weights
-            gamma = 30 / ((obj.n + 3)*(obj.n+2)*(obj.n+1));
-            beta = 18 * (2 * obj.n + 1) / ((obj.n + 3)*(obj.n+2)*(obj.n+1));
-            alpha = 3 * (3 * obj.n^2 + 3 * obj.n + 2) /((obj.n + 3)*(obj.n+2)*(obj.n+1));
+            beta = 6/ ((obj.n + 2)*(obj.n+1));
+            alpha = 2 * (2 * obj.n + 1) /((obj.n + 2)*(obj.n+1));
             
-    
-            Temp2 = Z_k(3) + gamma * E_n(2);
-            Temp1 = Z_k(2) + 2 * Z_k(3) + beta *E_n(2);
-            Temp0 = Z_k(1) + Z_k(2) - Z_k(3) + alpha * E_n(1);
+
+            Temp3= Z_k(4) + beta *E_n(2);
+            Temp2 = Z_k(3) + alpha* E_n(2);
+            Temp1 = Z_k(2) + beta *E_n(1);
+            Temp0 = Z_k(1) +  alpha * E_n(1);
    
             
-            X_k = [Temp0;(1/obj.dt)*Temp1;(2/(obj.dt^2))*Temp2];
+            X_k = [Temp0;(1/obj.dt)*Temp1;Temp2;(1/obj.dt)*Temp3];
 
             obj.X = X_k;
             X_est = obj.X;

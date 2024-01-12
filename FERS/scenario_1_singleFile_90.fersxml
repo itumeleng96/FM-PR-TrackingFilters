@@ -15,7 +15,7 @@
     <export binary="true" csv="false" xml="false"/>
   </parameters>
 
-  <pulse name="TxWaveform" type="file" filename="../Waveform/waveform_90.h5">
+  <pulse name="TxWaveform" type="file" filename="Waveform/waveform_90.h5">
     <power>14760</power> <!-- 9 kW * 2.15 dB (to create EIRP of dipole type pattern) -->
     <carrier>94e6</carrier> <!-- Prieska Tx -> OFM -->
   </pulse>

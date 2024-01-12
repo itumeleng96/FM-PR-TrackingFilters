@@ -15,7 +15,10 @@ addpath('FERS/', ...
 
 
 %system("fers FERS/scenario_1_singleFile.fersxml");
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/scenario_1_singleFile.fersxml');
+%Scenario 3: Transmitter with FM Noise 
+%Scenario ?: Multi-Target Tracking
+
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/scenario_5.fersxml');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % h5 Import from FERS simulation
@@ -45,7 +48,6 @@ proc = struct('cancellationMaxRange_m', range_delay, ...
               'Fs', fs, ...
               'alpha', 0, ...
               'initialAlpha', 0);
-
 
 
 s1 = I_Qmov;   %Surv
@@ -78,38 +80,26 @@ movegui(f3,'southeast');
 
 f4=figure(4);
 f4.Position = [4000 10 1000 800]; 
-movegui(f4,'southwest');
+movegui(f4,'northeast');
 
-%Range Error
-f5=figure(5);
-f5.Position = [4000 10 1000 800]; 
-movegui(f5,'southeast');
-
-
-f6=figure(6);
-f6.Position = [4000 10 1000 800]; 
-movegui(f6,'southeast');
-
-f7=figure(7);
-f7.Position = [4000 10 1000 800]; 
-movegui(f7,'southeast');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Create MTT object
-confirmationThreshold=4;
-deletionThreshold=6;
-gatingThreshold=[5000,20];
+confirmationThreshold=3;
+deletionThreshold=5;
+gatingThreshold=[5000,10];
 
 %FilterType 1: Kalman Filter
 %FilterType 2: Particle Filter
 %FilterType 3: UKF  Filter
-%FilterType 4: RGNF  Filter
-%FilterType 5: FMP Filter
-%FilterType 6: EMP Filter
-%FilterType 7: Composite Polynomial Filter
+%FilterType 4: RGNF Filter
+%FilterType 5: FMP  Filter
+%FilterType 6: EMP  Filter
 
-filterType =3;
+
+
+filterType =1;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -120,10 +110,15 @@ range_ll=[];
 doppler_error=[];
 range_error=[];
 
+crlb_doppler=[];
+crlb_range=[];
+
+
 rangeTrueData = h5read('true_data.h5', '/bistatic_ranges');
 dopplerTrueData = h5read('true_data.h5', '/doppler_shifts');
 
 for i = 1:simulation_time
+    disp(i);
     s1 = I_Qmov(initial:current); %surv
     s2 = I_Qno(initial:current);  %ref
 
@@ -133,15 +128,14 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.2,fs,dopp_bins,delay,i,f2,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(10*log10(y.'),0.3,fs,dopp_bins,delay,i,f2,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,0.5e4,4);
+    [clusterCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,0.5e4,10);
 
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
-
    
     %DELETE and CONFIRM Tracks
     multiTargetTracker = multiTargetTracker.maintainTracks();
@@ -155,41 +149,8 @@ for i = 1:simulation_time
 
     %UPDATE Tracks from measurements
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
-   
-    %CALCULATE Likelihoods 
-    [doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihood(f4,f5,i,doppler_ll,range_ll,true);
-   
-    %CALCULATE ERROR 
-    [doppler_error,range_error,doppler_meas,range_meas]=multiTargetTracker.getErrors(i,doppler_error,range_error);
     
 
-    % Create comparison plots for Doppler Error
-    figure(f6);
-    plot(doppler_error, 'b--^');
-    hold on;
-    plot(dopplerTrueData(1:i), 'r-*');
-    hold on;
-    plot(doppler_meas(1:i), '-o');
-    
-    title('Bistatic Doppler Error Comparison');
-    xlabel('Time(s)');
-    ylabel('Doppler (Hz)  ');
-    legend('Tracking Filter','Ground Truth','Measurement');
-    grid on;
-    
-    % Create comparison plots for Range Errors
-    figure(f7);
-    plot(range_error, 'b--^');
-    hold on;
-    plot(rangeTrueData(1:i), 'r-*');
-    hold on;
-    plot(range_meas(1:i), '-o');
-    
-    title('Bistatic Range Error Comparison');
-    xlabel('Time(s)');
-    ylabel('Bistatic range(m)');
-    legend('Tracking Filter','Ground Truth','Measurement');
-    grid on;
     %}
     ard = ard_;
     rdm= rdm_;

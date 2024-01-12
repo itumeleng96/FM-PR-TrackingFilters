@@ -31,31 +31,31 @@ classdef track
             switch filterType
                 case 1
                     disp("Initializing Kalman Filter");
-                    std_meas=[sqrt(100),sqrt(0.1)];                                %Standard Deviation of the measurements in the x and y
-                    std_acc=1;                                       %Standard Deviation of the process noise
-                    KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;]);
+                    std_meas=[1000,0.01];                                %Standard Deviation of the measurements in the x and y
+                    std_acc=0.09;                                       %Standard Deviation of the process noise
+                    KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;]);
                     obj.trackingFilterObject = KF_object;
                                    
                 case 2
                     disp("Initializing Particle Filter");
-                    N=5000;                                          %Number of particles
-                    std_acc=0.1;                                     %Standard Deviation of the process noise
-                    std_meas=[500,1];                                %Standard Deviation of the measurements in the x and y
-                    PF_object = particleFilter(dt,std_acc,std_meas,[obj.x_initial(1);obj.x_initial(2);0;],N);
+                    N=10000;                                             %Number of particles
+                    std_acc=1;                                          %Standard Deviation of the process noise
+                    std_meas=[100,0.5];                                  %Standard Deviation of the measurements in the x and y
+                    PF_object = particleFilter(dt,std_acc,std_meas,[obj.x_initial(1);0;obj.x_initial(2);0;],N);
                     obj.trackingFilterObject = PF_object;
                 
                 case 3
                     disp("Initializing Unscented Kalman Filter");
-                    std_acc=0.1;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[100,0.1];                              %Standard Deviation of the measurements in the x and y
-                    UKF_object = unscentedKalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),obj.x_initial(2),0;]);
+                    std_acc=1;                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[100,0.01];                              %Standard Deviation of the measurements in the x and y
+                    UKF_object = unscentedKalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),0,obj.x_initial(2),0;]);
                     obj.trackingFilterObject = UKF_object;
 
                 case 4
                     disp("Initializing Recursive Gauss Newton Filter");
-                    std_acc=0.01;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[100,0.1];                               %Standard Deviation of the measurements in the x and y
-                    RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);obj.x_initial(2);0;],100);
+                    std_acc=1e3;                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[20,0.1];                               %Standard Deviation of the measurements in the x and y
+                    RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;],100);
                     obj.trackingFilterObject = RGNF_object;
     
                 case 5
@@ -117,7 +117,8 @@ classdef track
             [X,obj.trackingFilterObject]= predict(obj.trackingFilterObject);
             %Update the predicted track
             obj.predictedTrack(1,end+1)=X(1,1);
-            obj.predictedTrack(2,end)=X(2,1);   
+            obj.predictedTrack(2,end)=X(3,1);   
+            obj.sampleSinceLastUpdate  = obj.sampleSinceLastUpdate+1;
             %disp("predicted Track");
             %disp(obj.predictedTrack);
 

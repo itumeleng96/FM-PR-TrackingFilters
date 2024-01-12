@@ -20,11 +20,6 @@
     <carrier>94e6</carrier> <!-- Prieska Tx -> OFM -->
   </pulse>
   
-  <pulse name="noiseWaveform" type="file" filename="Waveform/fm_noise_waveform.h5">
-    <power>4300</power> 
-    <carrier>94e6</carrier>
-  </pulse>
-  
   <timing name="TxClock">
     <frequency>200000</frequency>
   </timing>
@@ -61,33 +56,11 @@
       <elevationrate>0</elevationrate>
     </fixedrotation>
     <transmitter name="Tx" type="continuous" antenna="TxIsoAntenna" pulse="TxWaveform" timing="TxClock">
-      <prf>0.0016</prf>
+      <prf>0.016</prf>
     </transmitter>
   </platform>
-	<!-- Visserskloof 1070 m high at the center of the environment -->
   
-  <!-- Transmitter to simulate noise-->
-  <platform name="NoiseTx">
-    <motionpath interpolation="static">
-      <positionwaypoint>
-        <x>30000</x> 
-        <y>30000</y>
-        <altitude>1600</altitude>
-        <time>0</time>
-      </positionwaypoint>
-    </motionpath>
-    <fixedrotation> <!-- Omni directional transmit antenna therefore no rotation -->
-      <startazimuth>0</startazimuth>
-      <startelevation>0</startelevation>
-      <azimuthrate>0</azimuthrate>
-      <elevationrate>0</elevationrate>
-    </fixedrotation>
-    <transmitter name="Tx" type="continuous" antenna="TxIsoAntenna" pulse="noiseWaveform" timing="TxClock">
-      <prf>0.0016</prf>
-    </transmitter>
-  </platform>
-
-    <platform name="RefRx">
+  <platform name="RefRx">
     <motionpath interpolation="static">
       <positionwaypoint>
         <x>0</x>
@@ -103,7 +76,7 @@
       <elevationrate>0</elevationrate>
     </fixedrotation>
     <receiver name="direct" type="continuous" antenna="RxYagiAntenna" timing="RxClock">
-      <prf>0.0016</prf>
+      <prf>0.016</prf>
       <window_skip>0</window_skip>
       <window_length>60</window_length><!-- Time length of simulation -->
       <noise_temp>100</noise_temp><!--4 dB NF as per the minimal frontend -->
@@ -126,7 +99,7 @@
       <elevationrate>0</elevationrate>
     </fixedrotation>
     <receiver name="echo" type="continuous" antenna="RxYagiAntenna" timing="RxClock" ignoredirectsignals="true">
-      <prf>0.0016</prf>
+      <prf>0.016</prf>
       <window_skip>0</window_skip>
       <window_length>60</window_length> <!-- Time length of simulation -->
       <noise_temp>100</noise_temp> <!-- 4 dB NF as per the minimal frontend -->
@@ -134,7 +107,7 @@
   </platform>
 
   <platform name="Target1"> <!-- Target traveling at 220m/s for x seconds -->
-    <motionpath interpolation="cubic">
+    <motionpath interpolation="linear">
 	<positionwaypoint>
         <x>4000</x>
         <y>18000</y>
@@ -142,8 +115,8 @@
         <time>0</time>
       </positionwaypoint>
       <positionwaypoint>
-        <x>-4000</x>
-        <y>2000</y>
+        <x>-2000</x>
+        <y>3000</y>
         <altitude>1600</altitude> <!-- End altitude -->
         <time>60</time><!-- Time length of simulation -->
       </positionwaypoint>
@@ -160,4 +133,36 @@
       </rcs>
     </target>
   </platform>
+
+  <platform name="Target2">
+      <motionpath interpolation="cubic">
+        <positionwaypoint>
+        <x>4000</x>
+        <y>4000</y>
+        <altitude>1600</altitude>
+        <time>0</time>
+        </positionwaypoint>
+        
+        <positionwaypoint>
+        <x>2000</x>
+        <y>20000</y>
+        <altitude>3600.0</altitude>
+        <time>60</time>
+        </positionwaypoint>
+        
+      </motionpath>  
+    
+      <fixedrotation>
+        <startazimuth>0.0</startazimuth>
+        <startelevation>0.0</startelevation>
+        <azimuthrate>0</azimuthrate>
+        <elevationrate>0</elevationrate>
+      </fixedrotation>
+      <target name="wings">
+        <rcs type="isotropic">
+          <value>100</value>
+        </rcs>
+      </target>
+    </platform>
+
 </simulation>

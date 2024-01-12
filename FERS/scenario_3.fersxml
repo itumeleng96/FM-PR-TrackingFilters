@@ -21,7 +21,7 @@
   </pulse>
   
   <pulse name="noiseWaveform" type="file" filename="Waveform/fm_noise_waveform.h5">
-    <power>4300</power> 
+    <power>5300</power> 
     <carrier>94e6</carrier>
   </pulse>
   

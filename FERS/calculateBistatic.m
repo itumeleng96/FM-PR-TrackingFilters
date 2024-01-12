@@ -115,7 +115,7 @@ if exist('true_data.h5', 'file')
 end
 
 %disp(bistatic_ranges);
-disp(bistatic_doppler_shifts);
+%disp(bistatic_doppler_shifts);
 
 % Save bistatic ranges and Doppler shifts to an HDF5 file
 h5create('true_data.h5', '/bistatic_ranges', size(bistatic_ranges));

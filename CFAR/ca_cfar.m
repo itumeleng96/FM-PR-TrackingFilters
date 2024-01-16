@@ -4,7 +4,7 @@
 %G : Number of Guard cells
 %cut : the magnitiude cells of the Range Doppler map
 
-function [targetClusters,RDM,rdm_] = ca_cfar(RDM,rate_fa,fs,fd_max,td_max,index,rdm)
+function [targetClusters,RDM,rdm_,SNR_values] = ca_cfar(RDM,rate_fa,fs,fd_max,td_max,index,rdm)
 %Generates a CFAR output map in the range-doppler domain
 %Firstly calculate the interference power from the average of N samples in
 %the vicinity of the CUT
@@ -15,6 +15,9 @@ guac_num = 4;
 
 [rows, cols] = size(RDM);
 RDM_final = zeros(rows, cols); 
+SNR_values = zeros(rows, cols);
+
+%NB : RDM is already in dB
 
 
 for r=1:rows
@@ -27,7 +30,7 @@ for r=1:rows
         
         Num_train = t_c - g_c - 1;
         train_value = (train_value - guard_value) / (Num_train); %Noise Power
-        train_value = pow2db(train_value);
+        train_value_dB = pow2db(train_value);                       %Noise Power in db
        
         
         alpha = Num_train*((1-rate_fa)^(-1/Num_train) - 1);  %threshold factor
@@ -35,7 +38,12 @@ for r=1:rows
         %threshold_val = train_value * offset;
         
         if RDM(r,c) >= threshold_val
+            
             RDM_final(r,c) = 1;
+            % Calculate SNR for the detected cell
+            signal_power_dB = RDM(r, c);
+            noise_power_dB = train_value_dB;
+            SNR_values(r, c) = signal_power_dB - noise_power_dB;
         end
     end
 end

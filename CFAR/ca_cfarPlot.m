@@ -8,7 +8,6 @@ function [targetClusters,RDM,rdm_] = ca_cfarPlot(RDM,rate_fa,fs,fd_max,td_max,in
 %Generates a CFAR output map in the range-doppler domain
 %Firstly calculate the interference power from the average of N samples in
 %the vicinity of the CUT
-
 %Parameters to allow zoom in
 xlim_upper = 2e-4;
 ylim_upper = 200;
@@ -20,6 +19,8 @@ guac_num = 4;
 [rows, cols] = size(RDM);
 RDM_final = zeros(rows, cols); 
 
+%NB : RDM is already in dB
+
 
 for r=1:rows
     for c=1:cols
@@ -30,16 +31,24 @@ for r=1:rows
         [train_value, t_c] = subarea(RDM, c, r, guac_num + trc_num);
         
         Num_train = t_c - g_c - 1;
-        train_value = (train_value - guard_value) / (Num_train); %Noise Power
-        train_value = pow2db(train_value);
+        train_value = (train_value - guard_value) / (Num_train);  %Noise Power
+        train_value = pow2db(train_value);                        %Noise Power in db
        
         
-        alpha = Num_train*((1-rate_fa)^(-1/Num_train) - 1);  %threshold factor
+        alpha = Num_train*((1-rate_fa)^(-1/Num_train) - 1);       %threshold factor
         threshold_val = train_value * alpha;
         %threshold_val = train_value * offset;
         
         if RDM(r,c) >= threshold_val
-            RDM_final(r,c) = 1;
+            %RDM_final(r,c) = 1;
+
+            % Calculate SNR for the detected cell and 
+            % plot SNR instead of 0 or 1
+        
+            signal_power_dB = RDM(r, c);
+            noise_power_dB = train_value;
+            RDM_final(r,c) = signal_power_dB - noise_power_dB;
+            
         end
     end
 end
@@ -51,25 +60,28 @@ range = time*c;
 frequency = -fd_max:1:fd_max;
 
 
-if index==1
-    rdm = RDM_final ;
-end
+%if index==1
+rdm = RDM_final ;
+%end
 
-if index>1
-    rdm =rdm+RDM_final ;
-end
-rdm = min(rdm, 1);  % Set maximum value to 1
+%if index>1
+%    rdm =rdm+RDM_final ;
+%end
+%rdm = min(rdm, 1);  % Set maximum value to 1
 
 rdm_ = rdm;
 
 
 figure(f);
 imagesc(range, frequency, rdm_);
-colormap(gca, 'gray'); % Set the colormap to 'gray'
+colormap(gca, 'hot');
+%colormap(gca, 'gray');
+
 c = colorbar;
-c.Label.String = 'Intensity';
+c.Label.String = 'SNR (dB)';
 c.FontSize = 10;
 c.Color = 'black'; % Set colorbar label color to white
+
 set(gca, 'Color', 'black'); % Set background color to black
 text(0, 10, "Time: " + index + "s", 'Color', 'white'); % Set text color to white
 axis xy;
@@ -85,9 +97,10 @@ RDM = RDM_final;
 [row, column] = find(RDM > 0);
 % Get target clusters as Bistatic Range and Doppler values
 
-range_values = range(column.'); % convert time values to range values
-frequency_values = frequency(row.'); % get frequency values
+range_values = range(column.');         % convert time values to range values
+frequency_values = frequency(row.');    % get frequency values
 
 targetClusters = [range_values; frequency_values]; % store centroids as range and frequency
+% Get SNRs for indices in Target Clusters
 
 end

@@ -4,7 +4,7 @@
 %G : Number of Guard cells
 %cut : the magnitiude cells of the Range Doppler map
 
-function [targetClusters,RDM,rdm_,SNR_values] = ca_cfarPlot(RDM,rate_fa,fs,fd_max,td_max,index,f,rdm)
+function [targetClusters,RDM,rdm_] = ca_cfarPlot(RDM,rate_fa,fs,fd_max,td_max,index,f,rdm)
 %Generates a CFAR output map in the range-doppler domain
 %Firstly calculate the interference power from the average of N samples in
 %the vicinity of the CUT
@@ -18,7 +18,6 @@ guac_num = 4;
 
 [rows, cols] = size(RDM);
 RDM_final = zeros(rows, cols); 
-SNR_values = zeros(rows, cols);
 
 %NB : RDM is already in dB
 
@@ -41,12 +40,15 @@ for r=1:rows
         %threshold_val = train_value * offset;
         
         if RDM(r,c) >= threshold_val
-            RDM_final(r,c) = 1;
+            %RDM_final(r,c) = 1;
 
-            % Calculate SNR for the detected cell
+            % Calculate SNR for the detected cell and 
+            % plot SNR instead of 0 or 1
+        
             signal_power_dB = RDM(r, c);
             noise_power_dB = train_value;
-            SNR_values(r, c) = signal_power_dB - noise_power_dB;
+            RDM_final(r,c) = signal_power_dB - noise_power_dB;
+            
         end
     end
 end
@@ -58,25 +60,28 @@ range = time*c;
 frequency = -fd_max:1:fd_max;
 
 
-if index==1
-    rdm = RDM_final ;
-end
+%if index==1
+rdm = RDM_final ;
+%end
 
-if index>1
-    rdm =rdm+RDM_final ;
-end
-rdm = min(rdm, 1);  % Set maximum value to 1
+%if index>1
+%    rdm =rdm+RDM_final ;
+%end
+%rdm = min(rdm, 1);  % Set maximum value to 1
 
 rdm_ = rdm;
 
 
 figure(f);
 imagesc(range, frequency, rdm_);
-colormap(gca, 'gray'); % Set the colormap to 'gray'
+colormap(gca, 'hot');
+%colormap(gca, 'gray');
+
 c = colorbar;
-c.Label.String = 'Intensity';
+c.Label.String = 'SNR (dB)';
 c.FontSize = 10;
 c.Color = 'black'; % Set colorbar label color to white
+
 set(gca, 'Color', 'black'); % Set background color to black
 text(0, 10, "Time: " + index + "s", 'Color', 'white'); % Set text color to white
 axis xy;
@@ -96,5 +101,6 @@ range_values = range(column.');         % convert time values to range values
 frequency_values = frequency(row.');    % get frequency values
 
 targetClusters = [range_values; frequency_values]; % store centroids as range and frequency
+% Get SNRs for indices in Target Clusters
 
 end

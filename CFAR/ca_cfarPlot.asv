@@ -17,8 +17,8 @@ y_guard_num = 8;
 y_train_num = 10;
 
 
-x_guard_num = 8;
-x_train_num = 6;
+x_guard_num = 5;
+x_train_num = 100;
 
 [rows, cols] = size(RDM);
 RDM_final = zeros(rows, cols); 
@@ -100,9 +100,7 @@ ylim([ylim_lower ylim_upper]);
 
 RDM = RDM_final;
 
-centroid_threshold = max_db -10; %Set Centroid to 20db less
-[row, column] = find(RDM > centroid_threshold);
-
+[row, column] = find(RDM > 0);
 % Get target clusters as Bistatic Range and Doppler values
 
 range_values = range(column.');         % convert time values to range values

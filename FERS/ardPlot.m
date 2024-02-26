@@ -53,7 +53,7 @@ end
 ard_ = ard;
 
 figure(f);
-imagesc(range,frequency,10*log10(ard.'),[max_dB-40 max_dB]);
+imagesc(range,frequency,10*log10(ard.'),[max_dB-Dyn_dB max_dB]);
 axis xy;
 colorbar;
 xlabel('Bistatic range [m]','Fontsize',10);

@@ -131,23 +131,28 @@ classdef multiTargetTracker
                 hold on;
                 for i = 1:length(obj.tracks)
                     if obj.tracks(i).confirmed == 0
-                        % Plot tentative track as a line connected by open triangles
-                        plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 8, 'DisplayName', 'Predicted Track');
-                        % Plot true track as open circles joined by a line
-                        plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'o:', 'MarkerFaceColor', [1 0.5 0], 'MarkerSize', 4, 'DisplayName', 'Tentative Track');
+                        plot(obj.tracks(i).predictedTrack(1, :), obj.tracks(i).predictedTrack(2, :), '^', 'MarkerFaceColor','none','MarkerEdgeColor', 'blue', 'MarkerSize', 6, 'DisplayName', 'Predicted Track');                        % Plot true track as open circles joined by a line
+                        plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), '-', 'LineWidth', 2, 'Color','green' ,'MarkerSize', 4, 'DisplayName', 'Confirmed Track');
                     else
-                        % Plot confirmed track as a line connected by filled triangles
-                        plot(obj.tracks(i).predictedTrack(1,:), obj.tracks(i).predictedTrack(2,:), 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 8, 'DisplayName', 'Predicted Track');
-                        plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), 'o:', 'MarkerFaceColor',[0 0 0], 'MarkerSize', 4, 'DisplayName', 'Confirmed');
+                        plot(obj.tracks(i).predictedTrack(1, :), obj.tracks(i).predictedTrack(2, :), '^', 'MarkerFaceColor', 'none','MarkerEdgeColor', 'blue', 'MarkerSize', 6, 'DisplayName', 'Predicted Track');                        % Plot true track as open circles joined by a line
+                        plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), '-', 'LineWidth', 2, 'Color', 'red', 'MarkerFaceColor', 'red', 'MarkerSize', 4, 'DisplayName', 'Tentative Track');
                     end
+
+                    % Shift and box the text annotations
+                    %textOffset = 15; 
+                    %annotationX = obj.tracks(i).predictedTrack(1, end) + textOffset;
+                    %annotationY = obj.tracks(i).predictedTrack(2, end) + textOffset;
+                    
+                    %rectangle('Position', [annotationX-0.5, annotationY-0.5, 1, 10], 'EdgeColor', 'black', 'LineWidth', 1); % Box
+                    %text(annotationX, annotationY, ['T',num2str(i)], 'Color', 'black', 'FontSize', 8);
+
                 end
-                predicted_marker = plot(nan, nan, 'b--^', 'MarkerFaceColor', 'none', 'MarkerSize', 8);
-                tentative_marker = plot(nan, nan, 'o:', 'MarkerFaceColor', [1 0.5 0], 'MarkerSize', 4);
-                confirmed_marker = plot(nan, nan, 'o:', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 8);
-            
+                predicted_marker = plot(nan, nan, '^', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', 'blue', 'MarkerSize', 6);
+                tentative_marker = plot(nan, nan, '-', 'LineWidth', 2, 'Color', 'green', 'MarkerSize', 4);
+                confirmed_marker = plot(nan, nan, '-', 'LineWidth', 2, 'Color', 'red', 'MarkerFaceColor', 'red', 'MarkerSize', 4);
+                
                 % Create a legend with custom markers and labels
-                legend([predicted_marker,tentative_marker, confirmed_marker], 'Predicted Track', 'Tentative Track', 'Confirmed Track', 'Location', 'best');
-                        
+                legend([predicted_marker, tentative_marker, confirmed_marker], 'Predicted Track', 'Tentative Track', 'Confirmed Track', 'Location', 'best');
                 hold off;
         end
         function [doppler_error, range_error,doppler_meas,range_meas] =getErrors(obj, i,doppler_error,range_error)
@@ -345,22 +350,39 @@ classdef multiTargetTracker
 
         function detectionsInRadius = pruneDetections(detections, predictedCoordinate, gatingThreshold)
             % For every detection check that it falls within the predicted coordinates' radius
+            % Rectangular (1-norm)  Gating
+         
             numberOfDetections = size(detections, 2);
             detectionsInRadius = [];
+            x_std = gatingThreshold(1);
+            y_std = gatingThreshold(2);
+            k = 3;  %Threshold
+
             for i = 1:numberOfDetections
-                if abs(detections(1, i) - predictedCoordinate(1)) < gatingThreshold(1) && ...
-                   abs(detections(2, i) - predictedCoordinate(2)) < gatingThreshold(2)
+                y_dist = abs(detections(2, i) - predictedCoordinate(2));
+                x_dist = abs(detections(1, i) - predictedCoordinate(1));
+                
+                if x_dist<k*x_std && y_dist<k*y_std
                     detectionsInRadius = [detectionsInRadius, detections(:, i)];
                 end
             end
+            
         end
 
         function [detection,detections] = globalNearestNeighbour(detectionsInRadius,predictedCoordinate,allDetections)
             numberOfDetections=size(detectionsInRadius,2);
             distances=[];
-
+            measurementCovariance = [100,0;0,0.1];
+            %Use Mahalanobis Distance
             for i=1:numberOfDetections
-                distances(i)=norm(detectionsInRadius(:,i)-predictedCoordinate);
+                %distances(i)=norm(detectionsInRadius(:,i)-predictedCoordinate);
+                innovation = detectionsInRadius(:,i)-predictedCoordinate;
+                %disp("Innovation");
+                %disp(innovation);
+                mahalanobisDistance = sqrt(innovation' / measurementCovariance*innovation);
+                %disp(mahalanobisDistance);
+
+                distances(i)=mahalanobisDistance;
             end
 
             %Get The index of the detection with min distances and delete from detections
@@ -374,5 +396,6 @@ classdef multiTargetTracker
 
             detections = allDetections;
         end
+
     end
 end

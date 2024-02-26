@@ -8,6 +8,7 @@ addpath('FERS/', ...
         'multiTargetTracking/', ...
         'DPI_Suppression', ...
         'TrackingFilter-KalmanFilter/', ...
+        'TrackingFilter-HSCKF/', ...
         'TrackingFilter-ParticleFilter/', ...
         'TrackingFilter-UKF/', ... 
         'TrackingFilter-RGNF/',...
@@ -15,7 +16,7 @@ addpath('FERS/', ...
 
 
 %system("fers FERS/scenario_1_singleFile.fersxml");
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/scenario_1_singleFile.fersxml');
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % h5 Import from FERS simulation
@@ -63,35 +64,35 @@ rdm =[];
 figure('Name','2D image');
 %ARD
 f=figure(1);
-f.Position = [4000 10 1000 800]; 
+f.Position = [4000 10 550 400]; 
 movegui(f,'northwest');
 
 %CFAR
 f2=figure(2);
-f2.Position = [4000 10 1000 800]; 
+f2.Position = [4000 10 550 400]; 
 movegui(f2,'northeast');
 
 %Multi-Target Tracking 
 f3=figure(3);
-f3.Position = [4000 10 1000 800]; 
+f3.Position = [4000 10 550 400]; 
 movegui(f3,'southeast');
 
 f4=figure(4);
-f4.Position = [4000 10 1000 800]; 
+f4.Position = [4000 10 550 400]; 
 movegui(f4,'southwest');
 
 %Range Error
 f5=figure(5);
-f5.Position = [4000 10 1000 800]; 
+f4.Position = [4000 10 550 400]; 
 movegui(f5,'southeast');
 
 
 f6=figure(6);
-f6.Position = [4000 10 1000 800]; 
+f4.Position = [4000 10 550 400]; 
 movegui(f6,'southeast');
 
 f7=figure(7);
-f7.Position = [4000 10 1000 800]; 
+f4.Position = [4000 10 550 400]; 
 movegui(f7,'southeast');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -102,12 +103,13 @@ deletionThreshold=6;
 gatingThreshold=[5000,20];
 
 %FilterType 1: Kalman Filter
-%FilterType 2: Particle Filter
-%FilterType 3: UKF  Filter
-%FilterType 4: RGNF  Filter
-%FilterType 5: FMP Filter
-%FilterType 6: EMP Filter
-%FilterType 7: Composite Polynomial Filter
+%FilterType 2: Huber Covariance Scaling Kalman Filter
+%FilterType 3: Particle Filter
+%FilterType 4: UKF  Filter
+%FilterType 5: RGNF  Filter
+%FilterType 6: FMP Filter
+%FilterType 7: EMP Filter
+%FilterType 8: Composite Polynomial Filter
 
 filterType =3;
 
@@ -119,6 +121,8 @@ range_ll=[];
 
 doppler_error=[];
 range_error=[];
+prevCentroids=[];
+
 
 rangeTrueData = h5read('true_data.h5', '/bistatic_ranges');
 dopplerTrueData = h5read('true_data.h5', '/doppler_shifts');
@@ -133,11 +137,11 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_,~] = ca_cfarPlot(10*log10(y.'),0.2,fs,dopp_bins,delay,i,f2,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(y.',10^-6,fs,dopp_bins,delay,i,f2,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,0.5e4,4);
+    [clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,1e4,8,prevCentroids);
 
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);

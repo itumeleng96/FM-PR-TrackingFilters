@@ -14,15 +14,9 @@ addpath('FERS/', ...
         'TrackingFilter-RGNF/',...
         'TrackingFilter-Polynomial/');
 
-%FLIGHT Scenarios
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_1_laneChange.fersxml');%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
 
-%Noise Scenarios
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_1_fm_noise.fersxml');
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_1_fm_white_noise.fersxml');
-
+%system("fers FERS/scenario_1_singleFile.fersxml");
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % h5 Import from FERS simulation
@@ -52,6 +46,7 @@ proc = struct('cancellationMaxRange_m', range_delay, ...
               'Fs', fs, ...
               'alpha', 0, ...
               'initialAlpha', 0);
+
 
 
 s1 = I_Qmov;   %Surv
@@ -84,39 +79,56 @@ movegui(f3,'southeast');
 
 f4=figure(4);
 f4.Position = [4000 10 550 400]; 
-movegui(f4,'northeast');
+movegui(f4,'southwest');
 
+%Range Error
+f5=figure(5);
+f4.Position = [4000 10 550 400]; 
+movegui(f5,'southeast');
+
+
+f6=figure(6);
+f4.Position = [4000 10 550 400]; 
+movegui(f6,'southeast');
+
+f7=figure(7);
+f4.Position = [4000 10 
+    multiTargetTracker = multiTargetTracker.maintainTracks();550 400]; 
+movegui(f7,'southeast');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Create MTT object
-confirmationThreshold=3;
-deletionThreshold=4;
-gatingThreshold=[1000,5];
+confirmationThreshold=4;
+deletionThreshold=6;
+gatingThreshold=[5000,20];
 
 %FilterType 1: Kalman Filter
 %FilterType 2: Huber Covariance Scaling Kalman Filter
 %FilterType 3: Particle Filter
 %FilterType 4: UKF  Filter
-%FilterType 5: RGNF Filter
-%FilterType 6: FMP  Filter
-%FilterType 7: EMP  Filter
+%FilterType 5: RGNF  Filter
+%FilterType 6: FMP Filter
+%FilterType 7: EMP Filter
+%FilterType 8: Composite Polynomial Filter
 
-
-
-filterType =2;
+filterType =;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
 %LOG_LIKELIHOODS
 doppler_ll=[];
 range_ll=[];
+
+doppler_error=[];
+range_error=[];
 prevCentroids=[];
 
 
+rangeTrueData = h5read('true_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('true_data.h5', '/doppler_shifts');
 
 for i = 1:simulation_time
-    disp(i);
     s1 = I_Qmov(initial:current); %surv
     s2 = I_Qno(initial:current);  %ref
 
@@ -128,12 +140,14 @@ for i = 1:simulation_time
     %Plot CFAR from Cell-Averaging CFAR 
     [targetClusters,RDM,rdm_] = ca_cfarPlot(y.',10^-6,fs,dopp_bins,delay,i,f2,rdm);                    
     
+    
     %Get Coordinates from CFAR using meanShift Algorithm
     [clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,1e4,8,prevCentroids);
-    
+
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
-    
+
+   
     %DELETE and CONFIRM Tracks
     multiTargetTracker = multiTargetTracker.maintainTracks();
 
@@ -143,10 +157,44 @@ for i = 1:simulation_time
    
     %PLOT Prediction and True Tracks
     multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+
     %UPDATE Tracks from measurements
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids);
+   
+    %CALCULATE Likelihoods 
+    [doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihood(f4,f5,i,doppler_ll,range_ll,true);
+   
+    %CALCULATE ERROR 
+    [doppler_error,range_error,doppler_meas,range_meas]=multiTargetTracker.getErrors(i,doppler_error,range_error);
     
 
+    % Create comparison plots for Doppler Error
+    figure(f6);
+    plot(doppler_error, 'b--^');
+    hold on;
+    plot(dopplerTrueData(1:i), 'r-*');
+    hold on;
+    plot(doppler_meas(1:i), '-o');
+    
+    title('Bistatic Doppler Error Comparison');
+    xlabel('Time(s)');
+    ylabel('Doppler (Hz)  ');
+    legend('Tracking Filter','Ground Truth','Measurement');
+    grid on;
+    
+    % Create comparison plots for Range Errors
+    figure(f7);
+    plot(range_error, 'b--^');
+    hold on;
+    plot(rangeTrueData(1:i), 'r-*');
+    hold on;
+    plot(range_meas(1:i), '-o');
+    
+    title('Bistatic Range Error Comparison');
+    xlabel('Time(s)');
+    ylabel('Bistatic range(m)');
+    legend('Tracking Filter','Ground Truth','Measurement');
+    grid on;
     %}
     ard = ard_;
     rdm= rdm_;

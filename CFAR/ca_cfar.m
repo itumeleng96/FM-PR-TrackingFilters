@@ -6,9 +6,6 @@
 
 function [targetClusters,RDM,rdm_,SNR_values] = ca_cfar(RDM,rate_fa,fs,fd_max,td_max,index,rdm)
 %Generates a CFAR output map in the range-doppler domain
-%Firstly calculate the interference power from the average of N samples in
-%the vicinity of the CUT
-
 
 trc_num = 2;
 guac_num = 4;

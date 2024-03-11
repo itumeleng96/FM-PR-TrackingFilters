@@ -8,10 +8,12 @@ addpath('FERS/', ...
         'multiTargetTracking/', ...
         'DPI_Suppression', ...
         'TrackingFilter-KalmanFilter/', ...
-        'TrackingFilter-HSCKF/', ...
+        'TrackingFilter-HCSKF/', ...
         'TrackingFilter-ParticleFilter/', ...
         'TrackingFilter-UKF/', ... 
+        'TrackingFilter-CSUKF/',...
         'TrackingFilter-RGNF/',...
+        'TrackingFilter-CSRGNF/',...
         'TrackingFilter-Polynomial/');
 
 
@@ -64,35 +66,35 @@ rdm =[];
 figure('Name','2D image');
 %ARD
 f=figure(1);
-f.Position = [4000 10 550 400]; 
+f.Position = [4000 10 1050 800]; 
 movegui(f,'northwest');
 
 %CFAR
 f2=figure(2);
-f2.Position = [4000 10 550 400]; 
-movegui(f2,'northeast');
+f2.Position = [4000 10 1050 800]; 
+movegui(f2,'northwest');
 
 %Multi-Target Tracking 
 f3=figure(3);
-f3.Position = [4000 10 550 400]; 
+f3.Position = [4000 10 1050 800]; 
 movegui(f3,'southeast');
 
 f4=figure(4);
-f4.Position = [4000 10 550 400]; 
+f4.Position = [4000 10 1050 800]; 
 movegui(f4,'southwest');
 
 %Range Error
 f5=figure(5);
-f4.Position = [4000 10 550 400]; 
+f4.Position = [4000 10 1050 800]; 
 movegui(f5,'southeast');
 
 
 f6=figure(6);
-f4.Position = [4000 10 550 400]; 
+f4.Position = [4000 10 1050 800]; 
 movegui(f6,'southeast');
 
 f7=figure(7);
-f4.Position = [4000 10 550 400]; 
+f4.Position = [4000 10 1050 800]; 
 movegui(f7,'southeast');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -100,18 +102,18 @@ movegui(f7,'southeast');
 %Create MTT object
 confirmationThreshold=4;
 deletionThreshold=6;
-gatingThreshold=[5000,20];
+gatingThreshold=[5000,10];
 
 %FilterType 1: Kalman Filter
 %FilterType 2: Huber Covariance Scaling Kalman Filter
 %FilterType 3: Particle Filter
 %FilterType 4: UKF  Filter
-%FilterType 5: RGNF  Filter
-%FilterType 6: FMP Filter
-%FilterType 7: EMP Filter
-%FilterType 8: Composite Polynomial Filter
+%FilterType 5: Huber Covariance Scaling UKF Filter
+%FilterType 6: RGNF Filter
+%FilterType 7: Covariance Scaling RGNF Filter
 
-filterType =3;
+
+filterType =7;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -137,11 +139,20 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(y.',10^-6,fs,dopp_bins,delay,i,f2,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(y.',10e-6,fs,dopp_bins,delay,i,f2,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
     [clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,1e4,8,prevCentroids);
+
+    if(i==10 || i==11)
+        clusterCentroids(2,:)=clusterCentroids(2,:)+10;
+    end
+    
+    if(i==13 || i==14)
+        clusterCentroids(2,:)=clusterCentroids(2,:)-10;
+    end
+    
 
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids);
@@ -166,7 +177,7 @@ for i = 1:simulation_time
     %CALCULATE ERROR 
     [doppler_error,range_error,doppler_meas,range_meas]=multiTargetTracker.getErrors(i,doppler_error,range_error);
     
-
+    
     % Create comparison plots for Doppler Error
     figure(f6);
     plot(doppler_error, 'b--^');

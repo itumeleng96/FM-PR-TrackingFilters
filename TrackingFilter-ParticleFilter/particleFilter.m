@@ -13,6 +13,7 @@ classdef particleFilter
         count;
         updater;
         update1;
+        epsDoppler;
 
     end
     
@@ -50,6 +51,7 @@ classdef particleFilter
             obj.updater =0;
             obj.update1 =0;
 
+            obj.epsDoppler =[];
 
 
 
@@ -78,39 +80,31 @@ classdef particleFilter
 
             % Calculate the cross-covariance elements (K_ij) using the weighted particles
             % S = HPH' + R;
-            threshold=2;
-
-            %max number of adaptive filtering
-            max_adapt=3;
-
-            %%To be replaced with another scheme to detect steady state
-            obj.count = obj.count+1;    
-
             
             [meanValueS,~] = obj.estimate(obj.particles, obj.weights);
-            slikelihood= sum(obj.weights .* (obj.particles(:, [1 3]) - meanValueS) .* (z - meanValueS')', 3) + obj.std_meas;
+            covariance_matrix = (obj.weights .* (obj.particles(:, [1 3]) - meanValueS))' * (obj.weights.*(obj.particles(:, [1 3]) - meanValueS));
+            
+            slikelihood= covariance_matrix+ obj.std_meas;
             obj.S = [mean(slikelihood(:,1)),0;0,mean(slikelihood(:,2));];
-            eps_ = log(normpdf(z(2),meanValueS(2),obj.S(2,2)));
-
-            if(abs(eps_)>threshold && obj.count>10 && obj.updater<max_adapt && obj.update1>max_adapt)
-                obj.updater = obj.updater+1;
-                if(obj.updater==max_adapt)
-                    obj.update1=0;
-                end
-
-                diffs = (obj.particles(:, [1 3])' - z)';
-                likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2*50);
-                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
-                likelihood = likelihood_x .* likelihood_y;
-                weights_adapt =obj.weights .*likelihood;
 
 
-                [meanValue,~] = obj.estimate(obj.particles, weights_adapt);
-                
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%% Detect outliers and reject them
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            ek = z-meanValueS';
+            ek2_doppler = ek(2)^2;
+
+            eps_doppler = ek2_doppler/obj.S(2,2);  
+
+            obj.epsDoppler = [obj.epsDoppler,eps_doppler];
+            M=3; %Number of samples to average
+
+            
+            if(size(obj.epsDoppler,2)>M && eps_doppler > 1 && eps_doppler>median(obj.epsDoppler(end-M:end-1)))
+                %obj.epsDoppler =obj.epsDoppler(end-M:end-1);
             else
-                obj.updater =0;
-                obj.update1=obj.update1+1;
-                    
+                 
                 diffs = (obj.particles(:, [1 3])' - z)';
                 likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
                 likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
@@ -131,11 +125,9 @@ classdef particleFilter
                     indexes = obj.resampleSystematic(obj.weights);
                     [obj.particles, obj.weights] = obj.resampleFromIndex(obj.particles, indexes);
                 end
-
-                [meanValue,~] = obj.estimate(obj.particles, obj.weights);
-
-
+    
             end
+            [meanValue,~] = obj.estimate(obj.particles, obj.weights);
 
             X_est = meanValue;            
             PF_obj = obj;

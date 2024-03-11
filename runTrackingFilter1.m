@@ -8,15 +8,18 @@ addpath('FERS/', ...
         'multiTargetTracking/', ...
         'DPI_Suppression', ...
         'TrackingFilter-KalmanFilter/', ...
-        'TrackingFilter-HSCKF/', ...
+        'TrackingFilter-HCSKF/', ...
         'TrackingFilter-ParticleFilter/', ...
         'TrackingFilter-UKF/', ... 
         'TrackingFilter-RGNF/',...
+        'TrackingFilter-CSRGNF/',...
         'TrackingFilter-Polynomial/');
 
 %FLIGHT Scenarios
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_1_laneChange.fersxml');%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_1_laneChange.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
 
 %Noise Scenarios
@@ -69,28 +72,28 @@ rdm =[];
 figure('Name','2D image');
 %ARD
 f=figure(1);
-f.Position = [4000 10 550 400]; 
+f.Position = [4000 10 1050 800]; 
 movegui(f,'northwest');
 
 %CFAR
 f2=figure(2);
-f2.Position = [4000 10 550 400]; 
-movegui(f2,'northeast');
+f2.Position = [4000 10 1050 800]; 
+movegui(f2,'southwest');
 
 %Multi-Target Tracking 
 f3=figure(3);
-f3.Position = [4000 10 550 400]; 
+f3.Position = [4000 10 1050 800]; 
 movegui(f3,'southeast');
 
 f4=figure(4);
-f4.Position = [4000 10 550 400]; 
-movegui(f4,'northeast');
+f4.Position = [4000 10 1050 800]; 
+movegui(f4,'southwest');
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Create MTT object
-confirmationThreshold=3;
+confirmationThreshold=2;
 deletionThreshold=4;
 gatingThreshold=[1000,5];
 
@@ -98,13 +101,13 @@ gatingThreshold=[1000,5];
 %FilterType 2: Huber Covariance Scaling Kalman Filter
 %FilterType 3: Particle Filter
 %FilterType 4: UKF  Filter
-%FilterType 5: RGNF Filter
-%FilterType 6: FMP  Filter
-%FilterType 7: EMP  Filter
+%FilterType 5: Covariance Scaling UKF  Filter
+%FilterType 6: RGNF Filter
+%FilterType 7: Covariance scaling RGNF Filter
 
 
 
-filterType =2;
+filterType =3;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 

@@ -8,6 +8,8 @@ classdef multiTargetTracker
         gatingThreshold,       %Radius around the predicted measurement to eliminate other measurements
         filterType,            %KalmanFilter:1 , GaussNewton:2
         newtracksCreated,
+        M,                      %M-out-of N logic
+        N,                      %M-out-of N logic
 
     end
     
@@ -19,6 +21,8 @@ classdef multiTargetTracker
             obj.gatingThreshold = gatingThreshold;
             obj.filterType = filterType;
             obj.newtracksCreated = 0;
+            obj.M =3;
+            obj.N =5;
         end
         
         function obj = createNewTracks(obj,detections)
@@ -73,7 +77,8 @@ classdef multiTargetTracker
             %Delete Tracks based on deletion Treshold
             idx_to_delete =[];
             for i=1:max(size(obj.tracks))
-                if obj.tracks(i).sampleSinceLastUpdate > obj.deletionThreshold
+                %if obj.tracks(i).sampleSinceLastUpdate > obj.deletionThreshold
+                if obj.tracks(i).seenCountDel > obj.M  %M-out-of-N logic
                    idx_to_delete = [idx_to_delete, i];
                 end
             end
@@ -84,7 +89,7 @@ classdef multiTargetTracker
         function tracks = confirmTracks(obj)
             %Confirm Tracks based on confirmation Threshold
             for i=1:max(size(obj.tracks))                
-                if (obj.tracks(i).confirmed == 0 && obj.tracks(i).numberOfUpdates > obj.confirmationThreshold)
+                if (obj.tracks(i).confirmed == 0 && obj.tracks(i).seenCount >= obj.M)
                     obj.tracks(i).confirmed = 1;
                 end
             end

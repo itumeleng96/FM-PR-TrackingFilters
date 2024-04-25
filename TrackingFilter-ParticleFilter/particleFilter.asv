@@ -13,7 +13,7 @@ classdef particleFilter
         count;
         updater;
         update1;
-        epsDoppler;C
+        epsDoppler;
 
     end
     
@@ -101,11 +101,11 @@ classdef particleFilter
             M=5; %Number of samples to average
 
             
-            if(size(obj.epsDoppler,2)>M && eps_doppler > 1 && eps_doppler>mean(obj.epsDoppler(end-M:end-1)))
+            if(size(obj.epsDoppler,2)>M && eps_doppler > 1 && eps_doppler>median(obj.epsDoppler(end-M:end-1)))
                 %obj.epsDoppler =obj.epsDoppler(end-M:end-1);
                 diffs = (obj.particles(:, [1 3])' - z)';
                 likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
-                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / 5*obj.std_meas(2)^(2));
+                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / 10*obj.std_meas(2)^(2));
                 likelihood = likelihood_x .* likelihood_y;
                 
                 % Normalize the likelihood
@@ -114,10 +114,10 @@ classdef particleFilter
                  weights_adapt =obj.weights .*likelihood;
 
                 % Resample if too few effective particles
-                neff = obj.NEFF(weights_adapt);
+                neff = obj.NEFF(obj.weights_ada);
                 if neff < obj.N / 2
-                    indexes = obj.resampleSystematic(weights_adapt);
-                    [obj.particles, weights_adapt] = obj.resampleFromIndex(obj.particles, indexes);
+                    indexes = obj.resampleSystematic(obj.weights);
+                    [obj.particles, obj.weights] = obj.resampleFromIndex(obj.particles, indexes);
                 end
 
                 [meanValue,~] = obj.estimate(obj.particles, weights_adapt);

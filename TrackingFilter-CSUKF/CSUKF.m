@@ -34,14 +34,14 @@ classdef CSUKF
             obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
                      (dt^3)/2, dt^2, 0, 0;
                      0, 0, (dt^4)/4,(dt^3)/2;
-                     0, 0, (dt^3)/2, dt^2]*0.1;
+                     0, 0, (dt^3)/2, dt^2];
 
             %Measurement Error covariance matrix
             obj.R = [r_std,0;
                      0,rdot_std;];
 
 
-            obj.P = [100,0,0,0;                             
+            obj.P = [500,0,0,0;                             
                      0, 10, 0, 0;
                      0, 0, 0.5,0;
                      0, 0, 0, 0.5];    
@@ -58,7 +58,7 @@ classdef CSUKF
             obj.lambda = obj.alpha^2*(obj.n+obj.kappa) -obj.n;
             
             [obj.Wc,obj.Wm] =obj.createWeights();
-            obj.wk = 0.2*[dt^2;dt;dt^2;dt];
+            obj.wk = std_acc*[dt^2;dt;dt^2;dt];
 
             obj.count =0;
             obj.updater =0;
@@ -122,6 +122,10 @@ classdef CSUKF
             [num_rows_R, num_cols_R] = size(obj.R);
             
 
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%% Huber's M estimation
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
             % Create block matrix representing covariance of error'
 
             epsilon_covariance_range =  [obj.P(1:2,1:2) ,zeros(num_rows_P/2, num_cols_R/2); 

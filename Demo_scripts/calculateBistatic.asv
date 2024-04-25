@@ -23,8 +23,8 @@ SurvRx_Pos=[0;1;1000];
 %TargetWayPoints =[0,60];
 
 %Lane Change Maneuver Scenario 
-TargetPos = [[3806;20680;3200;],[-3116;14010;3200],[-6884;10971;4000],[-14979;3765;4000]];
-TargetWayPoints =[0,20,30,60];
+%TargetPos = [[3806;20680;3200;],[-3116;14010;3200],[-6884;10971;4000],[-14979;3765;4000]];
+%TargetWayPoints =[0,20,30,60];
 
 %Landing Maneuver
 %TargetPos = [[4000;18000;2000;],[-1000;8000;1700],[-1500;6000;1500],[-1000;4000;1300],[0;4000;1100],[500;6000;1000]];
@@ -32,7 +32,7 @@ TargetWayPoints =[0,20,30,60];
 
 %360 Maneuver
 %TargetPos = [[4000;18000;2000;],[-8528;13851;2000],[-12354;15339;2000],[-7997;17783;2000],[-13311;11938;2000],[-20431;9706;2000]];
-%TargetWayPoints =[0,35,50,75,95,120];
+TargetWayPoints =[0,35,50,75,95,120];
 
 UpdateInterval = 1;
 
@@ -119,6 +119,14 @@ for waypoint=1:size(TargetWayPoints,2)-1
         end
     
     end
+    %{
+    figure(3);
+    plot(bistatic_ranges,bistatic_doppler_shifts);
+    title('Bistatic range vs Doppler shift (Ground Truth)');
+    xlabel('Bistatic range(m)');
+    ylabel('Bistatic Doppler shift(Hz)');
+    %}
+
 end
 
 
@@ -136,23 +144,23 @@ xlabel('Bistatic range(m)');
 ylabel('Bistatic Doppler shift(Hz)');
 xlim([0 7e4]);
 ylim([-200 200]);
-
-if exist('../true_data.h5', 'file')
-    delete('../true_data.h5');
+%{
+if exist('true_data.h5', 'file')
+    delete('true_data.h5');
 end
 
 %disp(bistatic_ranges);
 %disp(bistatic_doppler_shifts);
 
 % Save bistatic ranges and Doppler shifts to an HDF5 file
-h5create('../true_data.h5', '/bistatic_ranges', size(bistatic_ranges));
-h5write('../true_data.h5', '/bistatic_ranges', bistatic_ranges);
+h5create('true_data.h5', '/bistatic_ranges', size(bistatic_ranges));
+h5write('true_data.h5', '/bistatic_ranges', bistatic_ranges);
 
-h5create('../true_data.h5', '/doppler_shifts', size(bistatic_doppler_shifts));
-h5write('../true_data.h5', '/doppler_shifts', bistatic_doppler_shifts);
+h5create('true_data.h5', '/doppler_shifts', size(bistatic_doppler_shifts));
+h5write('true_data.h5', '/doppler_shifts', bistatic_doppler_shifts);
+%}
 
 %{
-/////////////OLD CODE/////////////////////
 %Duration of The Simulation and the update intterval in seconds
 Simulation_time = 60;
 

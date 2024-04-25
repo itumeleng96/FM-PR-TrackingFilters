@@ -18,7 +18,7 @@ addpath('FERS/', ...
 
 %FLIGHT Scenarios
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_1_laneChange.fersxml');
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
@@ -27,13 +27,15 @@ addpath('FERS/', ...
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_1_fm_noise.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_2_white_noise.fersxml');
 
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % h5 Import from FERS simulation
 [Ino, Qno, scale_no] = loadfersHDF5('direct.h5');
 [Imov, Qmov, scale_mov] = loadfersHDF5('echo.h5');
+
 
 I_Qmov = Imov + 1i*Qmov;
 I_Qmov = I_Qmov.*scale_mov;
@@ -121,7 +123,7 @@ gatingThreshold=[5000,10];
 %FilterType 6: RGNF Filter
 %FilterType 7: Covariance Scaling RGNF Filter
 
-filterType =5;
+filterType =7;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -152,7 +154,7 @@ for i = 1:simulation_time
     
     %Get Coordinates from CFAR using meanShift Algorithm
     [clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,1e4,8,prevCentroids);
-    
+    %{
     if(i==10 || i==11)
         clusterCentroids(2,:)=clusterCentroids(2,:)+10;
     end
@@ -160,7 +162,7 @@ for i = 1:simulation_time
     if(i==13 || i==14)
         clusterCentroids(2,:)=clusterCentroids(2,:)-10;
     end
-    
+    %}
 
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids,i);
@@ -172,49 +174,34 @@ for i = 1:simulation_time
     %Filter Prediction Stage
     multiTargetTracker = multiTargetTracker.predictionStage();
 
+   
     %PLOT Prediction and True Tracks
-    multiTargetTracker = multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+    multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
 
     %UPDATE Tracks from measurements
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids,i);
    
     %CALCULATE Likelihoods 
-    %[doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihood(f4,f5,i,doppler_ll,range_ll,dopplerTrueData,rangeTrueData, true);
+    [doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihoodSingle(f4,f5,i,doppler_ll,range_ll,true);
    
-    %Do functionality to plot logLikelihood on a specific Track Id
-    %CALCULATE ERROR 
-    %[doppler_error,range_error,doppler_meas,range_meas]=multiTargetTracker.getErrors(i,doppler_error,range_error);
+    %Plot Errors
+    multiTargetTracker.plotErrors(f4,f5,i,rangeTrueData,dopplerTrueData);
     
-    %{
+    
     % Create comparison plots for Doppler Error
-    figure(f6);
-    plot(doppler_error, 'b--^');
-    hold on;
-    plot(dopplerTrueData(1:i), 'r-*');
-    hold on;
-    plot(doppler_meas(1:i), '-o');
-    
-    title('Bistatic Doppler Error Comparison');
-    xlabel('Time(s)');
-    ylabel('Doppler (Hz)  ');
-    legend('Tracking Filter','Ground Truth','Measurement');
-    grid on;
-    
-    % Create comparison plots for Range Errors
-    figure(f7);
-    plot(range_error, 'b--^');
-    hold on;
-    plot(rangeTrueData(1:i), 'r-*');
-    hold on;
+    %plot(rangeTrueData(1:i-1),dopplerTrueData(1:i-1), '-*');
+    %{
+    predicted_marker = plot(nan, nan, '^', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', 'blue', 'MarkerSize', 6);
+    tentative_marker = plot(nan, nan, '-', 'LineWidth', 2, 'Color', 'green', 'MarkerSize', 4);
+    confirmed_marker = plot(nan, nan, '-', 'LineWidth', 2, 'Color', 'red', 'MarkerFaceColor', 'red', 'MarkerSize', 4);
+    ground_truth_marker = plot(nan, nan, '-*', 'LineWidth', 2, 'MarkerSize', 4);
 
-    plot(range_meas(1:i), '-o');
-    
-    title('Bistatic Range Error Comparison');
-    xlabel('Time(s)');
-    ylabel('Bistatic range(m)');
-    legend('Tracking Filter','Ground Truth','Measurement');
-    grid on;
+    % Create a legend with custom markers and labels
+    legend([predicted_marker, tentative_marker, confirmed_marker,ground_truth_marker], 'Predicted Track', 'Tentative Track', 'Confirmed Track','Ground Truth', 'Location', 'best');
     %}
+    
+    hold off;
+    
     ard = ard_;
     rdm= rdm_;
 
@@ -222,10 +209,3 @@ for i = 1:simulation_time
     initial = current+1;
     current = current + fs;
 end
-
-%Do Log-likelihood for specific TrackId after simulation
-trackId = input('Enter a trackId for the Log-likelihood: ');
-
-%Call MultiTargetTrack -LogLikelihood to plot 
-multiTargetTracker.plotLogLikelihood(f4,f5,trackId,dopplerTrueData,rangeTrueData);
-

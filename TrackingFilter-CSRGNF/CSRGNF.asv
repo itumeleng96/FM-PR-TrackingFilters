@@ -34,11 +34,11 @@ classdef CSRGNF
             obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
                      (dt^3)/2, dt^2, 0, 0;
                      0, 0, (dt^4)/4,(dt^3)/2;
-                     0, 0, (dt^3)/2, dt^2]*0.1;
+                     0, 0, (dt^3)/2, dt^2];
 
-            obj.R = [r_std,0;0,rdot_std];              % Measurement Uncertainty
+            obj.R = [r_std^2,0;0,rdot_std^2];              % Measurement Uncertainty
             
-            obj.P = [100,0,0,0;                              % Initial Error Covariance Matrix
+            obj.P = [500,0,0,0;                              % Initial Error Covariance Matrix
                      0, 10, 0, 0;
                      0, 0, 1,0;
                      0, 0, 0, 0.1];                           
@@ -72,7 +72,7 @@ classdef CSRGNF
             x_new = obj.X;
 
             %Convergence tolerance 
-            tolerance = 1e-1; 
+            tolerance = 1e-4; 
 
             %The forgetting  factor(Lambda) - between 0 and 1
             lambda = 1;
@@ -94,32 +94,33 @@ classdef CSRGNF
             M=6; %Number of samples to average
             r_adapt=obj.R;
             if(size(obj.epsDoppler,2)>M && eps_doppler > 1 && eps_doppler>mean(obj.epsDoppler(end-M:end-1)))
-                r_adapt(2,2) =(eps_doppler-1)*obj.P(3,3) + eps_doppler*r_adapt(2,2)*10;
+                r_adapt(2,2) =(eps_doppler-1)*obj.P(3,3) + eps_doppler*r_adapt(2,2)*1000;
                 obj.epsDoppler =obj.epsDoppler(end-M:end-1);
             end
-
-            if(size(obj.epsRange,2)>M && eps_range > 1 && eps_range>20*mean(obj.epsRange(end-M:end-1)))
-                r_adapt(1,1) =(eps_range-1)*obj.P(1,1) + eps_range*r_adapt(1,1);
+            if(size(obj.epsRange,2)>M && eps_range > 1 && eps_range>10*mean(obj.epsRange(end-M:end-1)))
+                r_adapt(1,1) =(eps_range-1)*obj.P(1,1) + eps_range*r_adapt(1,1)*1000;
                 obj.epsRange =obj.epsRange(end-M:end-1);
             end
 
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %%% Recursive Gauss Newton Update Step
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-           
 
-            S1 = obj.H * obj.P * obj.H.' + r_adapt;
+
+            obj.S = obj.H * obj.P * obj.H.' + r_adapt;
             I = eye(size(obj.H, 2));
 
             % Recursive Update
             for i = 1:obj.max_iter                
                 % Observer gain Kn
                 % K_n = Wn^-1_n-1*H^T[R_n + H W^-1_n-1 H^T]^-1
-                K_n = obj.P * obj.H.' *S1^(-1); 
-                dx = K_n*(Y_n - obj.H * x_new - obj.H * (obj.X - x_new));
-                %weights = obj.huberFunction(obj.R,residual, 1.5); % Compute weights using Huber loss function
+                K_n = obj.P * obj.H.' *obj.S^(-1); 
+                dx = K_n Y_n - obj.H * x_new - obj.H * (obj.X - x_new);
+                %weights = obj.huberFunction(obj.R,residual, 4.5); % Compute weights using Huber loss function
             
                 % Compute the update
+                disp(weights);
+                dx = K_n * residual);
                 x_temp = obj.X + dx;
 
                 % Check for convergence
@@ -137,7 +138,7 @@ classdef CSRGNF
 
                             
             % Update Covariance Matrix
-            obj.R = [500,0;0,0.5];
+            obj.R = [500,0;0,0.1];
         
             obj.X = x_new;
             X_est = obj.X;
@@ -145,12 +146,14 @@ classdef CSRGNF
         end
     end
     methods(Static)
-        function weights = huberFunction(residual, delta)                    
+        function weights = huberFunction(R,residual, delta)    
+
+            normalized_residual = residual ./ sqrt(diag(R));
+        
             weights = zeros(size(residual));
-            quadratic_indices = abs(norm(res)) <= delta;
-            
+            quadratic_indices = abs(normalized_residual) <= delta;
             weights(quadratic_indices) = 1; % Quadratic loss
-            weights(~quadratic_indices) = delta ./ abs(residual(~quadratic_indices)); % Linear loss
+            weights(~quadratic_indices) = delta ./ abs(normalized_residual(~quadratic_indices)); % Linear loss
         end
     end
     

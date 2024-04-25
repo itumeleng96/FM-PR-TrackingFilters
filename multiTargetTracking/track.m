@@ -10,25 +10,31 @@ classdef track
        totalUpdates,
        trueTrack,
        predictedTrack,
+       sMatrix,
        trackingFilterObject,
        trackId,
        confirmed,            %confirmed=1: Confirmed ,confirmed=0: Tentative
+       deleted,
        numberOfUpdates,
        newTrack,
        x_initial,
+       startTime,
     end
     
     methods
-        function obj = track(trueTrack,predictedTrack,trackId,confirmation,sampleSinceLastUpdate,numberOfUpdates,filterType)
+        function obj = track(trueTrack,predictedTrack,trackId,startTime,confirmation,sampleSinceLastUpdate,numberOfUpdates,filterType)
             obj.trueTrack = trueTrack;
             obj.predictedTrack = predictedTrack;
+            obj.sMatrix = [];
             obj.sampleSinceLastUpdate = sampleSinceLastUpdate;
             obj.totalUpdates=0;
             obj.totalUpdatesDel=0;
             obj.seenCount=0;
             obj.seenCountDel=0;
             obj.trackId = trackId;
+            obj.startTime = startTime;
             obj.confirmed = confirmation;
+            obj.deleted = 0;
             obj.numberOfUpdates = numberOfUpdates;
             %Initialize Tracker
             %Create random initial points within observation space
@@ -62,13 +68,13 @@ classdef track
                 case 4
                     disp("Initializing Unscented Kalman Filter");
                     std_acc=1;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[100,0.01];                              %Standard Deviation of the measurements in the x and y
+                    std_meas=[500,0.1];                              %Standard Deviation of the measurements in the x and y
                     UKF_object = unscentedKalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),0,obj.x_initial(2),0;]);
                     obj.trackingFilterObject = UKF_object;
 
                 case 5
                     disp("Initializing Huber Covariance Scaling Unscented Kalman Filter");
-                    std_acc=1;                                     %Standard Deviation of the acceleration in ms^2
+                    std_acc=0.09;                                     %Standard Deviation of the acceleration in ms^2
                     std_meas=[500,0.1];                              %Standard Deviation of the measurements in the x and y
                     CSUKF_object = CSUKF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),0,obj.x_initial(2),0;]);
                     obj.trackingFilterObject = CSUKF_object;
@@ -124,10 +130,9 @@ classdef track
                 %Insert Observations from Target Observations
                 obj.trueTrack(1,end+1) = newTargetObservation(1,1);
                 obj.trueTrack(2,end) = newTargetObservation(2,1);
-           
+                
             end
 
-            
             %Update Tracking Filter 
             [~,obj.trackingFilterObject] = update(obj.trackingFilterObject,[newTargetObservation(1,1);newTargetObservation(2,1)]); 
 
@@ -135,39 +140,36 @@ classdef track
             obj.sampleSinceLastUpdate = 0;
             obj.numberOfUpdates = obj.numberOfUpdates+1;
 
-            obj.seenCountDel = obj.seenCountDel-1;
-            obj.seenCount = obj.seenCount+1;
-            %disp("true Track");
-            %disp(obj.trueTrack);
+            %obj.seenCountDel = obj.seenCountDel-1;
+            %obj.seenCount = obj.seenCount+1;
             obj.newTrack=0;
 
         end
 
         function obj = predictTrack(obj)
             %Predict using Tracking filter and update predictedTrack
-            N=5;
+            %N=5;
             [X,obj.trackingFilterObject]= predict(obj.trackingFilterObject);
             %Update the predicted track
             obj.predictedTrack(1,end+1)=X(1,1);
             obj.predictedTrack(2,end)=X(3,1);   
             obj.sampleSinceLastUpdate  = obj.sampleSinceLastUpdate+1;
 
+            if(size(obj.trackingFilterObject.S,1)>1)
+                obj.sMatrix(1,end+1) = obj.trackingFilterObject.S(1,1);
+                obj.sMatrix(2,end) = obj.trackingFilterObject.S(2,2);
+            end
+
             %M Out of N logic 
-            obj.totalUpdatesDel =obj.totalUpdatesDel+1;
-            if obj.totalUpdatesDel>N
-                obj.seenCountDel=obj.seenCountDel+1;
-            end
+            %obj.totalUpdatesDel =obj.totalUpdatesDel+1;
+            %if obj.totalUpdatesDel>N
+            %    obj.seenCountDel=obj.seenCountDel+1;
+            %end
 
-            obj.totalUpdates =obj.totalUpdates+1;
-            if obj.totalUpdates>N
-                obj.seenCount=obj.seenCount-1;
-            end
-
-            %disp("predicted Track");
-            %disp(obj.predictedTrack);
-
-
-            
+            %obj.totalUpdates =obj.totalUpdates+1;
+            %if obj.totalUpdates>N
+            %    obj.seenCount=obj.seenCount-1;
+            %end
         end
  
         function obj = incrementSampleSinceLastUpdate(obj) %call function to keep track of 

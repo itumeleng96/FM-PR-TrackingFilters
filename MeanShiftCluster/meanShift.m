@@ -83,6 +83,5 @@ for cN = 1:numClust
     numPoints(cN) = size(clusterPoints,2);
 end
 
-
 end
 

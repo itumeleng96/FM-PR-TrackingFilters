@@ -300,7 +300,7 @@ classdef multiTargetTracker
             end
         end
 
-        function [doppler_ll, range_ll,t] = calculateLogLikelihoodGroundTruth(obj,trackId,doppler_ll,range_ll,dopplerGroundTruth,rangeGroundTruth,simTime)
+        function [doppler_ll, range_ll] = calculateLogLikelihoodGroundTruth(obj,trackId,doppler_ll,range_ll,dopplerGroundTruth,rangeGroundTruth)
             
              indexOfTrack = -1;
              Tracks = obj.tracks;
@@ -310,44 +310,23 @@ classdef multiTargetTracker
                     indexOfTrack = j;
                 end
              end
-             t=[];
+
              if(indexOfTrack>0)
 
                  sMatrix = Tracks(indexOfTrack).sMatrix;
                  %sMatrix(1,end+1) = Tracks(indexOfTrack).trackingFilterObject.S(1,1);
                  %sMatrix(2,end) = Tracks(indexOfTrack).trackingFilterObject.S(2,2);
-                 
+
                  predictedTrack = Tracks(indexOfTrack).predictedTrack;
 
                  range_ll = obj.logLikelihoodMatrix(predictedTrack(1,:),rangeGroundTruth(1,:),sMatrix(1,:),Tracks(indexOfTrack).deleted);
                  doppler_ll = obj.logLikelihoodMatrix(predictedTrack(2,:),dopplerGroundTruth(1,:),sMatrix(2,:),Tracks(indexOfTrack).deleted);
-                 %Plot against time 
-                 startTime = Tracks(indexOfTrack).startTime;
-                 endTime = length(doppler_ll)+startTime -1;
-                 
-                 t = startTime:1:endTime;
-                 
-             end
-        end
 
-        function [predictedTrack] = getTrack(obj,trackId)
-            
-             indexOfTrack = -1;
-             Tracks = obj.tracks;
-             predictedTrack =[];
-             for j = 1:length(Tracks)
-                if(obj.tracks(j).trackId == trackId)
-                    indexOfTrack = j;
-                end
-             end
-
-             if(indexOfTrack>0)
-                 predictedTrack = Tracks(indexOfTrack).predictedTrack;
              end
         end
         
 
-        function [doppler_ll, range_ll] = plotLogLikelihood(obj, f, f1,trackId,dopplerGroundTruth,rangeGroundTruth,simTime)
+        function [doppler_ll, range_ll] = plotLogLikelihood(obj, f, f1,trackId,dopplerGroundTruth,rangeGroundTruth)
                         
              indexOfTrack = -1;
              Tracks = obj.tracks;
@@ -365,19 +344,22 @@ classdef multiTargetTracker
                  sMatrix(2,end) = Tracks(indexOfTrack).trackingFilterObject.S(2,2);
 
                  predictedTrack = Tracks(indexOfTrack).predictedTrack;
-                 disp(Tracks(indexOfTrack).trueTrack);
+
                  range_ll = obj.logLikelihoodMatrix(predictedTrack(1,:),rangeGroundTruth(1,:),sMatrix(1,:),Tracks(indexOfTrack).deleted);
                  doppler_ll = obj.logLikelihoodMatrix(predictedTrack(2,:),dopplerGroundTruth(1,:),sMatrix(2,:),Tracks(indexOfTrack).deleted);
 
                  %Plot against time 
                  startTime = Tracks(indexOfTrack).startTime;
-                 endTime = length(doppler_ll)+startTime-1;
+                 endTime = size(sMatrix,2);
 
+                 if(Tracks(indexOfTrack).deleted)
+                     endTime = (simTime - size(sMatrix,2))+startTime;
+                 end
                  figure(f);
                  hold on;
                  t = startTime:1:endTime;
 
-                 plot(t,doppler_ll);
+                 plot(doppler_ll,t);
                 
                  xlabel('Time(s)');
                  ylabel('Bistatic Doppler Log-likelihood');
@@ -385,7 +367,7 @@ classdef multiTargetTracker
                  %legend('Doppler Log-likelihood', 'Doppler Error'); % Add legend for the two plotted lines
     
                  figure(f1);
-                 plot(t,range_ll);
+                 plot(range_ll,t);
                  xlabel('Time(s)');
                  ylabel('Bistatic Range Log-likelihood');
                  title(['Bistatic Range  Log-likelihood vs Time for Track ID:',num2str(trackId)]);
@@ -394,54 +376,6 @@ classdef multiTargetTracker
              end
         end
         
-        function [doppler_ll, range_ll] = plotLogLikelihoodSingle(obj, f, f1, i,doppler_ll,range_ll,plotResults)
-            
-            if(plotResults)
-                time = 1:1:i;            
-            
-                 for j = 1:1
-                    predictedTrack = obj.tracks(j).predictedTrack;
-                    trueTrack = obj.tracks(j).trueTrack;
-                    s_matrix = obj.tracks(j).trackingFilterObject.S;
-                    %disp(s_matrix);
-                    %----------------------------------------------------------------%
-                    %--Log-likelihood for Bistatic Range
-                    %----------------------------------------------------------------%
-                    range_sample=trueTrack(1,i);
-                    range_mean =predictedTrack(1,i);
-                    
-                    %range_ll(j, i) = normlike([(range_mean),s_matrix(1,1)],range_sample);
-                    %range_ll(j, i) = lognlike([range_mean,sqrt(R(1,1))],range_sample);
-                    range_ll(j, i) = logLikelihood(range_mean,s_matrix(1,1),range_sample);
-    
-                    %----------------------------------------------------------------%
-                    %--Log-likelihood for Bistatic Doppler
-                    %----------------------------------------------------------------%
-                    doppler_sample=trueTrack(2,i);
-                    doppler_mean =predictedTrack(2,i);
-                    
-                    %doppler_ll(j, i) = normlike([doppler_mean,s_matrix(2,2)],doppler_sample);
-                    %doppler_ll(j, i) = lognlike([doppler_mean,sqrt(R(2, 2))],doppler_sample);
-                    doppler_ll(j, i) = logLikelihood(doppler_mean,s_matrix(2,2),doppler_sample);
-    
-                end
-    
-                figure(f);
-                plot(time, doppler_ll);
-                xlabel('Time(s)');
-                ylabel('Bistatic Doppler Log-likelihood');
-                title('Bistatic Doppler Log-likelihood vs Time');
-                %legend('Doppler Log-likelihood', 'Doppler Error'); % Add legend for the two plotted lines
-    
-                figure(f1);
-                plot(time,range_ll);
-                xlabel('Time(s)');
-                ylabel('Bistatic Range Log-likelihood');
-                title('Bistatic Range  Log-likelihood vs Time');
-                %legend('Range Log-likelihood', 'Range Error'); % Add legend for the two plotted lines
-
-            end
-        end
 
         function [range_mse,doppler_mse] = calculateMSE(obj,i,range_mse,doppler_mse,true_doppler,true_range)
 

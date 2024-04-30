@@ -1,13 +1,13 @@
-classdef unscentedKalmanFilter
+classdef CSUKF
 
     properties
         dt,X,F,A,H,Q,R,P,Pk,S,
         coeff,measured_x,measured_y,std_acc,k_d,Wm,Wc,
-        lambda,alpha,kappa,n,beta,sigmaPoints,wk,count,updater,update1;
+        lambda,alpha,kappa,n,beta,sigmaPoints,wk,count,updater,update1,epsDoppler;
     end
     
     methods
-        function obj = unscentedKalmanFilter(dt,std_acc,r_std,rdot_std,X_initial)
+        function obj = CSUKF(dt,std_acc,r_std,rdot_std,X_initial)
         
             %Init funtion
             %Inputs: 
@@ -34,14 +34,14 @@ classdef unscentedKalmanFilter
             obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
                      (dt^3)/2, dt^2, 0, 0;
                      0, 0, (dt^4)/4,(dt^3)/2;
-                     0, 0, (dt^3)/2, dt^2]*0.1;
+                     0, 0, (dt^3)/2, dt^2];
 
             %Measurement Error covariance matrix
             obj.R = [r_std,0;
                      0,rdot_std;];
 
 
-            obj.P = [100,0,0,0;                             
+            obj.P = [500,0,0,0;                             
                      0, 10, 0, 0;
                      0, 0, 0.5,0;
                      0, 0, 0, 0.5];    
@@ -58,11 +58,14 @@ classdef unscentedKalmanFilter
             obj.lambda = obj.alpha^2*(obj.n+obj.kappa) -obj.n;
             
             [obj.Wc,obj.Wm] =obj.createWeights();
-            obj.wk = 0.2*[dt^2;dt;dt^2;dt];
+            obj.wk = std_acc*[dt^2;dt;dt^2;dt];
 
             obj.count =0;
             obj.updater =0;
             obj.update1 =0;
+
+            obj.epsDoppler =[];
+
 
         end
         
@@ -97,13 +100,73 @@ classdef unscentedKalmanFilter
             Pxz=obj.unscentedTransformCross(Xu,muZ);
             
             obj.S = Pz;
-            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Covariance Scaling Unscented Kalman Filter Step 
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
            
+            ek2_doppler = y(2)^2;
+            eps_doppler = ek2_doppler/obj.S(2,2);  
+                       
+            obj.epsDoppler = [obj.epsDoppler,eps_doppler];
+            M=6; %Number of samples to average
+            if(size(obj.epsDoppler,2)>M && eps_doppler>2 && eps_doppler>2*mean(obj.epsDoppler(end-M:end-1)))                
+                obj.R = abs([0;eps_doppler-1].*(obj.H*obj.P*obj.H') + [1;eps_doppler].*obj.R);
+                Pz = obj.unscentedTransformZ(muZ);  
+                %remove outlier from average
+                obj.epsDoppler =obj.epsDoppler(end-M:end-1);
+                obj.S = Pz;
+            end
+            
+            
+            [num_rows_P, num_cols_P] = size(obj.P);
+            [num_rows_R, num_cols_R] = size(obj.R);
+            
+
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%% Huber's M estimation
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            % Create block matrix representing covariance of error'
+
+            epsilon_covariance_range =  [obj.P(1:2,1:2) ,zeros(num_rows_P/2, num_cols_R/2); 
+                                   zeros(num_rows_R/2, num_cols_P/2), obj.R(1,1)];
+
+            epsilon_covariance_doppler = [obj.P(3:4,3:4), zeros(num_rows_P/2, num_cols_R/2); 
+                                   zeros(num_rows_R/2, num_cols_P/2), obj.R(2,2)]; 
+            
+
+            Sadapt_range = chol(epsilon_covariance_range,'lower');
+            Sadapt_doppler = chol(epsilon_covariance_doppler,'lower');
+
+            Ydoppler = Sadapt_doppler\ [obj.X(3:4)';z(2)];
+            Yrange = Sadapt_range \ [obj.X(1:2)';z(1)];
+                        
+            Xadapt_range = Sadapt_range\ [eye(2);[1,0;]];
+            Xadapt_doppler = Sadapt_doppler\ [eye(2); [1,0;]];
+        
+            % Define the anonymous function for the criterion
+            robustScore = HuberScore(1.5);
+            robustScoreH = HuberScore(1.5);
+            
+            % Initial guess for the state vector
+            x0_range = obj.X(1:2)';
+            x0_doppler = obj.X(3:4)';
+            
+            [res_doppler, ~] = fminsearch(@(xx) m_estimate_criterion(xx, Ydoppler, Xadapt_doppler,robustScoreH), x0_doppler);
+
+            [res_range, ~] = fminsearch(@(xx) m_estimate_criterion(xx, Yrange, Xadapt_range,robustScore), x0_range);
+
+            
+            X_res = [res_range;res_doppler];
+            obj.X = X_res;
+            
 
             K =Pxz * Pz^(-1) ;  
-            obj.X  = obj.X' + K*y;
+            %obj.X  = obj.X' + K*y;
+
             obj.P = obj.Pk - K*Pz*K';
-       
+            obj.R = [500,0;0,0.1];
+
 
             obj.X=obj.X';  
 

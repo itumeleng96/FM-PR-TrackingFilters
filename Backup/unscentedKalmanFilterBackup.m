@@ -50,9 +50,9 @@ classdef unscentedKalmanFilter
                      0,0,1,0;];                                         % Measurement Function'
 
             %Tuning parameters For UKF
-            obj.alpha =0.1;                 %Determines the spread of the sigma points around the mean : usually + value : a=0.0001
+            obj.alpha =0.1;              %Determines the spread of the sigma points around the mean : usually + value : a=0.0001
             obj.kappa =0;                   %Secondary scaling parameter usually  set to zero 
-            obj.beta =2;                    %Is used to incorporate prior knowledge of the distribution of the input random variable (Gaussian : beta=2)
+            obj.beta =2;                   %Is used to incorporate prior knowledge of the distribution of the input random variable (Gaussian : beta=2)
             obj.n = 4;                      %Is the number of dimensions 
 
             obj.lambda = obj.alpha^2*(obj.n+obj.kappa) -obj.n;
@@ -85,6 +85,9 @@ classdef unscentedKalmanFilter
         
         function [Xest,KF_obj2] = update(obj,z)
 
+
+            threshold=5;
+            max_adapt=4;
             obj.count = obj.count+1;    
 
 
@@ -98,12 +101,33 @@ classdef unscentedKalmanFilter
             
             obj.S = Pz;
             
-           
+            eps_y =log(normpdf(z(2),obj.X(1,3),obj.S(2,2)));
+            
+            if(abs(eps_y)>threshold && obj.count>10 && obj.updater<max_adapt && obj.update1>max_adapt)
 
-            K =Pxz * Pz^(-1) ;  
-            obj.X  = obj.X' + K*y;
-            obj.P = obj.Pk - K*Pz*K';
-       
+                obj.updater = obj.updater+1;
+                if(obj.updater==max_adapt)
+                    obj.update1=0;
+                end
+
+                adapt_factor = [1;1/abs(eps_y)];
+
+                K =Pxz * Pz^(-1) ;  
+                obj.P = obj.Pk - K*Pz*K';
+
+                obj.X  = obj.X' + K*(y.*adapt_factor);
+
+            else
+                obj.updater =0;
+                obj.update1=obj.update1+1;
+
+                K =Pxz * Pz^(-1) ;  
+                
+                obj.X  = obj.X' + K*y;
+                obj.P = obj.Pk - K*Pz*K';
+            end
+
+
 
             obj.X=obj.X';  
 

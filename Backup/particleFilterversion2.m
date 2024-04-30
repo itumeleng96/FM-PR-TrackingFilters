@@ -10,10 +10,8 @@ classdef particleFilter
         scaling_factor; % 
         std_meas;
         S;
-        count;
-        updater;
-        update1;
-        epsDoppler;C
+        epsRange;
+        epsDoppler;
 
     end
     
@@ -47,11 +45,9 @@ classdef particleFilter
                      0, 0, (dt^4)/4,(dt^3)/2;
                      0, 0, (dt^3)/2, dt^2];
             
-            obj.count =0;
-            obj.updater =0;
-            obj.update1 =0;
 
             obj.epsDoppler =[];
+            obj.epsRange = [];
 
 
 
@@ -79,51 +75,54 @@ classdef particleFilter
             %Adaptive filtering
 
             % Calculate the cross-covariance elements (K_ij) using the weighted particles
-            % S = HPH' + R;
-            
+            % S = HPH' + R;   
+
             [meanValueS,~] = obj.estimate(obj.particles, obj.weights);
-            covariance_matrix = (obj.weights .* (obj.particles(:, [1 3]) - meanValueS))' * (obj.weights.*(obj.particles(:, [1 3]) - meanValueS));
-            
-            slikelihood= covariance_matrix+ obj.std_meas;
+            slikelihood= sum(obj.weights .* (obj.particles(:, [1 3]) - meanValueS) .* (z - meanValueS')', 3) + obj.std_meas;
             obj.S = [mean(slikelihood(:,1)),0;0,mean(slikelihood(:,2));];
 
-
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%% Detect outliers and reject them
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%Outlier Detection Scheme
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % average mahalanobis distance
+            ek = z(2) - meanValueS(2);
+            eps_doppler = ek^2/obj.S(2,2);
             
-            ek = z-meanValueS';
-            ek2_doppler = ek(2)^2;
-
-            eps_doppler = ek2_doppler/obj.S(2,2);  
-
+            disp(eps_doppler);
+            
             obj.epsDoppler = [obj.epsDoppler,eps_doppler];
-            M=5; %Number of samples to average
-
             
-            if(size(obj.epsDoppler,2)>M && eps_doppler > 1 && eps_doppler>mean(obj.epsDoppler(end-M:end-1)))
-                %obj.epsDoppler =obj.epsDoppler(end-M:end-1);
+            M=6; %Number of samples to average
+            indexMin = min(size(obj.epsDoppler,2),M);
+            med_eps = median(obj.epsDoppler(max(end-indexMin,1):end));
+            disp(med_eps);
+            
+            if(eps_doppler > 3*med_eps)
+                disp("outlier");
                 diffs = (obj.particles(:, [1 3])' - z)';
                 likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
-                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / 5*obj.std_meas(2)^(2));
+                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2)*1000;
                 likelihood = likelihood_x .* likelihood_y;
                 
                 % Normalize the likelihood
                 likelihood = likelihood / sum(likelihood);
                 
-                 weights_adapt =obj.weights .*likelihood;
-
+                
+                % Update the particle weights
+                obj.weights = obj.weights .* likelihood;
+                obj.weights = obj.weights + 1.e-300;  % Add small constant to avoid zero weights
+                obj.weights = obj.weights / sum(obj.weights);
+            
                 % Resample if too few effective particles
-                neff = obj.NEFF(weights_adapt);
+                neff = obj.NEFF(obj.weights);
                 if neff < obj.N / 2
-                    indexes = obj.resampleSystematic(weights_adapt);
-                    [obj.particles, weights_adapt] = obj.resampleFromIndex(obj.particles, indexes);
+                    indexes = obj.resampleSystematic(obj.weights);
+                    [obj.particles, obj.weights] = obj.resampleFromIndex(obj.particles, indexes);
                 end
 
-                [meanValue,~] = obj.estimate(obj.particles, weights_adapt);
-                
+                [meanValue,~] = obj.estimate(obj.particles, obj.weights);
+
             else
-                 
                 diffs = (obj.particles(:, [1 3])' - z)';
                 likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
                 likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
@@ -144,10 +143,13 @@ classdef particleFilter
                     indexes = obj.resampleSystematic(obj.weights);
                     [obj.particles, obj.weights] = obj.resampleFromIndex(obj.particles, indexes);
                 end
-    
+
                 [meanValue,~] = obj.estimate(obj.particles, obj.weights);
+
+
             end
 
+            
             X_est = meanValue;            
             PF_obj = obj;
         end

@@ -13,7 +13,7 @@ classdef particleFilter
         count;
         updater;
         update1;
-        epsDoppler;C
+        epsDoppler;
 
     end
     
@@ -80,47 +80,37 @@ classdef particleFilter
 
             % Calculate the cross-covariance elements (K_ij) using the weighted particles
             % S = HPH' + R;
+
+            %%To be replaced with another scheme to detect steady state
+            obj.count = obj.count+1;    
+
             
             [meanValueS,~] = obj.estimate(obj.particles, obj.weights);
             covariance_matrix = (obj.weights .* (obj.particles(:, [1 3]) - meanValueS))' * (obj.weights.*(obj.particles(:, [1 3]) - meanValueS));
             
+            disp("Covariance Matrix");
+            disp(covariance_matrix)
             slikelihood= covariance_matrix+ obj.std_meas;
+            disp(slikelihood);
+
             obj.S = [mean(slikelihood(:,1)),0;0,mean(slikelihood(:,2));];
 
-
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%% Detect outliers and reject them
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
             ek = z-meanValueS';
             ek2_doppler = ek(2)^2;
 
             eps_doppler = ek2_doppler/obj.S(2,2);  
 
             obj.epsDoppler = [obj.epsDoppler,eps_doppler];
-            M=5; %Number of samples to average
+            M=6; %Number of samples to average
 
             
             if(size(obj.epsDoppler,2)>M && eps_doppler > 1 && eps_doppler>mean(obj.epsDoppler(end-M:end-1)))
-                %obj.epsDoppler =obj.epsDoppler(end-M:end-1);
-                diffs = (obj.particles(:, [1 3])' - z)';
-                likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
-                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / 5*obj.std_meas(2)^(2));
-                likelihood = likelihood_x .* likelihood_y;
                 
-                % Normalize the likelihood
-                likelihood = likelihood / sum(likelihood);
-                
-                 weights_adapt =obj.weights .*likelihood;
+                disp(eps_doppler);
+                disp(mean(obj.epsDoppler(end-M:end-1)));
 
-                % Resample if too few effective particles
-                neff = obj.NEFF(weights_adapt);
-                if neff < obj.N / 2
-                    indexes = obj.resampleSystematic(weights_adapt);
-                    [obj.particles, weights_adapt] = obj.resampleFromIndex(obj.particles, indexes);
-                end
-
-                [meanValue,~] = obj.estimate(obj.particles, weights_adapt);
+                disp("Outlier");
+                obj.epsDoppler =obj.epsDoppler(end-M:end-1);
                 
             else
                  
@@ -145,8 +135,8 @@ classdef particleFilter
                     [obj.particles, obj.weights] = obj.resampleFromIndex(obj.particles, indexes);
                 end
     
-                [meanValue,~] = obj.estimate(obj.particles, obj.weights);
             end
+            [meanValue,~] = obj.estimate(obj.particles, obj.weights);
 
             X_est = meanValue;            
             PF_obj = obj;

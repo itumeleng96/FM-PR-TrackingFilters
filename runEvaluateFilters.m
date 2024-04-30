@@ -3,8 +3,8 @@ clear;
 close all;
 
 addpath('FERS/', ...
-        'CFAR/', ...
-        'MeanShiftCluster/', ...
+        'cfar/', ...
+        'meanShiftCluster/', ...
         'multiTargetTracking/', ...
         'DPI_Suppression', ...
         'TrackingFilter-KalmanFilter/', ...
@@ -13,15 +13,14 @@ addpath('FERS/', ...
         'TrackingFilter-UKF/', ... 
         'TrackingFilter-CSUKF/', ... 
         'TrackingFilter-RGNF/',...
-        'TrackingFilter-CSRGNF/',...
-        'TrackingFilter-Polynomial/');
+        'TrackingFilter-CSRGNF/');
 
 %FLIGHT Scenarios
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_1_laneChange.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
 
 %Noise Scenarios
 %SCENARIO 3
@@ -31,7 +30,7 @@ system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fe
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_2_white_noise.fersxml');
 
 %SCENARIO 1 
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml'); 
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml'); 
 
 
 
@@ -79,13 +78,13 @@ ard = [];
 rdm =[];
 
 
-f3=figure();
-f3.Position = [4000 10 1000 800]; 
-movegui(f3,'southwest');
+%f3=figure();
+%f3.Position = [4000 10 1000 800]; 
+%movegui(f3,'southwest');
 
-f5=figure();
-f5.Position = [4000 10 1000 800]; 
-movegui(f5,'southeast');
+%f5=figure();
+%f5.Position = [4000 10 1000 800]; 
+%movegui(f5,'southeast');
 
 %Create MTT object
 confirmationThreshold=4;
@@ -124,8 +123,8 @@ range_ll_4=[];
 prevCentroids=[];
 
 %True Data for single Target Scenario
-rangeTrueData = h5read('true_data.h5', '/bistatic_ranges');
-dopplerTrueData = h5read('true_data.h5', '/doppler_shifts');
+rangeTrueData = h5read('./groundTruthCalculations/true_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('./groundTruthCalculations/true_data.h5', '/doppler_shifts');
 
 
 for i = 1:simulation_time
@@ -138,11 +137,11 @@ for i = 1:simulation_time
     [y,ard_] = ardNoPlot(s1,s2,fs,dopp_bins,delay,i,ard);
     
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(y.',10e-6,fs,dopp_bins,delay,i,f5,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfar(y.',10e-6,fs,dopp_bins,delay,i,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,1e4,8,prevCentroids);
+    [clusterCentroids,variancesX,variancesY,numPoints] = meanShift(targetClusters,1e4,8);
    
     %Plot tracks from Tracker - Call Multi-target Tracker
 
@@ -164,10 +163,10 @@ for i = 1:simulation_time
     multiTargetTracker3 = multiTargetTracker3.predictionStage();
     multiTargetTracker4 = multiTargetTracker4.predictionStage();
 
-    multiTargetTracker1 = multiTargetTracker1.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
-    multiTargetTracker2 = multiTargetTracker2.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
-    multiTargetTracker3 = multiTargetTracker3.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
-    multiTargetTracker4 = multiTargetTracker4.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+    %multiTargetTracker1 = multiTargetTracker1.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+    %multiTargetTracker2 = multiTargetTracker2.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+    %multiTargetTracker3 = multiTargetTracker3.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+    %multiTargetTracker4 = multiTargetTracker4.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
 
     %UPDATE Tracks from measurements
     multiTargetTracker1 = multiTargetTracker1.updateStage(clusterCentroids,i);

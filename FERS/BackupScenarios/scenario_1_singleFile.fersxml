@@ -107,7 +107,7 @@
   </platform>
 
   <platform name="Target1"> <!-- Target traveling at 220m/s for x seconds -->
-    <motionpath interpolation="cubic">
+    <motionpath interpolation="linear">
 	<positionwaypoint>
         <x>4000</x>
         <y>18000</y>

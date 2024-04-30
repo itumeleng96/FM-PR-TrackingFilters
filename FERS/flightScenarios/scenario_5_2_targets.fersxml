@@ -135,7 +135,7 @@
   </platform>
 
   <platform name="Target2">
-      <motionpath interpolation="cubic">
+      <motionpath interpolation="linear">
         <positionwaypoint>
         <x>4000</x>
         <y>4000</y>

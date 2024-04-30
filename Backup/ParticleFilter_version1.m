@@ -99,8 +99,8 @@ classdef particleFilter
                 end
 
                 diffs = (obj.particles(:, [1 3])' - z)';
-                likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2*50);
-                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
+                likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
+                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / 20*obj.std_meas(2)^2);
                 likelihood = likelihood_x .* likelihood_y;
                 weights_adapt =obj.weights .*likelihood;
 

@@ -5,7 +5,7 @@
 
 %The Positions are all in the format Below
 %[x,y,z] where x,y,z are the coordinates in meters in the Cartesian Coordinate System
-
+c=299792458;
 wavelength = 299792458/94e6;
 
 %Transmitter Position
@@ -83,6 +83,48 @@ end
 figure(1)
 plot3(interpolated_posx(1, :), interpolated_posx(2, :), interpolated_posx(3, :), 'b.-');
 grid on;
+
+
+for position_index = 1:(size(interpolated_posx, 2) - 1)
+    % Delta-Time: time taken in position section
+    
+    % Current position
+    Target_Pos_1 = interpolated_posx(:, position_index);
+    % Next position
+    Target_Pos_end = interpolated_posx(:, position_index + 1);
+    
+    % Ranges from Tx and RefRx to the target
+    range_tx_target = norm(Target_Pos_1 - Tx_Pos);
+    range_ref_target = norm(Target_Pos_1 - RefRx_Pos);
+    
+    % Ranges for the end position
+    range_tx_target_end = norm(Target_Pos_end - Tx_Pos);
+    range_ref_target_end = norm(Target_Pos_end - RefRx_Pos);
+
+    % Calculate velocities (rate of change of range)
+    V_t = (range_tx_target-range_tx_target_end) / UpdateInterval;
+    V_r = (range_ref_target-range_ref_target_end) / UpdateInterval;
+
+    % Calculate bistatic Doppler shift using the correct formula
+    doppler_shift = (94e6 / c) * (V_t + V_r);  % Assuming similar velocities as the baseline formula
+    bistatic_doppler_shifts(end + 1) = doppler_shift;
+
+    % Calculate the bistatic range
+    bistatic_range = range_tx_target + range_ref_target - Baseline;
+
+    % Store the bistatic range
+    bistatic_ranges(end + 1) = bistatic_range;
+end
+
+figure(3);
+plot(bistatic_ranges,bistatic_doppler_shifts);
+title('Bistatic range vs Doppler shift (Ground Truth)');
+xlabel('Bistatic range(m)');
+ylabel('Bistatic Doppler shift(Hz)');
+xlim([0 7e4]);
+ylim([-200 200]);
+
+%{
 for position_index = 2:size(interpolated_posx, 2) - 1
     % Delta-Time: time taken in position section
     
@@ -122,7 +164,7 @@ xlabel('Bistatic range(m)');
 ylabel('Bistatic Doppler shift(Hz)');
 xlim([0 7e4]);
 ylim([-200 200]);
-
+%}
 %{
 if exist('../true_data.h5', 'file')
     delete('../true_data.h5');

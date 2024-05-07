@@ -20,8 +20,8 @@ SurvRx_Pos=[0;1;1000];
 %Target Positions
 
 %Single Target Scenario 
-TargetPos = [[4000;18000;3600;],[-2000;3000;1600]];
-TargetWayPoints =[0,60];
+%TargetPos = [[4000;18000;3600;],[-2000;3000;1600]];
+%TargetWayPoints =[0,60];
 
 %Lane Change Maneuver Scenario 
 %TargetPos = [[3806;20680;3200;],[-3116;14010;3200],[-6884;10971;4000],[-14979;3765;4000]];
@@ -36,12 +36,12 @@ TargetWayPoints =[0,60];
 %TargetWayPoints =[0,35,50,75,95,120];
 
 %Multit-Target Target 1 
-TargetPos = [[4000;18000;3600;],[-2000;3000;1600]];
-TargetWayPoints =[0,60];
+%TargetPos = [[4000;18000;3600;],[-2000;3000;1600]];
+%TargetWayPoints =[0,60];
 
 %Multit-Target Target 2
-%TargetPos = [[4000;4000;1600;],[2000;20000;3600]];
-%TargetWayPoints =[0,60];
+TargetPos = [[4000;4000;1600;],[2000;20000;3600]];
+TargetWayPoints =[0,60];
 
 SimulationTime = TargetWayPoints(end)-TargetWayPoints(1)+1;
 
@@ -138,13 +138,13 @@ xlim([0 7e4]);
 ylim([-200 200]);
 
 
-if exist('../true_data.h5', 'file')
-    delete('../true_data.h5');
+if exist('./true_data.h5', 'file')
+    delete('./true_data.h5');
 end
 
 % Save bistatic ranges and Doppler shifts to an HDF5 file
-h5create('../true_data.h5', '/bistatic_ranges', size(bistatic_ranges));
-h5write('../true_data.h5', '/bistatic_ranges', bistatic_ranges);
+h5create('./true_data.h5', '/bistatic_ranges', size(bistatic_ranges));
+h5write('./true_data.h5', '/bistatic_ranges', bistatic_ranges);
 
-h5create('../true_data.h5', '/doppler_shifts', size(bistatic_doppler_shifts));
-h5write('../true_data.h5', '/doppler_shifts', bistatic_doppler_shifts);
+h5create('./true_data.h5', '/doppler_shifts', size(bistatic_doppler_shifts));
+h5write('./true_data.h5', '/doppler_shifts', bistatic_doppler_shifts);

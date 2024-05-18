@@ -47,7 +47,7 @@ bistatic_doppler_shifts = [];
 
 %coeffs = spline(TargetWayPoints, TargetPos);
 %interpolated_positions = ppval(coeffs, time_intervals);
-prev_total_range=0;
+prev_total_range=eps;
 
 interp_positions =[];
 interpolated_positions = [];
@@ -58,16 +58,12 @@ for i = 1:numel(TargetWayPoints)-1
 
     time_intervals = TargetWayPoints(i)-1:UpdateInterval:TargetWayPoints(i+1); 
 
-
     % Extract waypoints and positions for the current section
     section_waypoints = TargetWayPoints(i:i+1);
     section_positions = TargetPos(:, i:i+1);
     
-    C=  [LastPosition, section_positions];
-    D=  [LastPositionIndex, section_waypoints];
-
     % Calculate cubic spline interpolation coefficients for the current section
-    coeffs = spline(D, C);
+    coeffs = spline(section_waypoints, section_positions);
 
     % Evaluate the cubic spline interpolation at the specified time intervals for the current section
     section_interpolated_positions = ppval(coeffs, time_intervals);
@@ -76,20 +72,18 @@ for i = 1:numel(TargetWayPoints)-1
     if i >1
         interpolated_positions = section_interpolated_positions(:,3:end);
     else
-        interpolated_positions = section_interpolated_positions;
+        interpolated_positions = section_interpolated_positions(:,2:end);
     end
-    Target_at_mnus_1=interpolated_positions(:, 1);
-    prev_total_range = norm(Target_at_mnus_1 - Tx_Pos)+norm(Target_at_mnus_1 - RefRx_Pos);
-    LastPosition = interpolated_positions(:,end-1);
-    LastPositionIndex =TargetWayPoints(i+1)-1;
+
+    Target_at_mnus_1=section_interpolated_positions(:, 1);
+    prev_total_range = 0;
 
     % Loop through all the interpolated positions (excluding the last one)
-    for position_index = 2:size(interpolated_positions, 2) - 1
+    for position_index = 1:size(interpolated_positions, 2)
         % Delta-Time: time taken in position section
         
         Target_Pos_1 = interpolated_positions(:, position_index);
         interp_positions = [interp_positions Target_Pos_1];
-
         % Calculate the distance between target and transmitter
         range_tx_target = norm(Target_Pos_1 - Tx_Pos);
         
@@ -115,6 +109,10 @@ for i = 1:numel(TargetWayPoints)-1
         % Calculate the Doppler shift
         doppler_shift = - (1 / wavelength) * (d_total_range_dt);
         bistatic_doppler_shifts(end+1)=doppler_shift;
+
+        if position_index==2
+            bistatic_doppler_shifts(end-1)=doppler_shift;
+        end
     
     end
 end
@@ -130,7 +128,6 @@ xlabel('Bistatic range(m)');
 ylabel('Bistatic Doppler shift(Hz)');
 xlim([0 7e4]);
 ylim([-200 200]);
-
 
 if exist('../true_data.h5', 'file')
     delete('../true_data.h5');

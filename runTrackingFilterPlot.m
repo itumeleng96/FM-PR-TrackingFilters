@@ -133,8 +133,8 @@ range_error=[];
 prevCentroids=[];
 
 
-rangeTrueData = h5read('true_data.h5', '/bistatic_ranges');
-dopplerTrueData = h5read('true_data.h5', '/doppler_shifts');
+rangeTrueData = h5read('./groundTruthCalculations/true_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('./groundTruthCalculations/true_data.h5', '/doppler_shifts');
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current); %surv

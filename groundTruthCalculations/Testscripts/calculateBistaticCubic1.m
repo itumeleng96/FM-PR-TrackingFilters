@@ -7,6 +7,7 @@
 %[x,y,z] where x,y,z are the coordinates in meters in the Cartesian Coordinate System
 
 wavelength = 299792458/94e6;
+c=299792458;
 
 %Transmitter Position
 Tx_Pos=[6440;10760;1056];
@@ -31,97 +32,103 @@ SurvRx_Pos=[0;1;1000];
 %TargetWayPoints =[0,30,38,45,50,60];
 
 %360 Maneuver
-%TargetPos = [[4000;18000;2000;],[-8528;13851;2000],[-12354;15339;2000],[-7997;17783;2000],[-13311;11938;2000],[-20431;9706;2000]];
-%TargetWayPoints =[0,35,50,75,95,120];
+TargetPos = [[4000;18000;2000;],[-8528;13851;2000],[-12354;15339;2000],[-7997;17783;2000],[-13311;11938;2000],[-20431;9706;2000]];
+TargetWayPoints =[0,35,50,75,95,120];
 
-UpdateInterval = 1;
+%Multit-Target Target 1 
+%TargetPos = [[4000;18000;3600;],[-2000;3000;1600]];
+%TargetWayPoints =[0,60];
 
-Baseline = norm(RefRx_Pos - Tx_Pos);
+%Multit-Target Target 2
+%TargetPos = [[4000;4000;1600;],[2000;20000;3600]];
+%TargetWayPoints =[0,60];
 
 SimulationTime = TargetWayPoints(end)-TargetWayPoints(1)+1;
 
+% Define the update interval
+UpdateInterval = 1;
+
+% Calculate the baseline
+Baseline = norm(RefRx_Pos - Tx_Pos);
+
+% Initialize arrays to store bistatic ranges and Doppler shifts
 bistatic_ranges = [];
 bistatic_doppler_shifts = [];
+t_interp = 0:1:SimulationTime;
 
-% Perform cubic interpolation to estimate target positions between waypoints
+x_interp = [];
+y_interp = [];
+z_interp = [];
 
-%coeffs = spline(TargetWayPoints, TargetPos);
-%interpolated_positions = ppval(coeffs, time_intervals);
-prev_total_range=0;
-
-interp_positions =[];
-interpolated_positions = [];
-LastPosition  =[];
-LastPositionIndex =[];
-% Loop through each waypoint section
-for i = 1:numel(TargetWayPoints)-1
-
-    time_intervals = TargetWayPoints(i)-1:UpdateInterval:TargetWayPoints(i+1); 
-
-
-    % Extract waypoints and positions for the current section
-    section_waypoints = TargetWayPoints(i:i+1);
-    section_positions = TargetPos(:, i:i+1);
+% Loop through each waypoint section except the last one
+for i = 1:length(TargetWayPoints) - 1
+    % Get the waypoints for the current segment
+    waypoints = TargetWayPoints(i:i+1);
     
-    C=  [LastPosition, section_positions];
-    D=  [LastPositionIndex, section_waypoints];
-
-    % Calculate cubic spline interpolation coefficients for the current section
-    coeffs = spline(D, C);
-
-    % Evaluate the cubic spline interpolation at the specified time intervals for the current section
-    section_interpolated_positions = ppval(coeffs, time_intervals);
+    % Get the position data for the current segment
+    x_data = TargetPos(1, waypoints == TargetWayPoints(i:i+1));
+    y_data = TargetPos(2, waypoints == TargetWayPoints(i:i+1));
+    z_data = TargetPos(3, waypoints == TargetWayPoints(i:i+1));
     
-    % Append the interpolated positions for the current section to the result
-    if i >1
-        interpolated_positions = section_interpolated_positions(:,3:end);
+    % Define the unique segment time range for interpolation
+    if i < length(TargetWayPoints) - 1
+        t_segment = t_interp(t_interp >= TargetWayPoints(i) & t_interp < TargetWayPoints(i+1));
     else
-        interpolated_positions = section_interpolated_positions;
+        t_segment = t_interp(t_interp >= TargetWayPoints(i) & t_interp <= TargetWayPoints(i+1));
     end
-    Target_at_mnus_1=interpolated_positions(:, 1);
-    prev_total_range = norm(Target_at_mnus_1 - Tx_Pos)+norm(Target_at_mnus_1 - RefRx_Pos);
-    LastPosition = interpolated_positions(:,end-1);
-    LastPositionIndex =TargetWayPoints(i+1)-1;
-
-    interp_positions = [interp_positions interpolated_positions];
-    % Loop through all the interpolated positions (excluding the last one)
-    for position_index = 2:size(interpolated_positions, 2) - 1
-        % Delta-Time: time taken in position section
-        
-        Target_Pos_1 = interpolated_positions(:, position_index);
-        
-        % Calculate the distance between target and transmitter
-        range_tx_target = norm(Target_Pos_1 - Tx_Pos);
-        
-        % Calculate the distance between target and reference receiver
-        range_ref_target = norm(Target_Pos_1 - RefRx_Pos);
-        
-        % Calculate the distance between target and surveillance receiver
-        range_surv_target = norm(Target_Pos_1 - SurvRx_Pos);
-        
-        total_range = range_tx_target + range_ref_target;
-        
-        % Calculate the bistatic ranges
-        bistatic_range_ref = range_tx_target + range_ref_target - Baseline;
-        bistatic_range_surv = range_tx_target + range_surv_target - Baseline;
-        
-        % Store the bistatic ranges in the matrix
-        bistatic_ranges(end+1) = bistatic_range_ref;
-        
-        % Calculate the rate of change of the total range with respect to time
-        d_total_range_dt = (total_range - prev_total_range) / UpdateInterval;
-        prev_total_range = total_range;
-        
-        % Calculate the Doppler shift
-        doppler_shift = - (1 / wavelength) * (d_total_range_dt);
-        bistatic_doppler_shifts(end+1)=doppler_shift;
     
-    end
+    % Perform cubic interpolation for each position
+    x_interp_segment = interp1(waypoints, x_data, t_segment, 'spline');
+    y_interp_segment = interp1(waypoints, y_data, t_segment, 'spline');
+    z_interp_segment = interp1(waypoints, z_data, t_segment, 'spline');
+    
+    
+    % Concatenate with the complete interpolated position
+    x_interp = [x_interp, x_interp_segment];
+    y_interp = [y_interp, y_interp_segment];
+    z_interp = [z_interp, z_interp_segment];
 end
 
-figure(2)
-plot3(interp_positions(1, :), interp_positions(2, :), interp_positions(3, :), 'b.-');
+% Final interpolated positions
+interpolated_posx = [x_interp; y_interp; z_interp];
+
+
+%code for interpolated_posx
+
+figure(1)
+plot3(interpolated_posx(1, :), interpolated_posx(2, :), interpolated_posx(3, :), 'b.-');
 grid on;
+
+for position_index = 1:(size(interpolated_posx, 2) - 1)
+    % Delta-Time: time taken in position section
+    
+    % Current position
+    Target_Pos_1 = interpolated_posx(:, position_index);
+    % Next position
+    Target_Pos_end = interpolated_posx(:, position_index + 1);
+    
+    % Ranges from Tx and RefRx to the target
+    range_tx_target = norm(Target_Pos_1 - Tx_Pos);
+    range_ref_target = norm(Target_Pos_1 - RefRx_Pos);
+    
+    % Ranges for the end position
+    range_tx_target_end = norm(Target_Pos_end - Tx_Pos);
+    range_ref_target_end = norm(Target_Pos_end - RefRx_Pos);
+
+    % Calculate velocities (rate of change of range)
+    V_t = (range_tx_target-range_tx_target_end) / UpdateInterval;
+    V_r = (range_ref_target-range_ref_target_end) / UpdateInterval;
+
+    % Calculate bistatic Doppler shift using the correct formula
+    doppler_shift = (94e6 / c) * (V_t + V_r);  % Assuming similar velocities as the baseline formula
+    bistatic_doppler_shifts(end + 1) = doppler_shift;
+
+    % Calculate the bistatic range
+    bistatic_range = range_tx_target + range_ref_target - Baseline;
+
+    % Store the bistatic range
+    bistatic_ranges(end + 1) = bistatic_range;
+end
 
 figure(3);
 plot(bistatic_ranges,bistatic_doppler_shifts);
@@ -131,21 +138,14 @@ ylabel('Bistatic Doppler shift(Hz)');
 xlim([0 7e4]);
 ylim([-200 200]);
 
-%{
-if exist('../true_data.h5', 'file')
-    delete('../true_data.h5');
+
+if exist('./true_data.h5', 'file')
+    delete('./true_data.h5');
 end
 
 % Save bistatic ranges and Doppler shifts to an HDF5 file
-h5create('../true_data.h5', '/bistatic_ranges', size(bistatic_ranges));
-h5write('../true_data.h5', '/bistatic_ranges', bistatic_ranges);
+h5create('./true_data.h5', '/bistatic_ranges', size(bistatic_ranges));
+h5write('./true_data.h5', '/bistatic_ranges', bistatic_ranges);
 
-h5create('../true_data.h5', '/doppler_shifts', size(bistatic_doppler_shifts));
-h5write('../true_data.h5', '/doppler_shifts', bistatic_doppler_shifts);
-%}
-%interpolated_positions = interp1(TargetWayPoints, TargetPos', time_intervals, 'spline')';
-%padded_TargetPos = [zeros(1, size(TargetPos, 2)); TargetPos; zeros(1, size(TargetPos, 2))];
-%extended_TargetWayPoints = [TargetWayPoints(1) - 1, TargetWayPoints, TargetWayPoints(end) + 1];
-
-% Calculate spline coefficients with padded data
-%coeffs = spline(extended_TargetWayPoints, padded_TargetPos);
+h5create('./true_data.h5', '/doppler_shifts', size(bistatic_doppler_shifts));
+h5write('./true_data.h5', '/doppler_shifts', bistatic_doppler_shifts);

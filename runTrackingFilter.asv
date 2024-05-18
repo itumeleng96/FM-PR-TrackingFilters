@@ -165,26 +165,15 @@ trackId = input('Enter a trackId for the Log-likelihood: ');
 
 doppler_ll=[];
 range_ll=[];
-
-%%PLOT TRACKID TRACK FOR DIFFERENT FILTERS\
-track_mtt_1 = multiTargetTracker.getTrack(trackId);
-figure(3);
-plot(track_mtt_1(1,:),track_mtt_1(2,:), 'b-');
-hold on;
-plot(rangeTrueData,dopplerTrueData,'-*');
-xlabel('Bistatic range (KM)');
-ylabel('Doppler (Hz)');
-title(['Tracking filter outputs vs Ground Truth For Track:', num2str(trackId)]);
-
 %Call MultiTargetTrack -LogLikelihood to plot 
 [doppler_ll,range_ll,t1]=multiTargetTracker.calculateLogLikelihoodGroundTruth(trackId,doppler_ll,range_ll,dopplerTrueData,rangeTrueData,simulation_time);
 
-figure(4);
-plot(t1,doppler_ll, 'b-'); 
-title(['Doppler Log-Likelihood Comparison for Track:',num2str(trackId)]);
-xlabel('Time Steps');
-ylabel('Doppler Log-Likelihood');
+f4=figure(4);
+f4.Position = [4000 10 1050 800]; 
+movegui(f4,'southwest');
+plot(t1,doppler_ll_1, 'b-'); 
 
 
-figure(5);
-plot(t1,range_ll, 'b-');
+f5=figure(5);
+f5.Position = [4000 10 1050 800]; 
+movegui(f5,'southeast');

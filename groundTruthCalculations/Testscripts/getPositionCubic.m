@@ -7,7 +7,7 @@ function coord = getPositionCubic(t, coords, coordsTime, dd)
         coord = coords(:, 1); % Set coord to the left endpoint
     % Check if t is beyond the right endpoint
     elseif xrp == numel(coordsTime) + 1
-        coord = coords(:, end); % Set coord to the right endpoint
+        coord = coords(:, end-1); % Set coord to the right endpoint
     else
         % Perform cubic spline interpolation
         xri = xrp; % Index of right coordinate

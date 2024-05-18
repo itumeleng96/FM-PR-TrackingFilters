@@ -61,7 +61,7 @@ classdef track
                     disp("Initializing Particle Filter");
                     N=10000;                                             %Number of particles
                     std_acc=1;                                           %Standard Deviation of the process noise
-                    std_meas=[500,2];                                  %Standard Deviation of the measurements in the x and y
+                    std_meas=[250,2];                                  %Standard Deviation of the measurements in the x and y
                     PF_object = particleFilter(dt,std_acc,std_meas,[obj.x_initial(1);0;obj.x_initial(2);0;],N);
                     obj.trackingFilterObject = PF_object;
                 
@@ -89,7 +89,7 @@ classdef track
                case 7
                     disp("Initializing Covariance Scaling Recursive Gauss Newton Filter");
                     std_acc=1;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[500,0.5];                               %Standard Deviation of the measurements in the x and y
+                    std_meas=[250,0.1];                               %Standard Deviation of the measurements in the x and y
                     CSRGNF_object = CSRGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;],100);
                     obj.trackingFilterObject = CSRGNF_object;
     
@@ -155,7 +155,7 @@ classdef track
             obj.predictedTrack(2,end)=X(3,1);   
             obj.sampleSinceLastUpdate  = obj.sampleSinceLastUpdate+1;
 
-            if(size(obj.trackingFilterObject.S,1)>1)
+            if(size(obj.trackingFilterObject.S,1)>0)
                 obj.sMatrix(1,end+1) = obj.trackingFilterObject.S(1,1);
                 obj.sMatrix(2,end) = obj.trackingFilterObject.S(2,2);
             end

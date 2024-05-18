@@ -170,7 +170,7 @@ classdef multiTargetTracker
                 confirmed_marker = plot(nan, nan, '-', 'LineWidth', 2, 'Color', 'red', 'MarkerFaceColor', 'red', 'MarkerSize', 4);
                 
                 % Create a legend with custom markers and labels
-                legend([predicted_marker, tentative_marker, confirmed_marker], 'Predicted Track', 'Tentative Track', 'Confirmed Track', 'Location', 'best');
+                legend([predicted_marker, tentative_marker, confirmed_marker], 'Predicted Track', 'Tentative Track', 'Measurement Track', 'Location', 'best');
                 %hold on;
         end
 
@@ -317,7 +317,11 @@ classdef multiTargetTracker
                  %sMatrix(1,end+1) = Tracks(indexOfTrack).trackingFilterObject.S(1,1);
                  %sMatrix(2,end) = Tracks(indexOfTrack).trackingFilterObject.S(2,2);
                  
+                 disp(sMatrix);
+                 disp(dopplerGroundTruth);
+
                  predictedTrack = Tracks(indexOfTrack).predictedTrack;
+                 disp(predictedTrack(2,:));
 
                  range_ll = obj.logLikelihoodMatrix(predictedTrack(1,:),rangeGroundTruth(1,:),sMatrix(1,:),Tracks(indexOfTrack).deleted);
                  doppler_ll = obj.logLikelihoodMatrix(predictedTrack(2,:),dopplerGroundTruth(1,:),sMatrix(2,:),Tracks(indexOfTrack).deleted);
@@ -345,7 +349,22 @@ classdef multiTargetTracker
                  predictedTrack = Tracks(indexOfTrack).predictedTrack;
              end
         end
-        
+
+        function [measuredTrack] = getMeasuredTrack(obj,trackId)
+            
+             indexOfTrack = -1;
+             Tracks = obj.tracks;
+             measuredTrack =[];
+             for j = 1:length(Tracks)
+                if(obj.tracks(j).trackId == trackId)
+                    indexOfTrack = j;
+                end
+             end
+
+             if(indexOfTrack>0)
+                 measuredTrack = Tracks(indexOfTrack).trueTrack;
+             end
+        end
 
         function [doppler_ll, range_ll] = plotLogLikelihood(obj, f, f1,trackId,dopplerGroundTruth,rangeGroundTruth,simTime)
                         
@@ -394,20 +413,20 @@ classdef multiTargetTracker
              end
         end
         
-        function [doppler_ll, range_ll] = plotLogLikelihoodSingle(obj, f, f1, i,doppler_ll,range_ll,plotResults)
+        function [doppler_ll, range_ll] = plotLogLikelihoodSingle(obj, f, f1, i,doppler_ll,range_ll,dopplerTrueData,rangeTrueData,plotResults)
             
             if(plotResults)
                 time = 1:1:i;            
             
                  for j = 1:1
                     predictedTrack = obj.tracks(j).predictedTrack;
-                    trueTrack = obj.tracks(j).trueTrack;
+                    %trueTrack = obj.tracks(j).trueTrack;
                     s_matrix = obj.tracks(j).trackingFilterObject.S;
                     %disp(s_matrix);
                     %----------------------------------------------------------------%
                     %--Log-likelihood for Bistatic Range
                     %----------------------------------------------------------------%
-                    range_sample=trueTrack(1,i);
+                    range_sample=rangeTrueData(i);
                     range_mean =predictedTrack(1,i);
                     
                     %range_ll(j, i) = normlike([(range_mean),s_matrix(1,1)],range_sample);
@@ -417,7 +436,7 @@ classdef multiTargetTracker
                     %----------------------------------------------------------------%
                     %--Log-likelihood for Bistatic Doppler
                     %----------------------------------------------------------------%
-                    doppler_sample=trueTrack(2,i);
+                    doppler_sample=dopplerTrueData(i);
                     doppler_mean =predictedTrack(2,i);
                     
                     %doppler_ll(j, i) = normlike([doppler_mean,s_matrix(2,2)],doppler_sample);

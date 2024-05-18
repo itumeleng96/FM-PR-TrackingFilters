@@ -45,7 +45,7 @@ classdef particleFilter
             obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
                      (dt^3)/2, dt^2, 0, 0;
                      0, 0, (dt^4)/4,(dt^3)/2;
-                     0, 0, (dt^3)/2, dt^2];
+                     0, 0, (dt^3)/2, dt^2]*2;
             
             obj.count =0;
             obj.updater =0;
@@ -60,14 +60,14 @@ classdef particleFilter
         function [X_pred, PF_obj] = predict(obj)
 
             % Generate random Gaussian noise with zero mean and covariance matrix Q
-            noise = mvnrnd([0, 0, 0, 0], obj.Q, obj.N);
+            noise = randn(obj.N, 4) * chol(obj.Q);
 
 
             % Add process noise to particle states
             obj.particles(:, 1:4) = (obj.F(1:4, 1:4) * obj.particles(:, 1:4)' + noise(:, 1:4)')';
                     
             X_pred = mean(obj.particles, 1)';
-
+            
             PF_obj = obj;
         end
         
@@ -153,20 +153,19 @@ classdef particleFilter
         end
     end
     methods(Static)
-        function [ indx ] = resampleSystematic( w )
+        function [ resample_idx ] = resampleSystematic( w )
             N = length(w);
-            Q = cumsum(w);
-            T = linspace(0,1-1/N,N) + rand(1)/N;
-            T(N+1) = 1;
-            i=1;
-            j=1;
-            while (i<=N)
-                if (T(i)<Q(j))
-                    indx(i)=j;
-                    i=i+1;
-                else
-                    j=j+1;        
+            % Stratified resampling
+            resample_idx = zeros(N, 1);
+            cumulative_weights = cumsum(w);
+            thresholds = linspace(0, 1 - 1/N, N) + rand(1, N)/N;
+        
+            j = 1;
+            for i = 1:N
+                while thresholds(i) > cumulative_weights(j)
+                    j = j + 1;
                 end
+                resample_idx(i) = j;
             end
         end
 

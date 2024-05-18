@@ -317,11 +317,8 @@ classdef multiTargetTracker
                  %sMatrix(1,end+1) = Tracks(indexOfTrack).trackingFilterObject.S(1,1);
                  %sMatrix(2,end) = Tracks(indexOfTrack).trackingFilterObject.S(2,2);
                  
-                 disp(sMatrix);
-                 disp(dopplerGroundTruth);
 
                  predictedTrack = Tracks(indexOfTrack).predictedTrack;
-                 disp(predictedTrack(2,:));
 
                  range_ll = obj.logLikelihoodMatrix(predictedTrack(1,:),rangeGroundTruth(1,:),sMatrix(1,:),Tracks(indexOfTrack).deleted);
                  doppler_ll = obj.logLikelihoodMatrix(predictedTrack(2,:),dopplerGroundTruth(1,:),sMatrix(2,:),Tracks(indexOfTrack).deleted);
@@ -384,7 +381,6 @@ classdef multiTargetTracker
                  sMatrix(2,end) = Tracks(indexOfTrack).trackingFilterObject.S(2,2);
 
                  predictedTrack = Tracks(indexOfTrack).predictedTrack;
-                 disp(Tracks(indexOfTrack).trueTrack);
                  range_ll = obj.logLikelihoodMatrix(predictedTrack(1,:),rangeGroundTruth(1,:),sMatrix(1,:),Tracks(indexOfTrack).deleted);
                  doppler_ll = obj.logLikelihoodMatrix(predictedTrack(2,:),dopplerGroundTruth(1,:),sMatrix(2,:),Tracks(indexOfTrack).deleted);
 

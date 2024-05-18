@@ -34,7 +34,7 @@ classdef CSRGNF
             obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
                      (dt^3)/2, dt^2, 0, 0;
                      0, 0, (dt^4)/4,(dt^3)/2;
-                     0, 0, (dt^3)/2, dt^2]*0.1;
+                     0, 0, (dt^3)/2, dt^2];
 
             obj.R = [r_std,0;0,rdot_std];              % Measurement Uncertainty
             
@@ -62,6 +62,7 @@ classdef CSRGNF
         
             % Initial covariance matrix
             obj.P = (obj.A * obj.P * obj.A.') + obj.Q;
+            obj.S = obj.H * obj.P * obj.H.' + obj.R;
 
             X_pred = obj.X;
             GN_Obj = obj;
@@ -84,8 +85,8 @@ classdef CSRGNF
             %%% ADAPTIVE FILTERING - Covariance scaling on Outliers
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             ek = Y_n - obj.H*obj.X;
-            eps_doppler = ek(2)^2 / obj.S(2,2);
-            eps_range = ek(1)^2 / obj.S(1,1);
+            eps_doppler = (ek(2)^2)/ obj.S(2,2);
+            eps_range = (ek(1)^2)/ obj.S(1,1);
 
             obj.epsDoppler = [obj.epsDoppler,eps_doppler];
             obj.epsRange = [obj.epsRange,eps_range];

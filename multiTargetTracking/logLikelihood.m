@@ -6,6 +6,10 @@ function ll = logLikelihood(mean, S ,sample)
     % 
     % Output:
     %   - ll: Log-likelihood for the parameter.
+    
+    disp(mean);
+    disp(S);
+    disp(sample);
 
    
     % Calculate the log-likelihood for the  parameter

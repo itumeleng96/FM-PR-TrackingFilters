@@ -1,7 +1,7 @@
 classdef HCSKF
 
     properties
-        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc,wk,epsDoppler;
+        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc,wk,epsDoppler,epsRange;
     end
     
     methods
@@ -38,9 +38,9 @@ classdef HCSKF
             obj.R = [r_std,0;
                      0,rdot_std];                  % Measurement Uncertainty
             
-            obj.P = [500,0,0,0;                              % Initial Error Covariance Matrix
+            obj.P = [1000,0,0,0;                              % Initial Error Covariance Matrix
                      0, 10, 0, 0;
-                     0, 0, 1,0;
+                     0, 0, 2,0;
                      0, 0, 0, 0.1];  
             
             obj.A = [1, dt, 0, 0;
@@ -52,6 +52,7 @@ classdef HCSKF
             obj.S = obj.R;
 
             obj.epsDoppler =[];
+            obj.epsRange = [];
 
 
         end
@@ -64,6 +65,7 @@ classdef HCSKF
             
             % P = FPF' + Q
             obj.P = obj.A * obj.P * obj.A.' + obj.Q;
+            obj.S = obj.H * obj.P * obj.H.' + obj.R;
 
             X_pred = obj.X;
             KF_obj1  = obj;
@@ -85,23 +87,31 @@ classdef HCSKF
             %Mk = e'.[HPH' +R]^−1.ek .
             ek = z-obj.H*obj.X;
             
-            ek2_doppler = ek(2)^2;
-            eps_doppler = ek2_doppler/obj.S(2,2);  
-                       
+            eps_doppler = (ek(2)^2)/obj.S(2,2);  
+            eps_range = (ek(1)^2)/obj.S(1,1);   
+
             obj.epsDoppler = [obj.epsDoppler,eps_doppler];
-            
+            obj.epsRange = [obj.epsRange,eps_range];
+
             M=6; %Number of samples to average
+            r_adapt= obj.R;
+
             if(size(obj.epsDoppler,2)>M && eps_doppler > 1 && eps_doppler>mean(obj.epsDoppler(end-M:end-1)))
-                obj.R = abs([0;eps_doppler-1].*(obj.H*obj.P*obj.H') + [1;eps_doppler*1000].*obj.R);
-                obj.S = obj.H * obj.P * obj.H.' + obj.R;
+                r_adapt(2,2) =(eps_doppler-1)*obj.P(3,3) + eps_doppler*r_adapt(2,2)*1000;
                 %remove outlier from average
                 obj.epsDoppler =obj.epsDoppler(end-M:end-1);
             end
 
-
+            if(size(obj.epsRange,2)>M && eps_range > 1 && eps_range>10*mean(obj.epsRange(end-M:end-1)))
+                r_adapt(1,1) =(eps_range-1)*obj.P(1,1) + eps_range*r_adapt(1,1)*1000;
+                %remove outlier from average
+                obj.epsRange =obj.epsRange(end-M:end-1);
+            end
+           
+            S1 = obj.H * obj.P * obj.H.' + r_adapt;
             %K = PH'inv(S)
-            K = (obj.P * obj.H.') * obj.S^(-1);
-            
+            K = (obj.P * obj.H.') * S1^(-1);
+            %{
             %Huber's M estimation
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %Represent Kalman filter as linear regression problem
@@ -115,10 +125,10 @@ classdef HCSKF
             % Create block matrix representing covariance of error'
 
             epsilon_covariance_range =  [obj.P(1:2,1:2) ,zeros(num_rows_P/2, num_cols_R/2); 
-                                   zeros(num_rows_R/2, num_cols_P/2), obj.R(1,1)];
+                                   zeros(num_rows_R/2, num_cols_P/2), r_adapt(1,1)];
 
             epsilon_covariance_doppler = [obj.P(3:4,3:4), zeros(num_rows_P/2, num_cols_R/2); 
-                                   zeros(num_rows_R/2, num_cols_P/2), obj.R(2,2)]; 
+                                   zeros(num_rows_R/2, num_cols_P/2), r_adapt(2,2)]; 
             
 
             Sadapt_range = chol(epsilon_covariance_range,'lower');
@@ -145,14 +155,13 @@ classdef HCSKF
             
             X_res = [res_range;res_doppler];
             obj.X = X_res;
-            
-            %obj.X = obj.X + K * (z-obj.H * obj.X);
+            %}
+            obj.X = obj.X + K * (z-obj.H * obj.X);
             
             I = eye(size(obj.H,2));
     
             %UPDATE ERROR COVARIANCE MATRIX
             obj.P = (I - (K * obj.H)) * obj.P ; 
-            obj.R = [500,0;0,0.1];
             
             X_est = obj.X;
             KF_obj2 = obj;

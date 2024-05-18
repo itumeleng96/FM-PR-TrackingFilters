@@ -3,7 +3,7 @@
 % Simulation
 % Author: Itumeleng Malemela
 
-%USING CUBIC NATURAL SPLINE INTERPOLATION
+
 %The Positions are all in the format Below
 %[x,y,z] where x,y,z are the coordinates in meters in the Cartesian Coordinate System
 
@@ -15,35 +15,39 @@
 %TargetWayPoints = [0, 60];  % Time intervals for waypoints (from 0 to 60 units)
 
 % Lane Change Maneuver Scenario: Four points with varying time intervals
-%TargetPos = [
-%    3806, 20680, 3200;  % First point (x, y, z)
-%    -3116, 14010, 3200; % Second point (lane change)
-%    -6884, 10971, 4000; % Third point
-%    -14979, 3765, 4000; % Fourth point (end of the lane change)
-%];
-%TargetWayPoints = [0, 20, 30, 60];  % Waypoints indicating time intervals
-
+%{
+TargetPos = [
+    3806, 20680, 3200;  % First point (x, y, z)
+    -3116, 14010, 3200; % Second point (lane change)
+    -6884, 10971, 4000; % Third point
+    -14979, 3765, 4000; % Fourth point (end of the lane change)
+];
+TargetWayPoints = [0, 20, 30, 60];  % Waypoints indicating time intervals
+%}
 % Landing Maneuver: Six points simulating a landing trajectory
-%TargetPos = [
-%    4000, 18000, 2000;  % Initial point (x, y, z)
-%    -1000, 8000, 1700;  % Descent begins
-%    -1500, 6000, 1500;  % Further descent
-%    -1000, 4000, 1300;  % Approaching the landing area
-%    0, 4000, 1100;      % Close to landing
-%    500, 6000, 1000;    % Landing completed
-%];
-%TargetWayPoints = [0, 30, 38, 45, 50, 60]; 
-
+%{
+TargetPos = [
+    4000, 18000, 2000;  % Initial point (x, y, z)
+    -1000, 8000, 1700;  % Descent begins
+    -1500, 6000, 1500;  % Further descent
+    -1000, 4000, 1300;  % Approaching the landing area
+    0, 4000, 1100;      % Close to landing
+    500, 6000, 1000;    % Landing completed
+];
+TargetWayPoints = [0, 30, 38, 45, 50, 60]; 
+%}
 % 360 Maneuver: Six points representing a full circle maneuver
-%TargetPos = [
-%    4000, 18000, 2000;  % Start point (x, y, z)
-%    -8528, 13851, 2000; % First quarter
-%    -12354, 15339, 2000; % Halfway through
-%    -7997, 17783, 2000; % Three quarters
-%    -13311, 11938, 2000; % Near completion
-%    -20431, 9706, 2000;  % Full circle
-%];
-%TargetWayPoints = [0, 35, 50, 75, 95, 120];  % Time intervals for each segment of the 360 maneuver
+%{
+TargetPos = [
+    4000, 18000, 2000;  % Start point (x, y, z)
+    -8528, 13851, 2000; % First quarter
+     -12354, 15339, 2000; % Halfway through
+     -7997, 17783, 2000; % Three quarters
+     -13311, 11938, 2000; % Near completion
+     -20431, 9706, 2000;  % Full circle
+];
+TargetWayPoints = [0, 35, 50, 75, 95, 120];  % Time intervals for each segment of the 360 maneuver
+%}
 % Multi-Target Scenario - Target 1: Two points representing a different trajectory
 %TargetPos = [
 %    4000, 18000, 3600;  % Start point (x, y, z)
@@ -52,11 +56,12 @@
 %TargetWayPoints = [0, 60];  % Time interval from start to end
 % Multi-Target Scenario - Target 2: Another two-point trajectory
 % This represents an additional target with a distinct movement pattern
-%TargetPos = [
-%    4000, 4000, 1600;  % Start point (x, y, z)
-%    2000, 20000, 3600; % End point
-%];
-%TargetWayPoints = [0, 60];  % Time interval from start to end
+
+TargetPos = [
+    4000, 4000, 1600;  % Start point (x, y, z)
+    2000, 20000, 3600; % End point
+];
+TargetWayPoints = [0, 60];  % Time interval from start to end
 
 wavelength = 299792458/94e6;
 c=299792458;
@@ -106,6 +111,11 @@ interpolated_posx = [x_interp; y_interp; z_interp];
 
 figure(1)
 plot3(interpolated_posx(1, :), interpolated_posx(2, :), interpolated_posx(3, :), 'b.-');
+title('Target Path');
+xlabel('x');
+ylabel('y');
+zlabel('z');
+
 grid on;
 
 for position_index = 1:(size(interpolated_posx, 2) - 1)

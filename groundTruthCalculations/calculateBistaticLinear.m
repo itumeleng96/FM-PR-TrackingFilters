@@ -20,8 +20,8 @@ SurvRx_Pos=[0;1;1000];
 %Target Positions
 
 %Single Target Scenario 
-%TargetPos = [[4000;18000;3600;],[-2000;3000;1600]];
-%TargetWayPoints =[0,60];
+TargetPos = [[4000;18000;3600;],[-2000;3000;1600]];
+TargetWayPoints =[0,60];
 
 %Lane Change Maneuver Scenario 
 %TargetPos = [[3806;20680;3200;],[-3116;14010;3200],[-6884;10971;4000],[-14979;3765;4000]];
@@ -40,8 +40,8 @@ SurvRx_Pos=[0;1;1000];
 %TargetWayPoints =[0,60];
 
 %Multit-Target Target 2
-TargetPos = [[4000;4000;1600;],[2000;20000;3600]];
-TargetWayPoints =[0,60];
+%TargetPos = [[4000;4000;1600;],[2000;20000;3600]];
+%TargetWayPoints =[0,60];
 
 SimulationTime = TargetWayPoints(end)-TargetWayPoints(1)+1;
 

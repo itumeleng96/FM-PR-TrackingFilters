@@ -48,7 +48,7 @@ classdef RGNF
                      0, 0, 1, dt;
                      0, 0, 0, 1;];
             
-            obj.wk = 0.09*[dt^2;dt;dt^2;dt];
+            obj.wk = std_acc*[dt^2;dt;dt^2;dt];
 
 
             obj.count =0;

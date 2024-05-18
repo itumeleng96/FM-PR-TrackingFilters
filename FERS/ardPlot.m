@@ -57,8 +57,11 @@ imagesc(range,frequency,10*log10(ard.'),[max_dB-Dyn_dB max_dB]);
 axis xy;
 colorbar;
 xlabel('Bistatic range [m]','Fontsize',10);
-ylabel('Doppler frequency [Hz]','Fontsize',10);
+ylabel('Bistatic Doppler frequency [Hz]','Fontsize',10);
 grid on;
+c = colorbar;
+c.Label.String = 'Level [dB]';
+
 title('Range-Doppler response')
 %display('imagesc plot computation')
 %xlim([0 xlim_upper]) 

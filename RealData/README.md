@@ -1,8 +1,7 @@
-# Tracking Filters For a Passive Radar System
+# Tracking Filters For a Passive Radar System deployed at SKA core site
 
 ### This Repository will consist Code implementations for Tracking Filters for a FM Passive Radar System.<br>
 
-#### The Repository is divided into code processing chain for Simulations and all the required files and Real world data folder for the Radar Processing Chain For real-data
 
 #### The Following Tracking filters and code have been implemented:
 <li>1.Kalman Filter and Adaptive Kalman Filter</li>
@@ -12,7 +11,6 @@
 
 
 #### Other algorithms implemented
-<li>Constant False Alarm Rate Filter </li>
 <li>Multi-target Tracker</li>
 <li>MeanshiftCluster</li>
 <li>Log-likelihood as a statistical Benchmark for the Performance of Tracking Filters </li>

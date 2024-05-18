@@ -20,7 +20,7 @@ addpath('FERS/', ...
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
 
 %Noise Scenarios
 %SCENARIO 3
@@ -244,8 +244,8 @@ hold on;
 plot(t4,doppler_ll_4, 'ms-.');
 
 title(['Doppler Log-Likelihood Comparison for Track:',num2str(trackId)]);
-xlabel('Time(s)');
-ylabel('Bistatic Doppler Log-Likelihood');
+xlabel('Time Steps');
+ylabel('Doppler Log-Likelihood');
 legend('Adaptive Kalman Filter', 'Adaptive Particle Filter','Adaptive Unscented Kalman Filter', 'Adaptive Recursive Gauss Newton Filter');
 grid on;
 
@@ -261,7 +261,7 @@ plot(t4,range_ll_4, 'ms-.');
 
 title(['Range Log-Likelihood Comparison for Track:',num2str(trackId)]);
 xlabel('Time(s)');
-ylabel('BIstatic Range Log-Likelihood');
+ylabel('Range Log-Likelihood');
 legend('Adaptive Kalman Filter', 'Adaptive Particle Filter','Adaptive Unscented Kalman Filter', 'Adaptive Recursive Gauss Newton Filter');
 grid on;
 

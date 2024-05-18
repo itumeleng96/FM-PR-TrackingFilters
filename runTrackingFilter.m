@@ -102,7 +102,8 @@ gatingThreshold=[1000,5];
 
 
 
-filterType =input('Tracking Filter to use (1-7):');
+%filterType =input('Tracking Filter to use (1-7):');
+filterType =2;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -161,19 +162,24 @@ end
 
 
 %Do Log-likelihood for specific TrackId after simulation
-trackId = input('Enter a trackId for the Log-likelihood: ');
+%trackId = input('Enter a trackId for the Log-likelihood: ');
+trackId =1;
 
 doppler_ll=[];
 range_ll=[];
 
 %%PLOT TRACKID TRACK FOR DIFFERENT FILTERS\
 track_mtt_1 = multiTargetTracker.getTrack(trackId);
+track_mtt_1_true = multiTargetTracker.getMeasuredTrack(trackId);
+
 figure(3);
 plot(track_mtt_1(1,:),track_mtt_1(2,:), 'b-');
 hold on;
+plot(track_mtt_1_true(1,:),track_mtt_1_true(2,:), '-^');
+hold on;
 plot(rangeTrueData,dopplerTrueData,'-*');
 xlabel('Bistatic range (KM)');
-ylabel('Doppler (Hz)');
+ylabel('Bistatic Doppler (Hz)');
 title(['Tracking filter outputs vs Ground Truth For Track:', num2str(trackId)]);
 
 %Call MultiTargetTrack -LogLikelihood to plot 
@@ -181,10 +187,13 @@ title(['Tracking filter outputs vs Ground Truth For Track:', num2str(trackId)]);
 
 figure(4);
 plot(t1,doppler_ll, 'b-'); 
-title(['Doppler Log-Likelihood Comparison for Track:',num2str(trackId)]);
+title(['Bistatic Doppler Log-Likelihood Comparison for Track:',num2str(trackId)]);
 xlabel('Time Steps');
-ylabel('Doppler Log-Likelihood');
+ylabel('Bistatic Doppler Log-Likelihood');
 
 
 figure(5);
 plot(t1,range_ll, 'b-');
+title(['Bistatic Range Log-Likelihood Comparison for Track:',num2str(trackId)]);
+xlabel('Time Steps');
+ylabel('Bistatic Range Log-Likelihood');

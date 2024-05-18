@@ -33,9 +33,6 @@ system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fe
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml'); 
 
 
-%%%%%
-%%% MUST decrease number for track deletion when no update
-%%%%%
 
 % h5 Import from FERS simulation
 [Ino, Qno, scale_no] = loadfersHDF5('direct.h5');
@@ -81,18 +78,18 @@ ard = [];
 rdm =[];
 
 
-%f3=figure();
-%f3.Position = [4000 10 1000 800]; 
-%movegui(f3,'southwest');
+f3=figure();
+f3.Position = [4000 10 1000 800]; 
+movegui(f3,'southwest');
 
-%f5=figure();
-%f5.Position = [4000 10 1000 800]; 
-%movegui(f5,'southeast');
+f5=figure();
+f5.Position = [4000 10 1000 800]; 
+movegui(f5,'southeast');
 
 %Create MTT object
 confirmationThreshold=4;
-deletionThreshold=4;
-gatingThreshold=[5000,30];
+deletionThreshold=3;
+gatingThreshold=[5000,20];
 
 %FilterType 1: Kalman Filter
 %FilterType 2: Huber Covariance Scaling Kalman Filter
@@ -140,11 +137,11 @@ for i = 1:simulation_time
     [y,ard_] = ardNoPlot(s1,s2,fs,dopp_bins,delay,i,ard);
     
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfar(y.',10e-12,fs,dopp_bins,delay,i,rdm);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlot(y.',10e-6,fs,dopp_bins,delay,i,f5,rdm);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids,variancesX,variancesY,numPoints] = meanShift(targetClusters,1e4,8);
+    [clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,1e4,8,prevCentroids);
    
     %Plot tracks from Tracker - Call Multi-target Tracker
 
@@ -166,10 +163,10 @@ for i = 1:simulation_time
     multiTargetTracker3 = multiTargetTracker3.predictionStage();
     multiTargetTracker4 = multiTargetTracker4.predictionStage();
 
-    %multiTargetTracker1 = multiTargetTracker1.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
-    %multiTargetTracker2 = multiTargetTracker2.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
-    %multiTargetTracker3 = multiTargetTracker3.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
-    %multiTargetTracker4 = multiTargetTracker4.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+    multiTargetTracker1 = multiTargetTracker1.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+    multiTargetTracker2 = multiTargetTracker2.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+    multiTargetTracker3 = multiTargetTracker3.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+    multiTargetTracker4 = multiTargetTracker4.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
 
     %UPDATE Tracks from measurements
     multiTargetTracker1 = multiTargetTracker1.updateStage(clusterCentroids,i);
@@ -216,7 +213,7 @@ track_mtt_4 = multiTargetTracker4.getTrack(trackId);
 
 % Plot Predicted Tracks from Different filters against Ground Truth
 figure(f2);
-plot(track_mtt_1(1,:),track_mtt_1(2,:), '-^'); 
+plot(track_mtt_1(1,:),track_mtt_1(2,:), 'b-'); 
 hold on;
 plot(track_mtt_2(1,:),track_mtt_2(2,:), 'r--');
 hold on;
@@ -228,14 +225,14 @@ plot(rangeTrueData,dopplerTrueData,'-*');
 
 title(['Tracking filter outputs vs Ground Truth For Track:', num2str(trackId)]);
 xlabel('Bistatic range (KM)');
-ylabel('Doppler (Hz)');
+ylabel('Bistatic Doppler (Hz)');
 legend('Adaptive Kalman Filter', 'Adaptive Particle Filter','Adaptive Unscented Kalman Filter', 'Adaptive Recursive Gauss Newton Filter','Ground Truth');
 grid on;
 
 
 % Create comparison plots for Doppler Log-Likelihoods
 figure(f);
-plot(t1,doppler_ll_1, '-^'); 
+plot(t1,doppler_ll_1, 'b-'); 
 hold on;
 plot(t2,doppler_ll_2, 'r--');
 hold on;
@@ -243,7 +240,7 @@ plot(t3,doppler_ll_3, 'go-');
 hold on;
 plot(t4,doppler_ll_4, 'ms-.');
 
-title(['Doppler Log-Likelihood Comparison for Track:',num2str(trackId)]);
+title(['Bistatic Doppler Log-Likelihood Comparison for Track:',num2str(trackId)]);
 xlabel('Time(s)');
 ylabel('Bistatic Doppler Log-Likelihood');
 legend('Adaptive Kalman Filter', 'Adaptive Particle Filter','Adaptive Unscented Kalman Filter', 'Adaptive Recursive Gauss Newton Filter');
@@ -251,7 +248,7 @@ grid on;
 
 % Create comparison plots for Range Log-Likelihoods
 figure(f1);
-plot(t1,range_ll_1, '-^');
+plot(t1,range_ll_1, 'b-');
 hold on;
 plot(t2,range_ll_2,  'r--');
 hold on;
@@ -259,7 +256,7 @@ plot(t3,range_ll_3, 'go-');
 hold on;
 plot(t4,range_ll_4, 'ms-.');
 
-title(['Range Log-Likelihood Comparison for Track:',num2str(trackId)]);
+title(['Bistatic Range Log-Likelihood Comparison for Track:',num2str(trackId)]);
 xlabel('Time(s)');
 ylabel('BIstatic Range Log-Likelihood');
 legend('Adaptive Kalman Filter', 'Adaptive Particle Filter','Adaptive Unscented Kalman Filter', 'Adaptive Recursive Gauss Newton Filter');

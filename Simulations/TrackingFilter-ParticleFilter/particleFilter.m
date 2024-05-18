@@ -45,7 +45,7 @@ classdef particleFilter
             obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
                      (dt^3)/2, dt^2, 0, 0;
                      0, 0, (dt^4)/4,(dt^3)/2;
-                     0, 0, (dt^3)/2, dt^2]*2;
+                     0, 0, (dt^3)/2, dt^2]*std_acc;
             
             obj.count =0;
             obj.updater =0;

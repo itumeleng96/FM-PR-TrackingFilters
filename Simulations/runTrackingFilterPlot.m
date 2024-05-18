@@ -123,7 +123,7 @@ gatingThreshold=[5000,30];
 
 
 %filterType =input('Tracking Filter to use (1-7):');
-filterType = 5;
+filterType = 3;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -131,7 +131,8 @@ multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,
 doppler_ll=[];
 range_ll=[];
 
-doppler_error=[];
+doppler_error=[
+    ];
 range_error=[];
 prevCentroids=[];
 

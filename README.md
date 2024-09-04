@@ -26,10 +26,6 @@
 <li>A comprehensive report detailing the optimal parameters, advantages and disadvantages of each filter and the various filter parameters</li>
 <li>Accept real-time streamed data into the Multi-Target Tracking Filter if time permits.</li>
 
-## To Do's
-<li>CRLB</li>
-<li>Implement Probalistic Data Association</li>
-
 ## How to run the tracking Filter in the Matlab Terminal
 <li> runTrackingFilter </li>
 <li> Enter the filterType:  1,2,3,4,5,6,7 for Kalman,Particle,Adaptive Kalman,UKF,AUKF,RGNF,ARGNF filter </li>

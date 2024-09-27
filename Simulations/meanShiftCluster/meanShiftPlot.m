@@ -87,10 +87,13 @@ end
 prevCent = prevCentroids;
 hold on;
 if length(prevCent)>0
-    plot(prevCent(1,:), prevCent(2,:), '^', 'MarkerFaceColor','none', 'MarkerEdgeColor', [0.3 0.3 0.3], 'MarkerSize', 4);
+    plot(prevCent(1,:), prevCent(2,:), 's', 'MarkerFaceColor', [0.5, 0.5, 0.5], 'MarkerEdgeColor', [0.4, 0.4, 0.4], 'MarkerSize', 4);
 end
 
-plot(clustCent(1,:),clustCent(2,:),'^','MarkerEdgeColor','white','MarkerFaceColor','red', 'MarkerSize', 5);
+if length(clustCent)>0
+    plot(clustCent(1, :), clustCent(2, :), 's', 'MarkerEdgeColor', 'white', 'MarkerFaceColor', 'red', 'MarkerSize', 6);
+end
+drawnow
 
 prevCentroids = [prevCentroids,clustCent];
 prevCent = prevCentroids;

@@ -59,8 +59,8 @@ classdef multiTargetTracker
                 for i=1:numOfTracks
                     if(~obj.tracks(i).deleted)
                         predictedCoodinate = obj.tracks(i).predictedTrack(:,end);
-                        detectionsInRadius = obj.pruneDetections(detections,predictedCoodinate,obj.gatingThreshold);
-                        [detection,detections] = obj.globalNearestNeighbour(detectionsInRadius,predictedCoodinate,detections);
+                        detectionsInRadius = obj.pruneDetections(detections,predictedCoodinate,obj.gatingThreshold,obj.tracks(i).trackingFilterObject.S);
+                        [detection,detections] = obj.globalNearestNeighbour(detectionsInRadius,predictedCoodinate,detections,obj.tracks(i).trackingFilterObject.S);
                         if(detection)
                             obj.tracks(i)=obj.tracks(i).updateTrueTrack(detection); 
                         end
@@ -125,20 +125,75 @@ classdef multiTargetTracker
             
         end
 
+        function obj = plotMultiTargetTrackingGT(obj, fs, fd_max, td_max, index, f, RDM, rangeTrueData, dopplerTrueData)
+            figure(f);
+            c = 3e8;
+            Ndelay = floor(td_max * fs);                                 
+            time = 0:1/fs:Ndelay/fs;
+            range = time * c;
+            range = range / 1000;
+            frequency = -fd_max:1:fd_max;
+            imagesc(range, frequency, RDM * 0);
+            colormap(gca, 'white');
+            
+            text(0, 10, "Time:" + index + "s");
+            axis xy;
+            xlabel('Bistatic Range [km]', 'Fontsize', 18);
+            ylabel('Bistatic Doppler frequency [Hz]', 'Fontsize', 18);
+            xlim([0 80]);
+            ylim([-200 200]);
+            grid on;
+            title('Targets centroids and Prediction');
+            hold on;
+            % Plot ground truth data with a distinct star marker for visibility
+            % Plot the ground truth track
+            gt_marker = plot(rangeTrueData, dopplerTrueData, '-', 'Color', 'black', 'MarkerSize', 4, 'DisplayName', 'Ground Truth', 'MarkerFaceColor', 'black', 'MarkerEdgeColor', 'black');
+            
+            hold on;
+            
+            for i = 1:length(obj.tracks)
+                if(obj.tracks(i).deleted == 0)
+                    trackID = obj.tracks(i).trackId;
+                    % Display the track ID as text near the predicted track position
+                    text(obj.tracks(i).predictedTrack(1, end) + 1000, obj.tracks(i).predictedTrack(2, end) - 5, ...
+                         num2str(trackID), 'Color', 'red', 'FontSize', 8);
+                    
+                    if obj.tracks(i).confirmed == 0
+                        plot(obj.tracks(i).predictedTrack(1, :), obj.tracks(i).predictedTrack(2, :), '^', 'MarkerFaceColor','none','MarkerEdgeColor', 'blue', 'MarkerSize', 6, 'DisplayName', 'Tracking Filter Prediction ');                        % Plot true track as open circles joined by a line
+                        plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), '-', 'LineWidth', 2, 'Color','green' ,'MarkerSize', 4, 'DisplayName', 'Measurement');
+                    else
+                        plot(obj.tracks(i).predictedTrack(1, :), obj.tracks(i).predictedTrack(2, :), '^', 'MarkerFaceColor', 'none','MarkerEdgeColor', 'blue', 'MarkerSize', 6, 'DisplayName', 'Tracking Filter Prediction');                        % Plot true track as open circles joined by a line
+                        plot(obj.tracks(i).trueTrack(1,:), obj.tracks(i).trueTrack(2,:), '-', 'LineWidth', 2, 'Color', 'red', 'MarkerFaceColor', 'red', 'MarkerSize', 4, 'DisplayName', 'Tentative');
+                    end
+                end
+            end
+            
+            % Create dummy plots for legend clarity
+            predicted_marker = plot(nan, nan, '^', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', 'blue', 'MarkerSize', 6);
+            tentative_marker = plot(nan, nan, '-', 'LineWidth', 2, 'Color', 'green', 'MarkerSize', 4);
+            confirmed_marker = plot(nan, nan, '-', 'LineWidth', 2, 'Color', 'red', 'MarkerFaceColor', 'red', 'MarkerSize', 4);
+               
+            hold off;
+            legend([predicted_marker, tentative_marker, confirmed_marker, gt_marker], 'Prediction', 'Tentative', 'Measurement', 'Ground Truth', 'Location', 'best');
+            drawnow
+        end
+
+
         function obj = plotMultiTargetTracking(obj,fs,fd_max,td_max,index,f,RDM)
                 figure(f);
                 c=3e8;
                 Ndelay = floor(td_max*fs);                                 
                 time = 0:1/fs:Ndelay/fs;
                 range = time *c;
+                range = range/1000;
                 frequency = -fd_max:1:fd_max;
                 imagesc(range,frequency,RDM*0);
                 colormap(gca, 'white'); % Set the colormap to 'gray'
     
                 text(0,10,"Time:" + index+ "s");
                 axis xy;
-                xlabel('Bistatic Range [m]','Fontsize',10);
-                ylabel('Bistatic Doppler frequency [Hz]','Fontsize',10);
+                xlabel('Bistatic Range [km]','Fontsize',18);
+                ylabel('Bistatic Doppler frequency [Hz]','Fontsize',18);
                 grid on;
                 title('Targets centroids and  Prediction');
                 
@@ -170,7 +225,7 @@ classdef multiTargetTracker
                 confirmed_marker = plot(nan, nan, '-', 'LineWidth', 2, 'Color', 'red', 'MarkerFaceColor', 'red', 'MarkerSize', 4);
                 
                 % Create a legend with custom markers and labels
-                legend([predicted_marker, tentative_marker, confirmed_marker], 'Predicted Track', 'Tentative Track', 'Measurement Track', 'Location', 'best');
+                legend([predicted_marker, tentative_marker, confirmed_marker], 'Prediction', 'Tentative', 'Measurement Track', 'Location', 'best');
                 %hold on;
         end
 
@@ -474,83 +529,87 @@ classdef multiTargetTracker
         
         end
     
-        function [crlb_doppler,crlb_range] = calculateCRLB(obj, i,crlb_doppler,crlb_range,true_doppler,true_range)
-            
-            % Calculate the CRLB for each track
-            %{
-            for j = 1:length(obj.tracks)
-                observedTrack = obj.tracks(j).trueTrack;
-                sample_variance_doppler = sum((observedTrack(2,i) - true_doppler(i)  ).^2) / 1;
-                sample_variance_range = sum((observedTrack(1,i) - true_range(i)  ).^2) / 1;
-
-                variance_mu_doppler = sample_variance_doppler / 1; % Variance of the sample mean
-                variance_mu_range = sample_variance_range / 1; % Variance of the sample mean
-
-
-                Fisher_information_mu_doppler = 1 / variance_mu_doppler;
-                Fisher_information_mu_range = 1 / variance_mu_range;
-
-                crlb_doppler(i) = 1/Fisher_information_mu_doppler;
-                crlb_range(i) = 1/Fisher_information_mu_range;
-                
-            end
-            %}
-            FIM = obj.tracks(1).trackingFilterObject.P;
-            crlb = FIM^(-1) ;
-            crlb_doppler(i) = crlb(1,1);
-            crlb_range(i) = crlb(2,2);
-
-        end
     end
 
     methods(Static)
 
-        function detectionsInRadius = pruneDetections(detections, predictedCoordinate, gatingThreshold)
-            % For every detection check that it falls within the predicted coordinates' radius
-            % Rectangular (1-norm)  Gating
-         
+        function detectionsInRadius = pruneDetections(detections, predictedCoordinate, gatingThreshold, Smatrix)
+            % Inputs:
+            % detections - 2D matrix of detection coordinates, each column is a detection
+            % predictedCoordinate - 2D vector of the predicted measurement coordinate
+            % gatingThreshold - scalar, the gating threshold G in Mahalanobis distance
+            % Smatrix - Covariance matrix for the detection residual
+        
+            % Number of detections
             numberOfDetections = size(detections, 2);
-            detectionsInRadius = [];
-            x_std = gatingThreshold(1);
-            y_std = gatingThreshold(2);
-            k = 3;  %Threshold
-
+            
+            % Preallocate memory for the valid detections matrix
+            detectionsInRadius = zeros(size(detections));
+            count = 0;  % Counter for valid detections
+            
+            % Loop through each detection
             for i = 1:numberOfDetections
-                y_dist = abs(detections(2, i) - predictedCoordinate(2));
-                x_dist = abs(detections(1, i) - predictedCoordinate(1));
+                % Compute the residual vector
+                residual = detections(:, i) - predictedCoordinate;
                 
-                if x_dist<k*x_std && y_dist<k*y_std
-                    detectionsInRadius = [detectionsInRadius, detections(:, i)];
+                % Compute the Mahalanobis distance using A\b instead of inv(A)*b
+                mahalanobisDistSquared = residual' * (Smatrix \ residual);
+                % Check if the Mahalanobis distance is within the gating threshold
+                if mahalanobisDistSquared <= gatingThreshold
+                    count = count + 1;
+                    detectionsInRadius(:, count) = detections(:, i);
                 end
             end
+            
+            % Remove unused preallocated columns
+            detectionsInRadius = detectionsInRadius(:, 1:count);
+        end
+        
+
+        function [nearestDetection, remainingDetections] = globalNearestNeighbour(detectionsInRadius, predictedCoordinate, allDetections, measurementCovariance)
+            % Inputs:
+            % detectionsInRadius - Detected points within the gating threshold
+            % predictedCoordinate - The predicted state of the track
+            % allDetections - All available detections
+            % measurementCovariance - Covariance matrix for Mahalanobis distance calculation (sMatrix)
+        
+            % Get the number of detections in the radius
+            numDetections = size(detectionsInRadius, 2);
+            
+            % Preallocate distances array to avoid size changes during loop
+            distances = zeros(1, numDetections);
+            
+            % Loop through detections to calculate Mahalanobis distance
+            for i = 1:numDetections
+                % Compute innovation (residual between detection and predicted coordinate)
+                innovation = detectionsInRadius(:, i) - predictedCoordinate;
+                
+                % Calculate the Mahalanobis distance
+                mahalanobisDistance = sqrt(innovation' / measurementCovariance * innovation);
+                
+                % Store the Mahalanobis distance
+                distances(i) = mahalanobisDistance;
+            end
+        
+            % Find the detection with the minimum Mahalanobis distance
+            [~, indexOfNearestNeighbour] = min(distances);
+            nearestDetection = detectionsInRadius(:, indexOfNearestNeighbour);
+        
+            if nearestDetection 
+                % Remove the assigned detection from the list of all detections
+                % Use a tolerance-based approach to avoid rounding errors
+                tolerance = 1e-5;  % Tolerance for matching floating-point numbers
+                indexInAllDetections = abs(allDetections(1, :) - nearestDetection(1)) < tolerance & ...
+                                       abs(allDetections(2, :) - nearestDetection(2)) < tolerance;
+                
+                allDetections(:, indexInAllDetections) = [];
+            end
+
+            % Remove the matched detection from allDetections
+            remainingDetections = allDetections;
         end
 
-        function [detection,detections] = globalNearestNeighbour(detectionsInRadius,predictedCoordinate,allDetections)
-            numberOfDetections=size(detectionsInRadius,2);
-            distances=[];
-            measurementCovariance = [100,0;0,0.1];
-            %Use Mahalanobis Distance
-            for i=1:numberOfDetections
-                %distances(i)=norm(detectionsInRadius(:,i)-predictedCoordinate);
-                innovation = detectionsInRadius(:,i)-predictedCoordinate;
-                %disp("Innovation");
-                %disp(innovation);
-                mahalanobisDistance = sqrt(innovation' / measurementCovariance*innovation);
-                %disp(mahalanobisDistance);
-                distances(i)=mahalanobisDistance;
-            end
-
-            %Get The index of the detection with min distances and delete from detections
-            [~,indexOfNeighbour] = min(distances);
-            detection = detectionsInRadius(:,indexOfNeighbour); 
-            %Find index of detection and delete
-            if detection
-                indexInAllDetections = round(allDetections(1,:))==round(detection(1,1)) & round(allDetections(2,:))==round(detection(2,1));
-                allDetections(:,indexInAllDetections) = [];
-            end
-
-            detections = allDetections;
-         end
+        
 
          function [logLikelihoodValues] = logLikelihoodMatrix(samples,groundTruthValues,s_matrix,deleted)
             %Loop through the length of the track 

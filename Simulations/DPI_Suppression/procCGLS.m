@@ -1,5 +1,5 @@
 function [SurvData] = procCGLS(RefData, SurvData, proc)
-% fprintf('Performing CGLS cancellation\n')
+    fprintf('Performing CGLS cancellation\n')
 
 %%%%
 % USAGE:

@@ -72,19 +72,19 @@ rdm =[];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %ARD
-f=figure(1);
-f.Position = [4000 10 1050 800]; 
-movegui(f,'northwest');
+%f=figure(1);
+%f.Position = [4000 10 1050 800]; 
+%movegui(f,'northwest');
 
 %CFAR
-f2=figure(2);
-f2.Position = [4000 10 1050 800]; 
-movegui(f2,'southwest');
+%f2=figure(2);
+%f2.Position = [4000 10 1050 800]; 
+%movegui(f2,'southwest');
 
 %Multi-Target Tracking 
-f3=figure(3);
-f3.Position = [4000 10 1050 800]; 
-movegui(f3,'southeast');
+%f3=figure(3);
+%f3.Position = [4000 10 1050 800]; 
+%movegui(f3,'southeast');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -113,10 +113,6 @@ doppler_ll=[];
 range_ll=[];
 
 prevCentroids=[];
-
-rangeTrueData = h5read('./groundTruthCalculations/true_data.h5', '/bistatic_ranges');
-dopplerTrueData = h5read('./groundTruthCalculations/true_data.h5', '/doppler_shifts');
-
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current); %surv
@@ -147,7 +143,7 @@ for i = 1:simulation_time
 
    
     %PLOT Prediction and True Tracks
-    multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+    %multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
     %UPDATE Tracks from measurements
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids,i);
     
@@ -162,41 +158,25 @@ end
 
 
 
+trackId = input('Enter a trackId for the measurement Data: ');
 
-
-%Do Log-likelihood for specific TrackId after simulation
-trackId = input('Enter a trackId for the Log-likelihood: ');
-%trackId =1;
-
-doppler_ll=[];
-range_ll=[];
-
-%%PLOT TRACKID TRACK FOR DIFFERENT FILTERS\
-track_mtt_1 = multiTargetTracker.getTrack(trackId);
 track_mtt_1_true = multiTargetTracker.getMeasuredTrack(trackId);
 
 figure(3);
-plot(track_mtt_1(1,:),track_mtt_1(2,:), 'b-');
-hold on;
 plot(track_mtt_1_true(1,:),track_mtt_1_true(2,:), '-^');
 hold on;
-plot(rangeTrueData,dopplerTrueData,'-*');
 xlabel('Bistatic range (KM)');
 ylabel('Bistatic Doppler (Hz)');
-title(['Tracking filter outputs vs Ground Truth For Track:', num2str(trackId)]);
+title(['Measurement Data:', num2str(trackId)]);
 
-%Call MultiTargetTrack -LogLikelihood to plot 
-[doppler_ll,range_ll,t1]=multiTargetTracker.calculateLogLikelihoodGroundTruth(trackId,doppler_ll,range_ll,dopplerTrueData,rangeTrueData,simulation_time);
-
-figure(4);
-plot(t1,doppler_ll, 'b-'); 
-title(['Bistatic Doppler Log-Likelihood Comparison for Track:',num2str(trackId)]);
-xlabel('Time Steps');
-ylabel('Bistatic Doppler Log-Likelihood');
+if exist('./measurement_data.h5', 'file')
+    delete('./measurement_data.h5');
+end
 
 
-figure(5);
-plot(t1,range_ll, 'b-');
-title(['Bistatic Range Log-Likelihood Comparison for Track:',num2str(trackId)]);
-xlabel('Time Steps');
-ylabel('Bistatic Range Log-Likelihood');
+% Save bistatic ranges and Doppler shifts to an HDF5 file
+h5create('./measurement_data.h5', '/bistatic_ranges', size(track_mtt_1_true(1,:)));
+h5write('./measurement_data.h5', '/bistatic_ranges', track_mtt_1_true(1,:));
+
+h5create('./measurement_data.h5', '/doppler_shifts', size(track_mtt_1_true(2,:)));
+h5write('./measurement_data.h5', '/doppler_shifts', track_mtt_1_true(2,:));

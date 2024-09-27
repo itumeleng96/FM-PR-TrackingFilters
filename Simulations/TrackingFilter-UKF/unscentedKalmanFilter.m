@@ -7,7 +7,7 @@ classdef unscentedKalmanFilter
     end
     
     methods
-        function obj = unscentedKalmanFilter(dt,std_acc,r_std,rdot_std,X_initial)
+        function obj = unscentedKalmanFilter(dt,std_acc,r_std,rdot_std,X_initial,alpha,kappa,beta)
         
             %Init funtion
             %Inputs: 
@@ -20,50 +20,47 @@ classdef unscentedKalmanFilter
             %Update Interval
             obj.dt = dt;
 
-            %wave number k=-lambda=c/f
-            c=299792458;
-            k = -c/94e6;                                    
-                    
-            obj.F = [1, 0, k*dt,0;
-                     0, 0, k, k*dt;
+           obj.F = [1, dt, 0, 0;
+                     0, 1, 0, 0;
                      0, 0, 1, dt;
                      0, 0, 0, 1;];
                     
-            %Process Noise Covariance Matrix For Random Acceleration
             
-            obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
-                     (dt^3)/2, dt^2, 0, 0;
-                     0, 0, (dt^4)/4,(dt^3)/2;
-                     0, 0, (dt^3)/2, dt^2]*0.1;
+            obj.H = [1,0,0,0;
+                     0,0,1,0;];                            % Measurement Function
+
+            
+
+            obj.Q = [std_acc(1)*(dt^4)/4,std_acc(1)*(dt^3)/2,0,0;                % Process Noise Covariance Matrix
+                     std_acc(1)*(dt^3)/2, std_acc(1)*dt^2, 0, 0;
+                     0, 0, std_acc(2)*(dt^4)/4,std_acc(2)*(dt^3)/2;
+                     0, 0, std_acc(2)*(dt^3)/2, std_acc(2)*dt^2];
 
             %Measurement Error covariance matrix
             obj.R = [r_std,0;
                      0,rdot_std;];
 
-
-            obj.P = [100,0,0,0;                             
-                     0, 10, 0, 0;
-                     0, 0, 0.5,0;
-                     0, 0, 0, 0.5];    
-
+            obj.P = [5,0,0,0;                              % Initial Error Covariance Matrix
+                     0, 1, 0, 0;
+                     0, 0, 2,0;
+                     0, 0, 0, 1];  
+            
             obj.H = [1,0,0,0;
                      0,0,1,0;];                                         % Measurement Function'
 
             %Tuning parameters For UKF
-            obj.alpha =0.1;                 %Determines the spread of the sigma points around the mean : usually + value : a=0.0001
-            obj.kappa =0;                   %Secondary scaling parameter usually  set to zero 
-            obj.beta =2;                    %Is used to incorporate prior knowledge of the distribution of the input random variable (Gaussian : beta=2)
-            obj.n = 4;                      %Is the number of dimensions 
+            obj.alpha =alpha;                %Determines the spread of the sigma points around the mean : usually + value : a=0.0001
+            obj.kappa =kappa;                %Secondary scaling parameter usually  set to zero 
+            obj.beta =beta;                  %Is used to incorporate prior knowledge of the distribution of the input random variable (Gaussian : beta=2)
+            obj.n = 4;                       %Is the number of dimensions 
+
 
             obj.lambda = obj.alpha^2*(obj.n+obj.kappa) -obj.n;
             
             [obj.Wc,obj.Wm] =obj.createWeights();
-            obj.wk = 0.2*[dt^2;dt;dt^2;dt];
+            obj.wk = [std_acc(1)*dt^2;std_acc(1)*dt;std_acc(2)*dt^2;std_acc(2)*dt];
 
-            obj.count =0;
-            obj.updater =0;
-            obj.update1 =0;
-
+    
         end
         
         function [X_pred,UKF_obj1] = predict(obj)
@@ -78,8 +75,12 @@ classdef unscentedKalmanFilter
 
             [obj.X,obj.Pk] = obj.unscentedTransform();
 
+            %to get S on predict  
+            muZ = sum(obj.sigmaPoints' .* obj.Wm,1);
+            Pz = obj.unscentedTransformZ(muZ);  
+            obj.S = Pz;
 
-            X_pred = obj.X';
+            X_pred = obj.X' +obj.wk;
             UKF_obj1  = obj;
         end
         

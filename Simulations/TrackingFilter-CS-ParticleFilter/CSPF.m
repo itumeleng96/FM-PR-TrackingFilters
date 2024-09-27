@@ -1,4 +1,4 @@
-classdef particleFilter
+classdef CSPF
 
     properties
         dt,             %%Sampling Time
@@ -18,7 +18,7 @@ classdef particleFilter
     end
     
     methods
-        function obj = particleFilter(dt,std_acc,std_meas,initialCentroid,N)
+        function obj = CSPF(dt,std_acc,std_meas,initialCentroid,N)
         
             %Init funtion
             obj.N = N;

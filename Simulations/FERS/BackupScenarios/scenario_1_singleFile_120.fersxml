@@ -106,25 +106,31 @@
     </receiver>
   </platform>
 
-  <platform name="Target1"> <!-- Target traveling at 220m/s for x seconds -->
+  <platform name="Target1">
     <motionpath interpolation="cubic">
 	<positionwaypoint>
-        <x>4000</x>
-        <y>18000</y>
-        <altitude>3600</altitude><!-- Starting altitude -->
+        <x>18000</x>
+        <y>22000</y>
+        <altitude>3600</altitude>
         <time>0</time>
       </positionwaypoint>
       <positionwaypoint>
-        <x>-2000</x>
-        <y>4000</y>
-        <altitude>1600</altitude> <!-- End altitude -->
-        <time>60</time><!-- Time length of simulation -->
+        <x>3000</x>
+        <y>20000</y>
+        <altitude>3600</altitude> 
+        <time>60</time>
       </positionwaypoint>
       <positionwaypoint>
-        <x>-4000</x>
-        <y>-2000</y>
-        <altitude>600</altitude> <!-- End altitude -->
-        <time>120</time><!-- Time length of simulation -->
+        <x>-2000</x>
+        <y>20000</y>
+        <altitude>3600</altitude> 
+        <time>90</time>
+      </positionwaypoint>
+      <positionwaypoint>
+        <x>-9000</x>
+        <y>22000</y>
+        <altitude>3600</altitude> 
+        <time>120</time>
       </positionwaypoint>
     </motionpath>
     <fixedrotation>
@@ -135,7 +141,7 @@
     </fixedrotation>
     <target name="Target2">
       <rcs type="isotropic">
-        <value>100</value><!-- Target RCS in square meters -->
+        <value>150</value><!-- Target RCS in square meters -->
       </rcs>
     </target>
   </platform>

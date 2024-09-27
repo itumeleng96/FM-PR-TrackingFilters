@@ -20,18 +20,18 @@ classdef CSUKF
             %Update Interval
             obj.dt = dt;
 
-            %wave number k=-lambda=c/f
-            c=299792458;
-            k = -c/94e6;                                    
-                    
-            obj.F = [1, 0, k*dt,0;
-                     0, 0, k, k*dt;
+           obj.F = [1, dt, 0, 0;
+                     0, 1, 0, 0;
                      0, 0, 1, dt;
                      0, 0, 0, 1;];
                     
-            %Process Noise Covariance Matrix For Random Acceleration
             
-            obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
+            obj.H = [1,0,0,0;
+                     0,0,1,0;];                            % Measurement Function
+
+            
+
+            obj.Q = std_acc*[(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
                      (dt^3)/2, dt^2, 0, 0;
                      0, 0, (dt^4)/4,(dt^3)/2;
                      0, 0, (dt^3)/2, dt^2];
@@ -40,10 +40,10 @@ classdef CSUKF
             obj.R = [r_std,0;
                      0,rdot_std;];
 
-            obj.P = [100,0,0,0;                             
-                     0, 10, 0, 0;
+            obj.P = [5,0,0,0;                                      % Initial Error Covariance Matrix
+                     0, 2.5, 0, 0;
                      0, 0, 1,0;
-                     0, 0, 0, 0.01];    
+                     0, 0, 0, 0.5];    
 
             obj.H = [1,0,0,0;
                      0,0,1,0;];                                         % Measurement Function'
@@ -57,7 +57,7 @@ classdef CSUKF
             obj.lambda = obj.alpha^2*(obj.n+obj.kappa) -obj.n;
             
             [obj.Wc,obj.Wm] =obj.createWeights();
-            obj.wk = std_acc*[dt^2;dt;dt^2;dt]*0;
+            obj.wk = std_acc*[dt^2;dt;dt^2;dt];
 
             obj.epsDoppler =[];
             obj.epsRange =[];
@@ -81,7 +81,6 @@ classdef CSUKF
             muZ = sum(obj.sigmaPoints' .* obj.Wm,1);
             Pz = obj.unscentedTransformZ(muZ);  
             obj.S = Pz;
-
 
             X_pred = obj.X' +obj.wk;
             UKF_obj1  = obj;

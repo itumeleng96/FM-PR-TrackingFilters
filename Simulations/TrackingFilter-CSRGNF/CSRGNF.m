@@ -1,7 +1,7 @@
 classdef CSRGNF
 
     properties
-        dt,U,X,F,A,B,H,Q,R,P,S,coeff,measured_x,measured_y,max_iter,wk,count,updater,update1,epsDoppler,epsRange;
+        dt,U,X,F,A,B,H,Q,R,P,S,coeff,measured_x,measured_y,max_iter,wk,count,updater,update1,residuals;
     end
     
     methods
@@ -15,33 +15,32 @@ classdef CSRGNF
             % Initial State
             obj.X = X_initial;
          
-            % State transition matrix
             obj.dt = dt;
-            %wave number k=-lambda=c/f
-            k= -299792458/94e6; 
 
-            obj.F = [1, 0, k*dt,0;
-                     0, 0, k, k*dt;
+            obj.F = [1, dt, 0, 0;
+                     0, 1, 0, 0;
                      0, 0, 1, dt;
                      0, 0, 0, 1;];
-                    
-            
+
             obj.H = [1,0,0,0;
-                     0,0,1,0;];                             % Measurement Function
+                     0,0,1,0;];                            % Measurement Function
 
             
 
-            obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
+            obj.Q = std_acc*[(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
                      (dt^3)/2, dt^2, 0, 0;
                      0, 0, (dt^4)/4,(dt^3)/2;
                      0, 0, (dt^3)/2, dt^2];
 
-            obj.R = [r_std,0;0,rdot_std];              % Measurement Uncertainty
-            
-            obj.P = [100,0,0,0;                              % Initial Error Covariance Matrix
-                     0, 10, 0, 0;
-                     0, 0, 1,0;
-                     0, 0, 0, 0.1];                           
+            %Measurement Error covariance matrix
+            obj.R = [r_std,0;
+                     0,rdot_std;];
+
+            obj.P = [5,0,0,0;                                      % Initial Error Covariance Matrix
+                     0, 2.5, 0, 0;
+                     0, 0, 2,0;
+                     0, 0, 0, 1];  
+
 
             obj.A = [1, dt, 0, 0;
                      0, 1, 0, 0;
@@ -50,8 +49,7 @@ classdef CSRGNF
             
             obj.wk = std_acc*[dt^2;dt;dt^2;dt];
 
-            obj.epsDoppler =[];
-            obj.epsRange = [];
+            obj.residuals =[];
 
         end
 
@@ -78,30 +76,30 @@ classdef CSRGNF
             %The forgetting  factor(Lambda) - between 0 and 1
             lambda = 1;
 
-            %S = H*P*H'+ R - Innovation Covariance Matrix
+            % Kalman prediction step: S = H*P*H' + R
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
             
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%% ADAPTIVE FILTERING - Covariance scaling on Outliers
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            ek = Y_n - obj.H*obj.X;
-            eps_doppler = (ek(2)^2)/ obj.S(2,2);
-            eps_range = (ek(1)^2)/ obj.S(1,1);
-
-            obj.epsDoppler = [obj.epsDoppler,eps_doppler];
-            obj.epsRange = [obj.epsRange,eps_range];
+            % Compute residual (measurement innovation): ek = z - H*X
+            ek = Y_n - obj.H * obj.X;
             
-
-            M=6; %Number of samples to average
-            r_adapt=obj.R;
-            if(size(obj.epsDoppler,2)>M && eps_doppler > 1 && eps_doppler>mean(obj.epsDoppler(end-M:end-1)))
-                r_adapt(2,2) =(eps_doppler-1)*obj.P(3,3) + eps_doppler*r_adapt(2,2)*10;
-                obj.epsDoppler =obj.epsDoppler(end-M:end-1);
-            end
-
-            if(size(obj.epsRange,2)>M && eps_range > 1 && eps_range>20*mean(obj.epsRange(end-M:end-1)))
-                r_adapt(1,1) =(eps_range-1)*obj.P(1,1) + eps_range*r_adapt(1,1);
-                obj.epsRange =obj.epsRange(end-M:end-1);
+            mahalanobisDistSquared = ek' * (obj.S \ ek);
+            
+            % Number of samples to average
+            M = 6;
+            r_adapt = obj.R;
+            alpha =0.6;
+            % Moving window for residuals
+            obj.residuals = [obj.residuals, mahalanobisDistSquared];
+            
+            % Check for outliers using a combined approach for Doppler and Range
+            if size(obj.residuals, 2) > M
+                residual_mean = mean(obj.residuals(end-M:end-1));
+                residual_std = std(obj.residuals(end-M:end-1));
+                
+                if mahalanobisDistSquared > 1 && mahalanobisDistSquared > (residual_mean + residual_std)                    
+                    r_adapt = alpha * r_adapt + (1 - alpha) * (mahalanobisDistSquared + obj.H * obj.P * obj.H');
+                    obj.residuals = obj.residuals(end-M:end-1);
+                end
             end
 
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -138,7 +136,6 @@ classdef CSRGNF
 
                             
             % Update Covariance Matrix
-            obj.R = [500,0;0,0.5];
         
             obj.X = x_new;
             X_est = obj.X;

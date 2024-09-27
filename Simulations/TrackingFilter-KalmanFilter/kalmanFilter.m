@@ -15,12 +15,9 @@ classdef kalmanFilter
         
             obj.X= X_initial;                              % Initial State
             obj.dt = dt;                                   % Update Interval
-            c=299792458;    
-            k = -c/94e6;                                   % Wave number k=-lambda=c/f
-
                     
-            obj.F = [1, 0, k*dt,0;
-                     0, 0, k, k*dt;
+            obj.F = [1, dt, 0,0;
+                     0, 1, 0, 0;
                      0, 0, 1, dt;
                      0, 0, 0, 1;];
                     
@@ -30,25 +27,25 @@ classdef kalmanFilter
 
             
 
-            obj.Q = [(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
-                     (dt^3)/2, dt^2, 0, 0;
-                     0, 0, (dt^4)/4,(dt^3)/2;
-                     0, 0, (dt^3)/2, dt^2];
+            obj.Q = [std_acc(1)*(dt^4)/4,std_acc(1)*(dt^3)/2,0,0;                % Process Noise Covariance Matrix
+                     std_acc(1)*(dt^3)/2, std_acc(1)*dt^2, 0, 0;
+                     0, 0, std_acc(2)*(dt^4)/4,std_acc(2)*(dt^3)/2;
+                     0, 0, std_acc(2)*(dt^3)/2, std_acc(2)*dt^2];
 
             obj.R = [r_std,0;
                      0,rdot_std];                  % Measurement Uncertainty
             
-            obj.P = [500,0,0,0;                              % Initial Error Covariance Matrix
-                     0, 10, 0, 0;
-                     0, 0, 0.4,0;
-                     0, 0, 0, 0.1];  
+            obj.P = [5,0,0,0;                              % Initial Error Covariance Matrix
+                     0, 1, 0, 0;
+                     0, 0, 2,0;
+                     0, 0, 0, 1];  
             
             obj.A = [1, dt, 0, 0;
                      0, 1, 0, 0;
                      0, 0, 1, dt;
                      0, 0, 0, 1;];
 
-            obj.wk = std_acc*[dt^2;dt;dt^2;dt];
+            obj.wk = [std_acc(1)*dt^2;std_acc(1)*dt;std_acc(2)*dt^2;std_acc(2)*dt];
 
             obj.count =0;
             obj.updater =0;

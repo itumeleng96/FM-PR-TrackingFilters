@@ -8,8 +8,9 @@ addpath('FERS/', ...
         'multiTargetTracking/', ...
         'DPI_Suppression', ...
         'TrackingFilter-KalmanFilter/', ...
-        'TrackingFilter-HCSKF/', ...
+        'TrackingFilter-CSKF/', ...
         'TrackingFilter-ParticleFilter/', ...
+        'TrackingFilter-CS-ParticleFilter/', ...
         'TrackingFilter-UKF/', ... 
         'TrackingFilter-CSUKF/',...
         'TrackingFilter-RGNF/',...
@@ -20,13 +21,15 @@ addpath('FERS/', ...
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
 
 %Noise Scenarios
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_1_fm_noise.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_2_white_noise.fersxml');
 
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile_120.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_3_targets_singleFile.fersxml');
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -43,7 +46,7 @@ I_Qno = I_Qno.*scale_no;
 
 fs = 200000;
 dopp_bins = 200;
-delay = 233e-6;
+delay = 333e-6;
 c=299792458;
 range_delay = delay*c;
 
@@ -91,12 +94,11 @@ f4=figure(4);
 f4.Position = [4000 10 1050 800]; 
 movegui(f4,'southwest');
 
-%Range Error
+
 f5=figure(5);
-f4.Position = [4000 10 1050 800]; 
+f5.Position = [4000 10 1050 800]; 
 movegui(f5,'southeast');
-
-
+%{
 f6=figure(6);
 f4.Position = [4000 10 1050 800]; 
 movegui(f6,'southeast');
@@ -104,26 +106,27 @@ movegui(f6,'southeast');
 f7=figure(7);
 f4.Position = [4000 10 1050 800]; 
 movegui(f7,'southeast');
-
+%}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Create MTT object
 confirmationThreshold=4;
-deletionThreshold=4;
-gatingThreshold=[5000,30];
+deletionThreshold=3;
+gatingThreshold=10; %scalar value for ellipsoidal gate
 
 %FilterType 1: Kalman Filter
-%FilterType 2: Huber Covariance Scaling Kalman Filter
+%FilterType 2: Covariance Scaling Kalman Filter
 %FilterType 3: Particle Filter
-%FilterType 4: UKF  Filter
-%FilterType 5: Huber Covariance Scaling UKF Filter
-%FilterType 6: RGNF Filter
-%FilterType 7: Covariance Scaling RGNF Filter
+%FilterType 4: Covariance Scaling Particle Filter
+%FilterType 5: UKF  Filter
+%FilterType 6: Covariance Scaling UKF Filter
+%FilterType 7: RGNF Filter
+%FilterType 8: Covariance Scaling RGNF Filter
 
 
 
 %filterType =input('Tracking Filter to use (1-7):');
-filterType = 3;
+filterType = 2;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -131,8 +134,7 @@ multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,
 doppler_ll=[];
 range_ll=[];
 
-doppler_error=[
-    ];
+doppler_error=[];
 range_error=[];
 prevCentroids=[];
 
@@ -140,29 +142,21 @@ rangeTrueData = h5read('./groundTruthCalculations/true_data.h5', '/bistatic_rang
 dopplerTrueData = h5read('./groundTruthCalculations/true_data.h5', '/doppler_shifts');
 
 for i = 1:simulation_time
+    tic()
     s1 = I_Qmov(initial:current); %surv
     s2 = I_Qno(initial:current);  %ref
 
-    s1 = procECA(s2,s1,proc);
-
+    s1 = procECA_Optimized(s2,s1,proc);
+    %s1 = procCGLS(s2,s1,proc);
     %Plot Range-Doppler Map
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlot(y.',10e-4,fs,dopp_bins,delay,i,f2,rdm);                    
-    
+    [targetClusters,RDM,rdm_] = ca_cfarPlotBW(y.',10e-9,fs,dopp_bins,delay,i,f2,rdm,20);                    
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,1e4,8,prevCentroids);
-    %{
-    if(i==10 || i==11)
-        clusterCentroids(2,:)=clusterCentroids(2,:)+10;
-    end
+    [clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,10,8,prevCentroids);
     
-    if(i==13 || i==14)
-        clusterCentroids(2,:)=clusterCentroids(2,:)-10;
-    end
-    %}
     
     %Plot tracks from Tracker - Call Multi-target Tracker
     multiTargetTracker = multiTargetTracker.createNewTracks(clusterCentroids,i);
@@ -174,14 +168,16 @@ for i = 1:simulation_time
     %Filter Prediction Stage
     multiTargetTracker = multiTargetTracker.predictionStage();
 
+    
     %PLOT Prediction and True Tracks
+    %multiTargetTracker = multiTargetTracker.plotMultiTargetTrackingGT(fs,dopp_bins,delay,i,f3,RDM,rangeTrueData,dopplerTrueData);
     multiTargetTracker = multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
 
     %UPDATE Tracks from measurements
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids,i);
     
     %CALCULATE Likelihoods 
-    %[doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihoodSingle(f4,f5,i,doppler_ll,range_ll,dopplerTrueData,rangeTrueData, true);
+    [doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihoodSingle(f4,f5,i,doppler_ll,range_ll,dopplerTrueData,rangeTrueData, true);
    
     %Do functionality to plot logLikelihood on a specific Track Id
     %CALCULATE ERROR 
@@ -217,14 +213,19 @@ for i = 1:simulation_time
     legend('Tracking Filter','Ground Truth','Measurement');
     grid on;
     %}
+    %}
     ard = ard_;
     rdm= rdm_;
 
     %Counting Variables
     initial = current+1;
     current = current + fs;
+    toc()
 end
 
+
+
+%{
 trackId = input('Enter a trackId for the Log-likelihood: ');
 %trackId =1;
 
@@ -260,3 +261,4 @@ plot(t1,range_ll, 'b-');
 title(['Bistatic Range Log-Likelihood Comparison for Track:',num2str(trackId)]);
 xlabel('Time(s)');
 ylabel('Bistatic Range Log-Likelihood');
+%}

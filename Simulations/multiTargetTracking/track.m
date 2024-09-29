@@ -46,8 +46,8 @@ classdef track
             switch filterType
                 case 1
                     disp("Initializing Kalman Filter");
-                    std_meas=[4,0.2];                                 %Standard Deviation of the measurements in the x(Range) and y(Doppler)
-                    std_acc=[0.001,0.02];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
+                    std_meas=[4.9038,0.9985];                                 %Standard Deviation of the measurements in the x(Range) and y(Doppler)
+                    std_acc=[0.0048354,0.0991];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
                     KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;]);
                     obj.trackingFilterObject = KF_object;
 
@@ -75,7 +75,7 @@ classdef track
                 case 2
                     disp("Initializing Covariance Scaling Kalman Filter");
                     std_meas=[1,0.2];                                 %Standard Deviation of the measurements in the x and y
-                    std_acc=0.2;                                       %Standard Deviation of the process noise
+                    std_acc=[0.001,0.02];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
                     CSKF_object = CSKF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;]);
                     obj.trackingFilterObject = CSKF_object;
                                    

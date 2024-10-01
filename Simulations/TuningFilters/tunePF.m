@@ -24,15 +24,15 @@ rangeMeasurementData = h5read('../measurement_data.h5', '/bistatic_ranges');
 dopplerMeasurementData = h5read('../measurement_data.h5', '/doppler_shifts');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Bayesian Optimization on the Kalman Filter
+%%% Bayesian Optimization on the Particle Filter
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Define the search space for optimization (without log transformations)
 optimVars = [
-    optimizableVariable('std_acc1', [0.0001, 0.1]),   % Process noise std (for range)
-    optimizableVariable('std_acc2', [0.0001, 0.1]),   % Process noise std (for doppler)
-    optimizableVariable('std_meas1', [1, 10]),        % Measurement noise std (for range)
-    optimizableVariable('std_meas2', [0.1, 1])        % Measurement noise std (for doppler)
+    optimizableVariable('std_acc1', [0.01, 1]),   % Process noise std (for range)
+    optimizableVariable('std_acc2', [0.01, 1]),   % Process noise std (for doppler)
+    optimizableVariable('std_meas2', [0.1, 2]),        % Measurement noise std (for range)
+    optimizableVariable('std_meas1', [0.1, 5])        % Measurement noise std (for doppler)
 ];
 
 % Objective function for Bayesian Optimization
@@ -69,7 +69,7 @@ function loss = pf_nees_loss(std_acc1, std_acc2, std_meas1, std_meas2, rangeMeas
     
     x_initial = [rangeMeasurementData(1), dopplerMeasurementData(1)];
     dt = 1;
-   PF_object = particleFilter(dt,std_acc,std_meas,[x_initial(1);0;x_initial(2);0;],7500);
+   PF_object = particleFilter(dt,std_acc,std_meas,[x_initial(1);0;x_initial(2);0;],10000);
 
     % Initialize arrays for NEES calculation
     nees_values = [];

@@ -10,10 +10,12 @@ classdef particleFilter
         scaling_factor; % 
         std_meas;
         S;
+        P;
         count;
         updater;
         update1;
-        epsDoppler;C
+        epsDoppler;
+        wk;
 
     end
     
@@ -38,29 +40,20 @@ classdef particleFilter
                      0, 0, 0, 1;];
                     
            
-            
+           eps = 1e-7;
 
-            obj.Q = std_acc*[(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
-                     (dt^3)/2, dt^2, 0, 0;
-                     0, 0, (dt^4)/4,(dt^3)/2;
-                     0, 0, (dt^3)/2, dt^2];
+            obj.Q = [std_acc(1)*(dt^4)/4 + eps, std_acc(1)*(dt^3)/2, 0, 0;
+                     std_acc(1)*(dt^3)/2, std_acc(1)*dt^2 + eps, 0, 0;
+                     0, 0, std_acc(2)*(dt^4)/4 + eps, std_acc(2)*(dt^3)/2;
+                     0, 0, std_acc(2)*(dt^3)/2, std_acc(2)*dt^2 + eps];
 
-            
-            obj.count =0;
-            obj.updater =0;
-            obj.update1 =0;
-
-            obj.epsDoppler =[];
-
-
+            obj.wk = [std_acc(1)*dt^2;std_acc(1)*dt;std_acc(2)*dt^2;std_acc(2)*dt];
 
         end
         
         function [X_pred, PF_obj] = predict(obj)
-
             % Generate random Gaussian noise with zero mean and covariance matrix Q
             noise = randn(obj.N, 4) * chol(obj.Q);
-
 
             % Add process noise to particle states
             obj.particles(:, 1:4) = (obj.F(1:4, 1:4) * obj.particles(:, 1:4)' + noise(:, 1:4)')';
@@ -69,8 +62,14 @@ classdef particleFilter
             
 
             [meanValueS,~] = obj.estimate(obj.particles, obj.weights);
-            covariance_matrix = (obj.weights .* (obj.particles(:, [1 3]) - meanValueS))' * (obj.weights.*(obj.particles(:, [1 3]) - meanValueS));
-            
+            deviations = obj.particles(:, [1 3]) - meanValueS;  % Deviation of particles from mean (Nx2)
+            weighted_deviations = deviations .* sqrt(obj.weights);  % Apply weights (element-wise multiplication)
+            covariance_matrix = (weighted_deviations' * weighted_deviations) / sum(obj.weights);  % Weighted covariance
+            obj.P = [covariance_matrix(1,1),0,0,0;
+                     0,0,0,0;
+                     0,0,covariance_matrix(2,2),0;
+                     0,0,0,0];
+
             slikelihood= covariance_matrix+ obj.std_meas;
             obj.S = [mean(slikelihood(:,1)),0;0,mean(slikelihood(:,2));];
             PF_obj = obj;
@@ -80,7 +79,6 @@ classdef particleFilter
         
         function [X_est, PF_obj] = update(obj, z)
         
-        
             % Calculate the particle likelihoods based on a Gaussian PDF
             % p(z t​∣x t(i))=p(zx∣x t(i),σx)⋅p(z y∣y t(i),σy)
             %Adaptive filtering
@@ -89,71 +87,41 @@ classdef particleFilter
             % S = HPH' + R;
             
             [meanValueS,~] = obj.estimate(obj.particles, obj.weights);
-            covariance_matrix = (obj.weights .* (obj.particles(:, [1 3]) - meanValueS))' * (obj.weights.*(obj.particles(:, [1 3]) - meanValueS));
-            
+            deviations = obj.particles(:, [1 3]) - meanValueS;          % Deviation of particles from mean (Nx2)
+            weighted_deviations = deviations .* sqrt(obj.weights);      % Apply weights (element-wise multiplication)
+            covariance_matrix = (weighted_deviations' * weighted_deviations) / sum(obj.weights);  % Weighted covariance
+            obj.P = [covariance_matrix(1,1),0,0,0;
+                     0,0,0,0;
+                     0,0,covariance_matrix(2,2),0;
+                     0,0,0,0];
+
             slikelihood= covariance_matrix+ obj.std_meas;
             obj.S = [mean(slikelihood(:,1)),0;0,mean(slikelihood(:,2));];
-            
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%% Detect outliers and reject them
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            ek = z-meanValueS';
-            ek2_doppler = ek(2)^2;
-
-            eps_doppler = ek2_doppler/obj.S(2,2);  
-
-            obj.epsDoppler = [obj.epsDoppler,eps_doppler];
-            M=5; %Number of samples to average
-
-            %{
-            if(size(obj.epsDoppler,2)>M && eps_doppler > 1 && eps_doppler>mean(obj.epsDoppler(end-M:end-1)))
-                %obj.epsDoppler =obj.epsDoppler(end-M:end-1);
-                diffs = (obj.particles(:, [1 3])' - z)';
-                likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
-                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^(2));
-                likelihood = likelihood_x .* likelihood_y;
-                
-                % Normalize the likelihood
-                likelihood = likelihood / sum(likelihood);
-                
-                 weights_adapt =obj.weights .*likelihood;
-
-                % Resample if too few effective particles
-                neff = obj.NEFF(weights_adapt);
-                if neff < obj.N / 2
-                    indexes = obj.resampleSystematic(weights_adapt);
-                    [obj.particles, weights_adapt] = obj.resampleFromIndex(obj.particles, indexes);
-                end
-
-                [meanValue,~] = obj.estimate(obj.particles, weights_adapt);
-                
-            else
-            %}
+           
                  
-                diffs = (obj.particles(:, [1 3])' - z)';
-                likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
-                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
-                likelihood = likelihood_x .* likelihood_y;
-                
-                % Normalize the likelihood
-                likelihood = likelihood / sum(likelihood);
-                
-                
-                % Update the particle weights
-                obj.weights = obj.weights .* likelihood;
-                obj.weights = obj.weights + 1.e-300;  % Add small constant to avoid zero weights
-                obj.weights = obj.weights / sum(obj.weights);
+            diffs = (obj.particles(:, [1 3])' - z)';
+            likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
+            likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
+            likelihood = likelihood_x .* likelihood_y;
             
-                % Resample if too few effective particles
-                neff = obj.NEFF(obj.weights);
-                if neff < obj.N / 2
-                    indexes = obj.resampleSystematic(obj.weights);
-                    [obj.particles, obj.weights] = obj.resampleFromIndex(obj.particles, indexes);
-                end
-    
-                [meanValue,~] = obj.estimate(obj.particles, obj.weights);
-            %end
+            % Normalize the likelihood
+            likelihood = likelihood / sum(likelihood);
+            
+            
+            % Update the particle weights
+            obj.weights = obj.weights .* likelihood;
+            obj.weights = obj.weights + 1.e-300;  % Add small constant to avoid zero weights
+            obj.weights = obj.weights / sum(obj.weights);
+        
+            % Resample if too few effective particles
+            neff = obj.NEFF(obj.weights);
+            if neff < obj.N / 2
+                indexes = obj.resampleSystematic(obj.weights);
+                [obj.particles, obj.weights] = obj.resampleFromIndex(obj.particles, indexes);
+            end
+
+            [meanValue,~] = obj.estimate(obj.particles, obj.weights);
+            
 
             X_est = meanValue;            
             PF_obj = obj;

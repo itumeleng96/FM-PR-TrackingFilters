@@ -1,3 +1,6 @@
+%Author Itumeleng Malemela 
+% This script is used for running a single MTT and tracing filter and
+% assess their performance
 clc;
 clear;
 close all;
@@ -111,8 +114,8 @@ movegui(f7,'southeast');
 
 %Create MTT object
 confirmationThreshold=4;
-deletionThreshold=3;
-gatingThreshold=10; %scalar value for ellipsoidal gate
+deletionThreshold=4;
+gatingThreshold=15;         %scalar value for ellipsoidal gate
 
 %FilterType 1: Kalman Filter
 %FilterType 2: Covariance Scaling Kalman Filter
@@ -126,7 +129,7 @@ gatingThreshold=10; %scalar value for ellipsoidal gate
 
 
 %filterType =input('Tracking Filter to use (1-7):');
-filterType = 2;
+filterType = 3;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -138,8 +141,8 @@ doppler_error=[];
 range_error=[];
 prevCentroids=[];
 
-rangeTrueData = h5read('./groundTruthCalculations/true_data.h5', '/bistatic_ranges');
-dopplerTrueData = h5read('./groundTruthCalculations/true_data.h5', '/doppler_shifts');
+rangeTrueData = h5read('./true_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('./true_data.h5', '/doppler_shifts');
 
 for i = 1:simulation_time
     tic()
@@ -177,7 +180,7 @@ for i = 1:simulation_time
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids,i);
     
     %CALCULATE Likelihoods 
-    [doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihoodSingle(f4,f5,i,doppler_ll,range_ll,dopplerTrueData,rangeTrueData, true);
+    [doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihoodSingleP(f4,f5,i,doppler_ll,range_ll,dopplerTrueData,rangeTrueData, true);
    
     %Do functionality to plot logLikelihood on a specific Track Id
     %CALCULATE ERROR 

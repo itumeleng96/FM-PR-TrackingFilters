@@ -51,6 +51,59 @@ classdef track
                     KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;]);
                     obj.trackingFilterObject = KF_object;
 
+                case 2
+                    disp("Initializing Covariance Scaling Kalman Filter");
+                    std_meas=[1,0.2];                                 %Standard Deviation of the measurements in the x and y
+                    std_acc=[0.001,0.02];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
+                    CSKF_object = CSKF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;]);
+                    obj.trackingFilterObject = CSKF_object;
+                                   
+                case 3
+                    disp("Initializing Particle Filter");
+                    N=10000;                                             %Number of particles
+                    std_acc=[0.052232,0.9753];                                   %Standard Deviation of the process noise
+                    std_meas=[2.7185,1.9992];                                      %Standard Deviation of the measurements in the x and y
+                    PF_object = particleFilter(dt,std_acc,std_meas,[obj.x_initial(1);0;obj.x_initial(2);0;],N);
+                    obj.trackingFilterObject = PF_object;
+
+                case 4
+                    disp("Initializing Covariance Scaling Particle Filter");
+                    N=10000;                                             %Number of particles
+                    std_acc=2;                                           %Standard Deviation of the process noise
+                    std_meas=[2,1];                                  %Standard Deviation of the measurements in the x and y
+                    CSPF_object = CSPF(dt,std_acc,std_meas,[obj.x_initial(1);0;obj.x_initial(2);0;],N);
+                    obj.trackingFilterObject = CSPF_object;
+
+                case 5
+                    disp("Initializing Unscented Kalman Filter");
+                    std_acc=[0.0076533,0.09938];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
+                    std_meas=[8.9707,0.99739];                                 %Standard Deviation of the measurements in the x(Range) and y(Doppler)
+                    UKF_object = unscentedKalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),0,obj.x_initial(2),0;],0.01,0,0.01); %alpha,Kappa,Beta 
+                    obj.trackingFilterObject = UKF_object;
+
+                case 6
+                    disp("Initializing Covariance Scaling Unscented Kalman Filter");
+                    std_acc=0.9;                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[5,0.5];                              %Standard Deviation of the measurements in the x and y
+                    CSUKF_object = CSUKF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),0,obj.x_initial(2),0;]);
+                    obj.trackingFilterObject = CSUKF_object;
+
+                case 7
+                    disp("Initializing Recursive Gauss Newton Filter");
+                    std_acc=[0.09,0.2];                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[2,0.1];                               %Standard Deviation of the measurements in the x and y
+                    RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;],100,1);
+                    obj.trackingFilterObject = RGNF_object;
+    
+               case 8
+                    disp("Initializing Covariance Scaling Recursive Gauss Newton Filter");
+                    std_acc=0.5;                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[5,0.1];                               %Standard Deviation of the measurements in the x and y
+                    CSRGNF_object = CSRGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;],100);
+                    obj.trackingFilterObject = CSRGNF_object;
+
+
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 case 15
                     disp("Initializing Kalman Filter");
                     std_meas=[2,0.2];                                 %Standard Deviation of the measurements in the x(Range) and y(Doppler)
@@ -72,20 +125,8 @@ classdef track
                     KF_object = kalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;]);
                     obj.trackingFilterObject = KF_object;
 
-                case 2
-                    disp("Initializing Covariance Scaling Kalman Filter");
-                    std_meas=[1,0.2];                                 %Standard Deviation of the measurements in the x and y
-                    std_acc=[0.001,0.02];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
-                    CSKF_object = CSKF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;]);
-                    obj.trackingFilterObject = CSKF_object;
-                                   
-                case 3
-                    disp("Initializing Particle Filter");
-                    N=2500;                                             %Number of particles
-                    std_acc=2;                                           %Standard Deviation of the process noise
-                    std_meas=[2,1];                                  %Standard Deviation of the measurements in the x and y
-                    PF_object = particleFilter(dt,std_acc,std_meas,[obj.x_initial(1);0;obj.x_initial(2);0;],N);
-                    obj.trackingFilterObject = PF_object;
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
                 case 18
                     disp("Initializing Particle Filter");
                     N=5000;                                             %Number of particles
@@ -104,24 +145,12 @@ classdef track
                 case 20
                     disp("Initializing Particle Filter");
                     N=10000;                                             %Number of particles
-                    std_acc=2;                                           %Standard Deviation of the process noise
+                    std_acc=[2,0.2];                                           %Standard Deviation of the process noise
                     std_meas=[4,1];                                  %Standard Deviation of the measurements in the x and y
                     PF_object = particleFilter(dt,std_acc,std_meas,[obj.x_initial(1);0;obj.x_initial(2);0;],N);
                     obj.trackingFilterObject = PF_object;
-                case 4
-                    disp("Initializing Covariance Scaling Particle Filter");
-                    N=10000;                                             %Number of particles
-                    std_acc=2;                                           %Standard Deviation of the process noise
-                    std_meas=[2,1];                                  %Standard Deviation of the measurements in the x and y
-                    CSPF_object = CSPF(dt,std_acc,std_meas,[obj.x_initial(1);0;obj.x_initial(2);0;],N);
-                    obj.trackingFilterObject = CSPF_object;
-
-                case 5
-                    disp("Initializing Unscented Kalman Filter");
-                    std_acc=[0.09,0.2];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
-                    std_meas=[2,0.2];                                 %Standard Deviation of the measurements in the x(Range) and y(Doppler)
-                    UKF_object = unscentedKalmanFilter(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),0,obj.x_initial(2),0;],0.01,0,0.01); %alpha,Kappa,Beta 
-                    obj.trackingFilterObject = UKF_object;
+                
+                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
                  case 9
                     disp("Initializing Unscented Kalman Filter");
@@ -144,32 +173,13 @@ classdef track
                     obj.trackingFilterObject = UKF_object;
                
 
-                case 6
-                    disp("Initializing Covariance Scaling Unscented Kalman Filter");
-                    std_acc=0.9;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[5,0.5];                              %Standard Deviation of the measurements in the x and y
-                    CSUKF_object = CSUKF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),0,obj.x_initial(2),0;]);
-                    obj.trackingFilterObject = CSUKF_object;
-
-                case 7
-                    disp("Initializing Recursive Gauss Newton Filter");
-                    std_acc=[0.09,0.2];                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[2,0.1];                               %Standard Deviation of the measurements in the x and y
-                    RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;],100,1);
-                    obj.trackingFilterObject = RGNF_object;
-    
-               case 8
-                    disp("Initializing Covariance Scaling Recursive Gauss Newton Filter");
-                    std_acc=0.5;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[5,0.1];                               %Standard Deviation of the measurements in the x and y
-                    CSRGNF_object = CSRGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;],100);
-                    obj.trackingFilterObject = CSRGNF_object;
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                     
                 case 12
                     disp("Initializing   Recursive Gauss Newton Filter");
-                    std_acc=[0.09,0.2];                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[2,0.1];                               %Standard Deviation of the measurements in the x and y
-                    RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;],100,0.25);
+                    std_acc=[0.057027,0.047789];                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[2.046,0.98];                               %Standard Deviation of the measurements in the x and y
+                    RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;],100,0.9);
                     obj.trackingFilterObject = RGNF_object;
                 case 13
                     disp("Initializing   Recursive Gauss Newton Filter");

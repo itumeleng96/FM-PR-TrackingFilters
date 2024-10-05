@@ -20,7 +20,7 @@ addpath('FERS/', ...
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
 
 %Noise Scenarios
 %SCENARIO 3
@@ -30,7 +30,7 @@ system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fe
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_2_white_noise.fersxml');
 
 %SCENARIO 1 
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml'); 
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml'); 
 
 
 
@@ -88,8 +88,8 @@ movegui(f5,'southeast');
 
 %Create MTT object
 confirmationThreshold=4;
-deletionThreshold=3;
-gatingThreshold=[5000,20];
+deletionThreshold=4;
+gatingThreshold=15;         %scalar value for ellipsoidal gate
 
 %FilterType 1: Kalman Filter
 %FilterType 2: Huber Covariance Scaling Kalman Filter
@@ -100,7 +100,7 @@ gatingThreshold=[5000,20];
 %FilterType 7: Covariance scaling RGNF Filter
 
 
-multiTargetTracker1 = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,2);
+multiTargetTracker1 = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,1);
 multiTargetTracker2 = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,3);
 multiTargetTracker3 = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,5);
 multiTargetTracker4 = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,7);
@@ -123,15 +123,14 @@ range_ll_4=[];
 prevCentroids=[];
 
 %True Data for single Target Scenario
-rangeTrueData = h5read('./groundTruthCalculations/true_data.h5', '/bistatic_ranges');
-dopplerTrueData = h5read('./groundTruthCalculations/true_data.h5', '/doppler_shifts');
-
+rangeTrueData = h5read('./true_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('./true_data.h5', '/doppler_shifts');
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current); %surv
     s2 = I_Qno(initial:current);  %ref
 
-    s1 = procECA(s2,s1,proc);
+    s1 = procECA_Optimized(s2,s1,proc);
 
     %Range-Doppler Map
     [y,ard_] = ardNoPlot(s1,s2,fs,dopp_bins,delay,i,ard);
@@ -226,7 +225,7 @@ plot(rangeTrueData,dopplerTrueData,'-*');
 title(['Tracking filter outputs vs Ground Truth For Track:', num2str(trackId)]);
 xlabel('Bistatic range (KM)');
 ylabel('Bistatic Doppler (Hz)');
-legend('Adaptive Kalman Filter', 'Adaptive Particle Filter','Adaptive Unscented Kalman Filter', 'Adaptive Recursive Gauss Newton Filter','Ground Truth');
+legend('Kalman Filter', 'Particle Filter','Unscented Kalman Filter', 'Recursive Gauss Newton Filter','Ground Truth');
 grid on;
 
 
@@ -240,10 +239,12 @@ plot(t3,doppler_ll_3, 'go-');
 hold on;
 plot(t4,doppler_ll_4, 'ms-.');
 
-title(['Bistatic Doppler Log-Likelihood Comparison for Track:',num2str(trackId)]);
+%title(['Bistatic Doppler Log-Likelihood Comparison for Track:',num2str(trackId)]);
+title('Bistatic Doppler Log-Likelihood Comparison');
+
 xlabel('Time(s)');
 ylabel('Bistatic Doppler Log-Likelihood');
-legend('Adaptive Kalman Filter', 'Adaptive Particle Filter','Adaptive Unscented Kalman Filter', 'Adaptive Recursive Gauss Newton Filter');
+legend('Kalman Filter', 'Particle Filter','Unscented Kalman Filter', 'Recursive Gauss Newton Filter');
 grid on;
 
 % Create comparison plots for Range Log-Likelihoods
@@ -256,10 +257,10 @@ plot(t3,range_ll_3, 'go-');
 hold on;
 plot(t4,range_ll_4, 'ms-.');
 
-title(['Bistatic Range Log-Likelihood Comparison for Track:',num2str(trackId)]);
+title('Bistatic Range Log-Likelihood Comparison');
 xlabel('Time(s)');
 ylabel('BIstatic Range Log-Likelihood');
-legend('Adaptive Kalman Filter', 'Adaptive Particle Filter','Adaptive Unscented Kalman Filter', 'Adaptive Recursive Gauss Newton Filter');
+legend('Kalman Filter', 'Particle Filter','Unscented Kalman Filter', 'Recursive Gauss Newton Filter');
 grid on;
 
 

@@ -8,8 +8,9 @@ addpath('FERS/', ...
         'multiTargetTracking/', ...
         'DPI_Suppression', ...
         'TrackingFilter-KalmanFilter/', ...
-        'TrackingFilter-HCSKF/', ...
+        'TrackingFilter-CSKF/', ...
         'TrackingFilter-ParticleFilter/', ...
+        'TrackingFilter-CS-ParticleFilter/', ...
         'TrackingFilter-UKF/', ... 
         'TrackingFilter-CSUKF/', ... 
         'TrackingFilter-RGNF/',...
@@ -92,7 +93,7 @@ rdm =[];
 %Create MTT object
 confirmationThreshold=4;
 deletionThreshold=4;
-gatingThreshold=[5000,30];
+gatingThreshold=25; %scalar value for ellipsoidal gate
 
 %FilterType 1: Kalman Filter
 %FilterType 2: Huber Covariance Scaling Kalman Filter
@@ -126,14 +127,18 @@ range_ll_4=[];
 prevCentroids=[];
 
 %True Data for single Target Scenario
-rangeTrueData = h5read('./true_data.h5', '/bistatic_ranges');
-dopplerTrueData = h5read('./true_data.h5', '/doppler_shifts');
+%rangeTrueData = h5read('./true_data.h5', '/bistatic_ranges');
+%dopplerTrueData = h5read('./true_data.h5', '/doppler_shifts');
+
+rangeTrueData = h5read('./measurement_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('./measurement_data.h5', '/doppler_shifts');
+
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current); %surv
     s2 = I_Qno(initial:current);  %ref
 
-    s1 = procECA(s2,s1,proc);
+    s1 = procECA_Optimized(s2,s1,proc);
 
     %Range-Doppler Map
     [y,ard_] = ardNoPlot(s1,s2,fs,dopp_bins,delay,i,ard);
@@ -215,53 +220,45 @@ track_mtt_4 = multiTargetTracker4.getTrack(trackId);
 
 % Plot Predicted Tracks from Different filters against Ground Truth
 figure(f2);
-plot(track_mtt_1(1,:),track_mtt_1(2,:), '-^'); 
-%hold on;
-plot(track_mtt_2(1,:),track_mtt_2(2,:), 'r--');
+plot(track_mtt_1(1,:), track_mtt_1(2,:), '-^'); 
 hold on;
-plot(track_mtt_3(1,:),track_mtt_3(2,:), 'go-');
-hold on;
-plot(track_mtt_4(1,:),track_mtt_4(2,:), 'ms-.');
-hold on;
-plot(rangeTrueData,dopplerTrueData,'-*');
+plot(track_mtt_2(1,:), track_mtt_2(2,:), 'r--');
+plot(track_mtt_3(1,:), track_mtt_3(2,:), 'go-');
+plot(track_mtt_4(1,:), track_mtt_4(2,:), 'ms-.');
+plot(rangeTrueData, dopplerTrueData, '-*');
 
-title(['Tracking filter outputs vs Ground Truth For Track:', num2str(trackId)]);
-xlabel('Bistatic range (KM)');
-ylabel('Doppler (Hz)');
-legend('Kalman Filter', 'Particle Filter','Unscented Kalman Filter', 'Recursive Gauss Newton Filter','Ground Truth');
+title(['Tracking filter outputs vs Ground Truth For Track: ', num2str(trackId)], 'FontSize', 20);
+xlabel('Bistatic range (KM)', 'FontSize', 18);
+ylabel('Doppler (Hz)', 'FontSize', 18);
+legend('Kalman Filter', 'Particle Filter', 'Unscented Kalman Filter', 'Recursive Gauss Newton Filter', 'Ground Truth', 'FontSize', 18);
 grid on;
-
 
 % Create comparison plots for Doppler Log-Likelihoods
 figure(f);
-plot(t1,doppler_ll_1, '-^'); 
+plot(t1, doppler_ll_1, 'b-', 'LineWidth', 1.5);  % Blue solid line
 hold on;
-plot(t2,doppler_ll_2, 'r--');
-hold on;
-plot(t3,doppler_ll_3, 'go-');
-hold on;
-plot(t4,doppler_ll_4, 'ms-.');
+plot(t2, doppler_ll_2, 'r--', 'LineWidth', 1.5);  % Red dashed line
+plot(t3, doppler_ll_3, 'g-.', 'LineWidth', 1.5);  % Green dash-dot line
+plot(t4, doppler_ll_4, 'm:', 'LineWidth', 1.5);   % Magenta dotted line
 
-title(['Doppler Log-Likelihood Comparison for Track:',num2str(trackId)]);
-xlabel('Time(s)');
-ylabel('Bistatic Doppler Log-Likelihood');
-legend('Kalman Filter', 'Particle Filter','Unscented Kalman Filter', 'Recursive Gauss Newton Filter');
+title('Doppler Log-Likelihood Comparison', 'FontSize', 20);
+xlabel('Time (s)', 'FontSize', 18);
+ylabel('Bistatic Doppler Log-Likelihood', 'FontSize', 18);
+legend('Kalman Filter', 'Particle Filter', 'Unscented Kalman Filter', 'Recursive Gauss Newton Filter', 'FontSize', 18);
 grid on;
+hold off;
 
 % Create comparison plots for Range Log-Likelihoods
 figure(f1);
-plot(t1,range_ll_1, '-^');
+plot(t1, range_ll_1, 'b-', 'LineWidth', 1.5);  % Blue solid line
 hold on;
-plot(t2,range_ll_2,  'r--');
-hold on;
-plot(t3,range_ll_3, 'go-');
-hold on;
-plot(t4,range_ll_4, 'ms-.');
+plot(t2, range_ll_2, 'r--', 'LineWidth', 1.5);  % Red dashed line
+plot(t3, range_ll_3, 'g-.', 'LineWidth', 1.5);  % Green dash-dot line
+plot(t4, range_ll_4, 'm:', 'LineWidth', 1.5);   % Magenta dotted line
 
-title(['Range Log-Likelihood Comparison for Track:',num2str(trackId)]);
-xlabel('Time(s)');
-ylabel('BIstatic Range Log-Likelihood');
-legend('Kalman Filter', 'Particle Filter','Unscented Kalman Filter', 'Recursive Gauss Newton Filter');
+title('Range Log-Likelihood Comparison', 'FontSize', 20);
+xlabel('Time (s)', 'FontSize', 18);
+ylabel('Bistatic Range Log-Likelihood', 'FontSize', 18);
+legend('Kalman Filter', 'Particle Filter', 'Unscented Kalman Filter', 'Recursive Gauss Newton Filter', 'FontSize', 18);
 grid on;
-
-
+hold off;

@@ -25,7 +25,7 @@ TargetPos = [
 TargetWayPoints = [0, 20, 30, 60];  % Waypoints indicating time intervals
 %}
 % Landing Maneuver: Six points simulating a landing trajectory
-%{
+
 TargetPos = [
     4000, 18000, 2000;  % Initial point (x, y, z)
     -1000, 8000, 1700;  % Descent begins
@@ -34,7 +34,9 @@ TargetPos = [
     0, 4000, 1100;      % Close to landing
     500, 6000, 1000;    % Landing completed
 ];
-TargetWayPoints = [0, 30, 38, 45, 50, 60]; 
+
+% Adjusted times for 180-second simulation
+TargetWayPoints = [0, 60, 105, 135, 160, 180];
 %}
 % 360 Maneuver: Six points representing a full circle maneuver
 %{
@@ -57,11 +59,15 @@ TargetWayPoints = [0, 35, 50, 75, 95, 120];  % Time intervals for each segment o
 % Multi-Target Scenario - Target 2: Another two-point trajectory
 % This represents an additional target with a distinct movement pattern
 
+%{
 TargetPos = [
-    4000, 4000, 1600;  % Start point (x, y, z)
-    2000, 20000, 3600; % End point
+    15000, 22000, 3600;  % Start point (x, y, z)
+    3000,21000, 3600;
+    -2000,21000, 3600;
+    -6000,22000, 3600;
 ];
-TargetWayPoints = [0, 60];  % Time interval from start to end
+TargetWayPoints = [0,30,45,60];  % Time interval from start to end
+%}
 
 wavelength = 299792458/94e6;
 c=299792458;
@@ -106,18 +112,60 @@ z_interp = fnval(spline_z, t_interp);
 % Interpolated positions (as a 3xN matrix)
 interpolated_posx = [x_interp; y_interp; z_interp];
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %code for interpolated_posx
+airplane_model = stlread('./plane/plane.stl');
 
+% Extract the vertices and faces from the triangulation object
+vertices = airplane_model.Points;  % Use 'Points' to get the vertices
+faces = airplane_model.ConnectivityList;  % Use 'ConnectivityList' to get the faces
+
+% Plot the 3D target path (existing code)
 figure(1)
 plot3(interpolated_posx(1, :), interpolated_posx(2, :), interpolated_posx(3, :), 'b.-');
 title('Target Path');
 xlabel('x');
 ylabel('y');
 zlabel('z');
-
 grid on;
+hold on;  % Keep the plot open for additional elements
 
+% Select the landing position (the last waypoint)
+landing_position = [TargetPos(end, 1), TargetPos(end, 2), TargetPos(end, 3)];
+
+% Scale factor (e.g., 0.5 to reduce the size by 50%)
+scale_factor = 0.5;  % Adjust this value to change the size
+
+% Translate the airplane model to the landing position
+vertices_translated = vertices * scale_factor; % Scale the vertices
+
+% Rotation angle in radians (for example, 45 degrees)
+rotation_angle = pi / 4;  % 45 degrees
+
+% Create a rotation matrix for rotation around the Z-axis
+rotation_matrix = [cos(rotation_angle), -sin(rotation_angle), 0;
+                   sin(rotation_angle),  cos(rotation_angle), 0;
+                   0,                   0,                   1];
+
+% Rotate the vertices of the airplane model
+vertices_rotated = (rotation_matrix * vertices_translated')';  % Rotate around the center
+
+% Adjust position to the landing position
+vertices_final = vertices_rotated + landing_position;
+
+% Plot the airplane model at the final waypoint
+patch('Faces', faces, 'Vertices', vertices_final, ...
+      'FaceColor', [0.8 0.8 1.0], 'EdgeColor', 'none', 'FaceLighting', 'gouraud');
+
+% Set up the plot appearance
+camlight('headlight');
+lighting gouraud;
+axis equal;
+view(3);
+zlim([0 3000]); 
+xlim([-3000 7000]); 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 for position_index = 1:(size(interpolated_posx, 2) - 1)
     % Delta-Time: time taken in position section
     
@@ -144,17 +192,18 @@ for position_index = 1:(size(interpolated_posx, 2) - 1)
 
     % Calculate the bistatic range
     bistatic_range = range_tx_target + range_ref_target - Baseline;
-
+    bistatic_range = bistatic_range/1000;  %in Kilometers
     % Store the bistatic range
     bistatic_ranges(end + 1) = bistatic_range;
+
 end
 
 figure(3);
 plot(bistatic_ranges,bistatic_doppler_shifts);
 title('Bistatic range vs Doppler shift (Ground Truth)');
-xlabel('Bistatic range(m)');
+xlabel('Bistatic range(km)');
 ylabel('Bistatic Doppler shift(Hz)');
-xlim([0 7e4]);
+xlim([0 100]);
 ylim([-200 200]);
 
 

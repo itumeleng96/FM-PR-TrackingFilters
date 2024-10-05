@@ -56,7 +56,7 @@ multiTargetTracker2 = multiTargetTracker(confirmationThreshold, deletionThreshol
 multiTargetTracker3 = multiTargetTracker(confirmationThreshold, deletionThreshold, gatingThreshold, 5); % UKF
 multiTargetTracker4 = multiTargetTracker(confirmationThreshold, deletionThreshold, gatingThreshold, 7); % RGNF
 
-num_simulations = 1000;
+num_simulations = 100;
 % Initialize arrays to store processing times for each second
 pred_time_kalman = zeros(simulation_time, num_simulations);
 update_time_kalman = zeros(simulation_time, num_simulations);
@@ -108,7 +108,6 @@ for sim = 1:num_simulations
         pred_time_rgnf(i, sim) = toc; % Measure prediction time for RGNF
 
         % Update Stage
-        multiTargetTracker2 = multiTargetTracker2.updateStage(clusterCentroids, i);
 
         tic;
         multiTargetTracker2 = multiTargetTracker2.updateStage(clusterCentroids, i);
@@ -155,10 +154,10 @@ plot(time, avg_pred_time_kalman, 'g', 'LineWidth', 0.5); hold on;
 plot(time, avg_pred_time_particle, 'b', 'LineWidth', 0.5);
 plot(time, avg_pred_time_ukf, 'r', 'LineWidth', 0.5);
 plot(time, avg_pred_time_rgnf, 'k', 'LineWidth', 0.5);
-xlabel('Time (s)');
-ylabel('Average Prediction Time (s)');
-title('Average Prediction Time per Second for Each Filter');
-legend('Kalman filter', 'Particle filter', 'UKF', 'RGNF', 'Location', 'best');
+xlabel('Time (s)', 'FontSize', 18);
+ylabel('Average Prediction Time (s)', 'FontSize', 18);
+title('Average Prediction Time per Second for Each Filter', 'FontSize', 20);
+legend('Kalman filter', 'Particle filter', 'UKF', 'RGNF', 'Location', 'best', 'FontSize', 16);
 grid on;
 hold off;
 
@@ -168,9 +167,9 @@ plot(time, avg_update_time_kalman, 'g', 'LineWidth', 0.5); hold on;
 plot(time, avg_update_time_particle, 'b', 'LineWidth', 0.5);
 plot(time, avg_update_time_ukf, 'r', 'LineWidth', 0.5);
 plot(time, avg_update_time_rgnf, 'k', 'LineWidth', 0.5);
-xlabel('Time (s)');
-ylabel('Average Update Time (s)');
-title('Average Update Time per Second for Each Filter');
-legend('Kalman filter', 'Particle filter', 'UKF', 'RGNF', 'Location', 'best');
+xlabel('Time (s)', 'FontSize', 18);
+ylabel('Average Update Time (s)', 'FontSize', 18);
+title('Average Update Time per Second for Each Filter', 'FontSize', 20);
+legend('Kalman filter', 'Particle filter', 'UKF', 'RGNF', 'Location', 'best', 'FontSize', 16);
 grid on;
 hold off;

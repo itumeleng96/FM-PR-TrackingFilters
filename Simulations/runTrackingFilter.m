@@ -18,7 +18,7 @@ addpath('FERS/', ...
 
 %FLIGHT Scenarios
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_1_laneChange.fersxml');
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
@@ -27,7 +27,7 @@ addpath('FERS/', ...
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_1_fm_noise.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_2_white_noise.fersxml');
 
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % h5 Import from FERS simulation
@@ -114,8 +114,8 @@ range_ll=[];
 
 prevCentroids=[];
 
-rangeTrueData = h5read('./groundTruthCalculations/true_data.h5', '/bistatic_ranges');
-dopplerTrueData = h5read('./groundTruthCalculations/true_data.h5', '/doppler_shifts');
+rangeTrueData = h5read('./true_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('./true_data.h5', '/doppler_shifts');
 
 
 for i = 1:simulation_time
@@ -186,7 +186,7 @@ ylabel('Bistatic Doppler (Hz)');
 title(['Tracking filter outputs vs Ground Truth For Track:', num2str(trackId)]);
 
 %Call MultiTargetTrack -LogLikelihood to plot 
-[doppler_ll,range_ll,t1]=multiTargetTracker.calculateLogLikelihoodGroundTruth(trackId,doppler_ll,range_ll,dopplerTrueData,rangeTrueData,simulation_time);
+[doppler_ll,range_ll,t1]=multiTargetTracker.calculateLogLikelihoodGroundTruthP(trackId,doppler_ll,range_ll,dopplerTrueData,rangeTrueData,simulation_time);
 
 figure(4);
 plot(t1,doppler_ll, 'b-'); 

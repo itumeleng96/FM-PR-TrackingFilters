@@ -12,6 +12,7 @@ classdef track
        trueTrack,
        predictedTrack,
        sMatrix,
+       pMatrix,
        trackingFilterObject,
        trackId,
        confirmed,            %confirmed=1: Confirmed ,confirmed=0: Tentative
@@ -27,6 +28,7 @@ classdef track
             obj.trueTrack = trueTrack;
             obj.predictedTrack = predictedTrack;
             obj.sMatrix = [];
+            obj.pMatrix =[];
             obj.sampleSinceLastUpdate = sampleSinceLastUpdate;
             obj.totalUpdates=0;
             obj.totalUpdatesDel=0;
@@ -53,24 +55,24 @@ classdef track
 
                 case 2
                     disp("Initializing Covariance Scaling Kalman Filter");
-                    std_meas=[1,0.2];                                 %Standard Deviation of the measurements in the x and y
-                    std_acc=[0.001,0.02];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
+                    std_meas=[4.9038,0.9985];                                 %Standard Deviation of the measurements in the x(Range) and y(Doppler)
+                    std_acc=[0.0048354,0.0991];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
                     CSKF_object = CSKF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;]);
                     obj.trackingFilterObject = CSKF_object;
                                    
                 case 3
                     disp("Initializing Particle Filter");
                     N=10000;                                             %Number of particles
-                    std_acc=[0.052232,0.9753];                                   %Standard Deviation of the process noise
-                    std_meas=[2.7185,1.9992];                                      %Standard Deviation of the measurements in the x and y
+                    std_acc=[0.4,0.45];                                   %Standard Deviation of the process noise
+                    std_meas=[2,2];                                      %Standard Deviation of the measurements in the x and y
                     PF_object = particleFilter(dt,std_acc,std_meas,[obj.x_initial(1);0;obj.x_initial(2);0;],N);
                     obj.trackingFilterObject = PF_object;
 
                 case 4
                     disp("Initializing Covariance Scaling Particle Filter");
                     N=10000;                                             %Number of particles
-                    std_acc=2;                                           %Standard Deviation of the process noise
-                    std_meas=[2,1];                                  %Standard Deviation of the measurements in the x and y
+                    std_acc=[0.2,0.25];                                   %Standard Deviation of the process noise
+                    std_meas=[1,1];                               %Standard Deviation of the measurements in the x and y
                     CSPF_object = CSPF(dt,std_acc,std_meas,[obj.x_initial(1);0;obj.x_initial(2);0;],N);
                     obj.trackingFilterObject = CSPF_object;
 
@@ -83,15 +85,15 @@ classdef track
 
                 case 6
                     disp("Initializing Covariance Scaling Unscented Kalman Filter");
-                    std_acc=0.9;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[5,0.5];                              %Standard Deviation of the measurements in the x and y
-                    CSUKF_object = CSUKF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),0,obj.x_initial(2),0;]);
+                    std_acc=[0.0076533,0.09938];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
+                    std_meas=[8.9707,0.99739];                                 %Standard Deviation of the measurements in the x(Range) and y(Doppler)
+                    CSUKF_object = CSUKF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),0,obj.x_initial(2),0;],0.01,0,0.01); %alpha,Kappa,Beta 
                     obj.trackingFilterObject = CSUKF_object;
 
                 case 7
                     disp("Initializing Recursive Gauss Newton Filter");
-                    std_acc=[0.09,0.2];                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[2,0.1];                               %Standard Deviation of the measurements in the x and y
+                    std_acc=[0.057027,0.047789];                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[2.046,0.98];                                 %Standard Deviation of the measurements in the x and y
                     RGNF_object = RGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;],100,1);
                     obj.trackingFilterObject = RGNF_object;
     
@@ -239,7 +241,10 @@ classdef track
                 obj.sMatrix(1,end+1) = obj.trackingFilterObject.S(1,1);
                 obj.sMatrix(2,end) = obj.trackingFilterObject.S(2,2);
             end
-
+            if(size(obj.trackingFilterObject.P,1)>0)
+                obj.pMatrix(1,end+1) = obj.trackingFilterObject.P(1,1);
+                obj.pMatrix(2,end) = obj.trackingFilterObject.P(3,3);
+            end
             %M Out of N logic 
             %obj.totalUpdatesDel =obj.totalUpdatesDel+1;
             %if obj.totalUpdatesDel>N

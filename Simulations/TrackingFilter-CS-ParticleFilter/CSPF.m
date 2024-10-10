@@ -13,7 +13,8 @@ classdef CSPF
         count;
         updater;
         update1;
-        epsDoppler;C
+        epsDoppler;
+        P;
 
     end
     
@@ -40,10 +41,12 @@ classdef CSPF
            
             
 
-            obj.Q = std_acc*[(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
-                     (dt^3)/2, dt^2, 0, 0;
-                     0, 0, (dt^4)/4,(dt^3)/2;
-                     0, 0, (dt^3)/2, dt^2];
+            eps = 1e-7;
+
+            obj.Q = [std_acc(1)*(dt^4)/4 + eps, std_acc(1)*(dt^3)/2, 0, 0;
+                     std_acc(1)*(dt^3)/2, std_acc(1)*dt^2 + eps, 0, 0;
+                     0, 0, std_acc(2)*(dt^4)/4 + eps, std_acc(2)*(dt^3)/2;
+                     0, 0, std_acc(2)*(dt^3)/2, std_acc(2)*dt^2 + eps];
 
             
             obj.count =0;
@@ -69,12 +72,17 @@ classdef CSPF
             
 
             [meanValueS,~] = obj.estimate(obj.particles, obj.weights);
-            covariance_matrix = (obj.weights .* (obj.particles(:, [1 3]) - meanValueS))' * (obj.weights.*(obj.particles(:, [1 3]) - meanValueS));
-            
+            deviations = obj.particles(:, [1 3]) - meanValueS;  % Deviation of particles from mean (Nx2)
+            weighted_deviations = deviations .* sqrt(obj.weights);  % Apply weights (element-wise multiplication)
+            covariance_matrix = (weighted_deviations' * weighted_deviations) / sum(obj.weights);  % Weighted covariance
+            obj.P = [covariance_matrix(1,1),0,0,0;
+                     0,0,0,0;
+                     0,0,covariance_matrix(2,2),0;
+                     0,0,0,0];
+
             slikelihood= covariance_matrix+ obj.std_meas;
             obj.S = [mean(slikelihood(:,1)),0;0,mean(slikelihood(:,2));];
             PF_obj = obj;
-
 
         end
         
@@ -89,8 +97,14 @@ classdef CSPF
             % S = HPH' + R;
             
             [meanValueS,~] = obj.estimate(obj.particles, obj.weights);
-            covariance_matrix = (obj.weights .* (obj.particles(:, [1 3]) - meanValueS))' * (obj.weights.*(obj.particles(:, [1 3]) - meanValueS));
-            
+            deviations = obj.particles(:, [1 3]) - meanValueS;          % Deviation of particles from mean (Nx2)
+            weighted_deviations = deviations .* sqrt(obj.weights);      % Apply weights (element-wise multiplication)
+            covariance_matrix = (weighted_deviations' * weighted_deviations) / sum(obj.weights);  % Weighted covariance
+            obj.P = [covariance_matrix(1,1),0,0,0;
+                     0,0,0,0;
+                     0,0,covariance_matrix(2,2),0;
+                     0,0,0,0];
+
             slikelihood= covariance_matrix+ obj.std_meas;
             obj.S = [mean(slikelihood(:,1)),0;0,mean(slikelihood(:,2));];
             

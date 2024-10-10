@@ -7,7 +7,7 @@ classdef CSUKF
     end
     
     methods
-        function obj = CSUKF(dt,std_acc,r_std,rdot_std,X_initial)
+        function obj = CSUKF(dt,std_acc,r_std,rdot_std,X_initial,alpha,kappa,beta)
         
             %Init funtion
             %Inputs: 
@@ -31,33 +31,36 @@ classdef CSUKF
 
             
 
-            obj.Q = std_acc*[(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
-                     (dt^3)/2, dt^2, 0, 0;
-                     0, 0, (dt^4)/4,(dt^3)/2;
-                     0, 0, (dt^3)/2, dt^2];
+            obj.Q = [std_acc(1)*(dt^4)/4,std_acc(1)*(dt^3)/2,0,0;                % Process Noise Covariance Matrix
+                     std_acc(1)*(dt^3)/2, std_acc(1)*dt^2, 0, 0;
+                     0, 0, std_acc(2)*(dt^4)/4,std_acc(2)*(dt^3)/2;
+                     0, 0, std_acc(2)*(dt^3)/2, std_acc(2)*dt^2];
+
 
             %Measurement Error covariance matrix
             obj.R = [r_std,0;
                      0,rdot_std;];
 
-            obj.P = [5,0,0,0;                                      % Initial Error Covariance Matrix
-                     0, 2.5, 0, 0;
-                     0, 0, 1,0;
-                     0, 0, 0, 0.5];    
+            obj.P = [5,0,0,0;                              % Initial Error Covariance Matrix
+                     0, 1, 0, 0;
+                     0, 0, 2,0;
+                     0, 0, 0, 1];  
+            
 
             obj.H = [1,0,0,0;
                      0,0,1,0;];                                         % Measurement Function'
 
             %Tuning parameters For UKF
-            obj.alpha =0.01;                 %Determines the spread of the sigma points around the mean : usually + value : a=0.0001
-            obj.kappa =0;                   %Secondary scaling parameter usually  set to zero 
-            obj.beta =2;                    %Is used to incorporate prior knowledge of the distribution of the input random variable (Gaussian : beta=2)
+              %Tuning parameters For UKF
+            obj.alpha =alpha;                %Determines the spread of the sigma points around the mean : usually + value : a=0.0001
+            obj.kappa =kappa;                %Secondary scaling parameter usually  set to zero 
+            obj.beta =beta;                  %Is used to incorporate prior knowledge of the distribution of the input random variable (Gaussian : beta=2)
             obj.n = 4;                      %Is the number of dimensions 
 
             obj.lambda = obj.alpha^2*(obj.n+obj.kappa) -obj.n;
             
             [obj.Wc,obj.Wm] =obj.createWeights();
-            obj.wk = std_acc*[dt^2;dt;dt^2;dt];
+            obj.wk = [std_acc(1)*dt^2;std_acc(1)*dt;std_acc(2)*dt^2;std_acc(2)*dt];
 
             obj.epsDoppler =[];
             obj.epsRange =[];
@@ -86,102 +89,90 @@ classdef CSUKF
             UKF_obj1  = obj;
         end
         
-        function [Xest,KF_obj2] = update(obj,z)
-
-            muZ = sum(obj.sigmaPoints' .* obj.Wm,1);
-            Xu = sum(obj.sigmaPoints' .* obj.Wm,1);
+        function [Xest, KF_obj2] = update(obj, z)
+            %UPDATE STAGE
+        
+            % Store the original R matrix before any modifications
+            original_R = obj.R;
+        
+            % Calculate the mean of sigma points
+            muZ = sum(obj.sigmaPoints' .* obj.Wm, 1);
+            Xu = sum(obj.sigmaPoints' .* obj.Wm, 1);
             
-            y = z-obj.H*muZ';
-
-            Pz = obj.unscentedTransformZ(muZ);  
-            Pxz=obj.unscentedTransformCross(Xu,muZ);
-            
+            % Measurement residual
+            y = z - obj.H * muZ';
+        
+            % Unscented transform for measurement covariance and cross-covariance
+            Pz = obj.unscentedTransformZ(muZ);
+            Pxz = obj.unscentedTransformCross(Xu, muZ);
+        
             obj.S = Pz;
+        
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Covariance Scaling Unscented Kalman Filter Step 
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-           
-            eps_doppler = (y(2)^2)/obj.S(2,2);  
-            eps_range = (y(1)^2)/obj.S(1,1);   
-
-            obj.epsDoppler = [obj.epsDoppler,eps_doppler];
-            obj.epsRange = [obj.epsRange,eps_range];
-                       
-            M=6; %Number of samples to average
-            r_adapt= obj.R;
-
-            if(size(obj.epsDoppler,2)>M && eps_doppler>1 && eps_doppler>mean(obj.epsDoppler(end-M:end-1)))                
-                r_adapt(2,2) =(eps_doppler-1)*obj.P(3,3) + eps_doppler*r_adapt(2,2)*1000;
-                %remove outlier from average
-                obj.epsDoppler =obj.epsDoppler(end-M:end-1);
-            end
-            if(size(obj.epsRange,2)>M && eps_range>2 && eps_range>mean(obj.epsRange(end-M:end-1)))                
-                r_adapt(1,1) =(eps_range-1)*obj.P(1,1) + eps_range*r_adapt(1,1);
-                %remove outlier from average
-                obj.epsRange =obj.epsRange(end-M:end-1);
-            end
-
-            obj.R = r_adapt;
-            Pz = obj.unscentedTransformZ(muZ);  
-
-            %{
-            [num_rows_P, num_cols_P] = size(obj.P);
-            [num_rows_R, num_cols_R] = size(obj.R);
             
-
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%%%%% Huber's M estimation
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            % Create block matrix representing covariance of error'
-
-            epsilon_covariance_range =  [obj.P(1:2,1:2) ,zeros(num_rows_P/2, num_cols_R/2); 
-                                   zeros(num_rows_R/2, num_cols_P/2), obj.R(1,1)];
-
-            epsilon_covariance_doppler = [obj.P(3:4,3:4), zeros(num_rows_P/2, num_cols_R/2); 
-                                   zeros(num_rows_R/2, num_cols_P/2), obj.R(2,2)]; 
-            
-
-            Sadapt_range = chol(epsilon_covariance_range,'lower');
-            Sadapt_doppler = chol(epsilon_covariance_doppler,'lower');
-
-            Ydoppler = Sadapt_doppler\ [obj.X(3:4)';z(2)];
-            Yrange = Sadapt_range \ [obj.X(1:2)';z(1)];
-                        
-            Xadapt_range = Sadapt_range\ [eye(2);[1,0;]];
-            Xadapt_doppler = Sadapt_doppler\ [eye(2); [1,0;]];
+            % Separate range and Doppler residuals
+            eps_range = (y(1)^2) / obj.S(1,1);  % Range residual (x component)
+            eps_doppler = (y(2)^2) / obj.S(2,2);  % Doppler residual (y component)
         
-            % Define the anonymous function for the criterion
-            robustScore = HuberScore(1.5);
-            robustScoreH = HuberScore(1.5);
-            
-            % Initial guess for the state vector-
-            x0_range = obj.X(1:2)';
-            x0_doppler = obj.X(3:4)';
-            
-            [res_doppler, ~] = fminsearch(@(xx) m_estimate_criterion(xx, Ydoppler, Xadapt_doppler,robustScoreH), x0_doppler);
-
-            [res_range, ~] = fminsearch(@(xx) m_estimate_criterion(xx, Yrange, Xadapt_range,robustScore), x0_range);
-
-            
-            X_res = [res_range;res_doppler];
-            obj.X = X_res;
-            
-            %}
+            % Store residuals in moving window arrays
+            obj.epsRange = [obj.epsRange, eps_range];
+            obj.epsDoppler = [obj.epsDoppler, eps_doppler];
+        
+            % Number of samples to average for outlier detection
+            M = 6;
+            r_adapt = obj.R;
+            alphaFactor = 0.2;
+        
+            % Outlier rejection for Doppler (y component)
+            if (size(obj.epsDoppler, 2) > M)
+                residual_mean_doppler = mean(obj.epsDoppler(end-M:end-1));
+                residual_std_doppler = std(obj.epsDoppler(end-M:end-1));
+        
+                if eps_doppler > 1 && eps_doppler > (residual_mean_doppler + residual_std_doppler)
+                    r_adapt(2,2) = alphaFactor * r_adapt(2,2) + (1 - alphaFactor) * (eps_doppler + obj.P(3,3));
+                    % Remove old values from moving window
+                    obj.epsDoppler = obj.epsDoppler(end-M:end-1);
+                end
+            end
+        
+            % Outlier rejection for Range (x component)
+            if (size(obj.epsRange, 2) > M)
+                residual_mean_range = mean(obj.epsRange(end-M:end-1));
+                residual_std_range = std(obj.epsRange(end-M:end-1));
+        
+                if eps_range > 2 && eps_range > (residual_mean_range + residual_std_range)
+                    r_adapt(1,1) = alphaFactor * r_adapt(1,1) + (1 - alphaFactor) * (eps_range + obj.P(1,1));
+                    % Remove old values from moving window
+                    obj.epsRange = obj.epsRange(end-M:end-1);
+                end
+            end
+        
+            % Update the R matrix with the adapted values
+            obj.R = r_adapt;
+        
+            % Recompute Pz after updating R
+            Pz = obj.unscentedTransformZ(muZ);
+        
+            % Calculate Kalman gain
             K =Pxz * Pz^(-1) ;  
-            obj.X  = obj.X' + K*y;
-
+        
+            % Update state estimate
+            obj.X = obj.X' + K*y;
+        
+            % Update error covariance
             obj.P = obj.Pk - K*Pz*K';
-            obj.R = [500,0;0,0.1];
-
-
-            obj.X=obj.X';
-
-            %Investigate why does Doppler estimation jump around when
-            %measurement unlikely
-            Xest=0;
+        
+            % Restore the original R matrix
+            obj.R = original_R;
+        
+            % Return updated state estimate and object
+            obj.X=obj.X';  
+            Xest = obj.X;
             KF_obj2 = obj;
         end
+
         
         function [Wc,Wm] = createWeights(obj)
             %Compute Weights according to Van Der Merwe Implementation

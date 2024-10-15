@@ -63,16 +63,16 @@ classdef track
                 case 3
                     disp("Initializing Particle Filter");
                     N=10000;                                             %Number of particles
-                    std_acc=[0.4,0.45];                                   %Standard Deviation of the process noise
-                    std_meas=[2,2];                                      %Standard Deviation of the measurements in the x and y
+                    std_acc=[1.429,1.9452];                                   %Standard Deviation of the process noise
+                    std_meas=[10,2];                                       %Standard Deviation of the measurements in the x and y
                     PF_object = particleFilter(dt,std_acc,std_meas,[obj.x_initial(1);0;obj.x_initial(2);0;],N);
                     obj.trackingFilterObject = PF_object;
 
                 case 4
                     disp("Initializing Covariance Scaling Particle Filter");
                     N=10000;                                             %Number of particles
-                    std_acc=[0.2,0.25];                                   %Standard Deviation of the process noise
-                    std_meas=[1,1];                               %Standard Deviation of the measurements in the x and y
+                    std_acc=[1.429,1.9452];                                   %Standard Deviation of the process noise
+                    std_meas=[10,2];                              %Standard Deviation of the measurements in the x and y
                     CSPF_object = CSPF(dt,std_acc,std_meas,[obj.x_initial(1);0;obj.x_initial(2);0;],N);
                     obj.trackingFilterObject = CSPF_object;
 
@@ -99,9 +99,9 @@ classdef track
     
                case 8
                     disp("Initializing Covariance Scaling Recursive Gauss Newton Filter");
-                    std_acc=0.5;                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[5,0.1];                               %Standard Deviation of the measurements in the x and y
-                    CSRGNF_object = CSRGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;],100);
+                    std_acc=[0.057027,0.047789];                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[2.046,0.98];                               %Standard Deviation of the measurements in the x and y
+                    CSRGNF_object = CSRGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;],100,1);
                     obj.trackingFilterObject = CSRGNF_object;
 
 

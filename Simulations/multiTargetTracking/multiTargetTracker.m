@@ -386,6 +386,38 @@ classdef multiTargetTracker
              end
         end
 
+        function [doppler_ll, range_ll,t] = calculateLogLikelihoodGroundTruthP(obj,trackId,doppler_ll,range_ll,dopplerGroundTruth,rangeGroundTruth,simTime)
+            
+             indexOfTrack = -1;
+             Tracks = obj.tracks;
+             for j = 1:length(Tracks)
+                %look for track with the specified Id
+                if(obj.tracks(j).trackId == trackId)
+                    indexOfTrack = j;
+                end
+             end
+             t=[];
+             if(indexOfTrack>0)
+
+                 pMatrix = Tracks(indexOfTrack).pMatrix;
+                 %sMatrix(1,end+1) = Tracks(indexOfTrack).trackingFilterObject.S(1,1);
+                 %sMatrix(2,end) = Tracks(indexOfTrack).trackingFilterObject.S(2,2);
+                 
+
+                 predictedTrack = Tracks(indexOfTrack).predictedTrack;
+
+                 range_ll = obj.logLikelihoodMatrix(predictedTrack(1,:),rangeGroundTruth(1,:),pMatrix(1,:),Tracks(indexOfTrack).deleted);
+                 doppler_ll = obj.logLikelihoodMatrix(predictedTrack(2,:),dopplerGroundTruth(1,:),pMatrix(2,:),Tracks(indexOfTrack).deleted);
+                 %Plot against time 
+                 startTime = Tracks(indexOfTrack).startTime;
+                 endTime = length(doppler_ll)+startTime -1;
+                 
+                 t = startTime:1:endTime;
+                 
+             end
+        end
+
+
         function [predictedTrack] = getTrack(obj,trackId)
             
              indexOfTrack = -1;

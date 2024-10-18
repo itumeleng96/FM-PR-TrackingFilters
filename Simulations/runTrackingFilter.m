@@ -18,15 +18,14 @@ addpath('FERS/', ...
 
 %FLIGHT Scenarios
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_1_laneChange.fersxml');
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
 
 %Noise Scenarios
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_1_fm_noise.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_2_white_noise.fersxml');
-
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -90,7 +89,7 @@ movegui(f3,'southeast');
 
 %Create MTT object
 confirmationThreshold=4;
-deletionThreshold=4;
+deletionThreshold=3;
 gatingThreshold=15; %scalar value for ellipsoidal gate
 
 %FilterType 1: Kalman Filter
@@ -103,8 +102,10 @@ gatingThreshold=15; %scalar value for ellipsoidal gate
 
 
 
+
+
 %filterType =input('Tracking Filter to use (1-7):');
-filterType =1;
+filterType =2;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -114,9 +115,8 @@ range_ll=[];
 
 prevCentroids=[];
 
-rangeTrueData = h5read('./true_data.h5', '/bistatic_ranges');
-dopplerTrueData = h5read('./true_data.h5', '/doppler_shifts');
-
+rangeTrueData = h5read('./groundTruthCalculations/true_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('./groundTruthCalculations/true_data.h5', '/doppler_shifts');
 
 for i = 1:simulation_time
     s1 = I_Qmov(initial:current); %surv
@@ -125,12 +125,11 @@ for i = 1:simulation_time
     %s1 = procECA(s2,s1,proc);
     s1 = procECA_Optimized(s2,s1,proc);
 
-
     %Plot Range-Doppler Map
     [y,ard_] = ardNoPlot(s1,s2,fs,dopp_bins,delay,i,ard);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfar(y.',10^-7,fs,dopp_bins,delay,20);                    
+    [targetClusters,RDM,rdm_] = ca_cfar(y.',10^-6,fs,dopp_bins,delay,40);                    
     
     %Get Coordinates from CFAR using meanShift Algorithm
     [clusterCentroids,variancesX,variancesY,numPoints] = meanShift(targetClusters,10,8);
@@ -147,10 +146,9 @@ for i = 1:simulation_time
 
    
     %PLOT Prediction and True Tracks
-    multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+    multiTargetTracker.plotMultiTargetTrackingId(fs,dopp_bins,delay,i,f3,RDM);
     %UPDATE Tracks from measurements
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids,i);
-    
     
     ard = ard_;
     rdm= rdm_;

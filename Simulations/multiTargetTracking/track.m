@@ -5,7 +5,6 @@ classdef track
     %   still need to find a way to make type of filter configurable
     properties
        sampleSinceLastUpdate,
-       seenCountDel,
        totalUpdatesDel,
        seenCount,
        totalUpdates,
@@ -33,7 +32,6 @@ classdef track
             obj.totalUpdates=0;
             obj.totalUpdatesDel=0;
             obj.seenCount=0;
-            obj.seenCountDel=0;
             obj.trackId = trackId;
             obj.startTime = startTime;
             obj.confirmed = confirmation;
@@ -55,8 +53,8 @@ classdef track
 
                 case 2
                     disp("Initializing Covariance Scaling Kalman Filter");
-                    std_meas=[4.9038,0.9985];                                 %Standard Deviation of the measurements in the x(Range) and y(Doppler)
-                    std_acc=[0.0048354,0.0991];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
+                    std_meas=[4.926,1.998];                                 %Standard Deviation of the measurements in the x(Range) and y(Doppler)
+                    std_acc=[0.0586,0.8972];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
                     CSKF_object = CSKF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;]);
                     obj.trackingFilterObject = CSKF_object;
                                    
@@ -71,8 +69,8 @@ classdef track
                 case 4
                     disp("Initializing Covariance Scaling Particle Filter");
                     N=10000;                                             %Number of particles
-                    std_acc=[1.429,1.9452];                                   %Standard Deviation of the process noise
-                    std_meas=[10,2];                              %Standard Deviation of the measurements in the x and y
+                    std_acc=[0.2576,1.8757];                                   %Standard Deviation of the process noise
+                    std_meas=[1.0435,3.9989];                              %Standard Deviation of the measurements in the x and y
                     CSPF_object = CSPF(dt,std_acc,std_meas,[obj.x_initial(1);0;obj.x_initial(2);0;],N);
                     obj.trackingFilterObject = CSPF_object;
 
@@ -85,8 +83,8 @@ classdef track
 
                 case 6
                     disp("Initializing Covariance Scaling Unscented Kalman Filter");
-                    std_acc=[0.0076533,0.09938];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
-                    std_meas=[8.9707,0.99739];                                 %Standard Deviation of the measurements in the x(Range) and y(Doppler)
+                    std_acc=[0.76533,2];                             %Standard Deviation of the process noise x(Range) and y(Doppler)
+                    std_meas=[4.9707,0.5];                                 %Standard Deviation of the measurements in the x(Range) and y(Doppler)
                     CSUKF_object = CSUKF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1),0,obj.x_initial(2),0;],0.01,0,0.01); %alpha,Kappa,Beta 
                     obj.trackingFilterObject = CSUKF_object;
 
@@ -99,8 +97,8 @@ classdef track
     
                case 8
                     disp("Initializing Covariance Scaling Recursive Gauss Newton Filter");
-                    std_acc=[0.057027,0.047789];                                     %Standard Deviation of the acceleration in ms^2
-                    std_meas=[2.046,0.98];                               %Standard Deviation of the measurements in the x and y
+                    std_acc=[0.051,2];                                     %Standard Deviation of the acceleration in ms^2
+                    std_meas=[4.6838,0.9991];                               %Standard Deviation of the measurements in the x and y
                     CSRGNF_object = CSRGNF(dt,std_acc,std_meas(1),std_meas(2),[obj.x_initial(1);0;obj.x_initial(2);0;],100,1);
                     obj.trackingFilterObject = CSRGNF_object;
 
@@ -219,11 +217,11 @@ classdef track
             [~,obj.trackingFilterObject] = update(obj.trackingFilterObject,[newTargetObservation(1,1);newTargetObservation(2,1)]); 
 
             %Update sampleSinceLastUpdate and number Of Updates
-            obj.sampleSinceLastUpdate = 0;
+            obj.sampleSinceLastUpdate  = obj.sampleSinceLastUpdate-1;
             obj.numberOfUpdates = obj.numberOfUpdates+1;
 
             %obj.seenCountDel = obj.seenCountDel-1;
-            %obj.seenCount = obj.seenCount+1;
+            obj.seenCount = obj.seenCount+1;
             obj.newTrack=0;
 
         end

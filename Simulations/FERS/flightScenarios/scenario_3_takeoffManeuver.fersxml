@@ -108,42 +108,60 @@
 
   <platform name="Target1"> <!-- Target traveling at 220m/s for x seconds -->
     <motionpath interpolation="cubic">
-	    <positionwaypoint>
-        <x>500</x>
-        <y>6000</y>
-        <altitude>1000</altitude> <!-- End altitude -->
-        <time>0</time><!-- Time length of simulation -->
-      </positionwaypoint>
-      <positionwaypoint>
-        <x>0</x>
-        <y>4000</y>
-        <altitude>1100</altitude><!-- Starting altitude -->
-        <time>20</time>
-      </positionwaypoint>
-      <positionwaypoint>
-        <x>-1000</x>
-        <y>4000</y>
-        <altitude>1300</altitude> <!-- End altitude -->
-        <time>25</time><!-- Time length of simulation -->
-      </positionwaypoint>
-      <positionwaypoint>
-        <x>-1500</x>
-        <y>6000</y>
-        <altitude>1500</altitude><!-- Starting altitude -->
-        <time>35</time>
-      </positionwaypoint>
-      <positionwaypoint>
-        <x>-1000</x>
-        <y>8000</y>
-        <altitude>1700</altitude> <!-- End altitude -->
-        <time>40</time><!-- Time length of simulation -->
-      </positionwaypoint>
-      <positionwaypoint>
-        <x>4000</x>
-        <y>18000</y>
-        <altitude>2000</altitude><!-- Starting altitude -->
-        <time>60</time>
-      </positionwaypoint>
+        <positionwaypoint>
+            <x>-7800</x>
+            <y>-2000</y>
+            <altitude>1000</altitude> <!-- Start altitude -->
+            <time>0</time> <!-- Time at the start -->
+        </positionwaypoint>
+        <positionwaypoint>
+            <x>-8200</x>
+            <y>0</y>
+            <altitude>1800</altitude>
+            <time>7.5</time>
+        </positionwaypoint>
+        <positionwaypoint>
+            <x>-8500</x>
+            <y>1500</y>
+            <altitude>2200</altitude>
+            <time>15</time>
+        </positionwaypoint>
+        <positionwaypoint>
+            <x>-9000</x>
+            <y>3000</y>
+            <altitude>2800</altitude>
+            <time>22.5</time>
+        </positionwaypoint>
+        <positionwaypoint>
+            <x>-9500</x>
+            <y>4500</y>
+            <altitude>3500</altitude>
+            <time>30</time>
+        </positionwaypoint>
+        <positionwaypoint>
+            <x>-10000</x>
+            <y>6000</y>
+            <altitude>4200</altitude>
+            <time>37.5</time>
+        </positionwaypoint>
+        <positionwaypoint>
+            <x>-10500</x>
+            <y>7500</y>
+            <altitude>4800</altitude>
+            <time>45</time>
+        </positionwaypoint>
+        <positionwaypoint>
+            <x>-11000</x>
+            <y>9000</y>
+            <altitude>5400</altitude>
+            <time>52.5</time>
+        </positionwaypoint>
+        <positionwaypoint>
+            <x>-11500</x>
+            <y>10500</y>
+            <altitude>6000</altitude>
+            <time>60</time> <!-- Final time -->
+        </positionwaypoint>
     </motionpath>
     <fixedrotation>
       <startazimuth>0.0</startazimuth>
@@ -157,6 +175,4 @@
       </rcs>
     </target>
   </platform>
-
-
 </simulation>

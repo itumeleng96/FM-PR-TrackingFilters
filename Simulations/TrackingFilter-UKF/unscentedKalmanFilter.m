@@ -108,7 +108,7 @@ classdef unscentedKalmanFilter
 
             obj.X=obj.X';  
 
-            Xest=0;
+            Xest=obj.X;
             KF_obj2 = obj;
         end
         

@@ -40,10 +40,6 @@ classdef kalmanFilter
                      0, 0, 2,0;
                      0, 0, 0, 1];  
             
-            obj.A = [1, dt, 0, 0;
-                     0, 1, 0, 0;
-                     0, 0, 1, dt;
-                     0, 0, 0, 1;];
 
             obj.wk = [std_acc(1)*dt^2;std_acc(1)*dt;std_acc(2)*dt^2;std_acc(2)*dt];
 
@@ -61,7 +57,7 @@ classdef kalmanFilter
             obj.X = obj.F*obj.X +obj.wk ; 
             
             % P = FPF' + Q
-            obj.P = obj.A * obj.P * obj.A.' + obj.Q;
+            obj.P = obj.F * obj.P * obj.F.' + obj.Q;
 
             X_pred = obj.X;
             KF_obj1  = obj;
@@ -84,7 +80,6 @@ classdef kalmanFilter
             
             obj.X = obj.X + K * (z-obj.H * obj.X);
             I = eye(size(obj.H,2));
-    
             %UPDATE ERROR COVARIANCE MATRIX
             obj.P = (I - (K * obj.H)) * obj.P ; 
            

@@ -20,17 +20,18 @@ addpath('FERS/', ...
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_1_laneChange.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
 
 %Noise Scenarios
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_1_fm_noise.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_2_white_noise.fersxml');
 
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % h5 Import from FERS simulation
+
 [Ino, Qno, scale_no] = loadfersHDF5('direct.h5');
 [Imov, Qmov, scale_mov] = loadfersHDF5('echo.h5');
 
@@ -95,7 +96,7 @@ for i = 1:simulation_time
     
     %s1 = procECA(s2,s1,proc);
 
-    s1 = procECA(s2,s1,proc);
+    s1 = procECA_Optimized(s2,s1,proc);
     %s1 = procCGLS(s2,s1,proc);
 
 
@@ -103,9 +104,10 @@ for i = 1:simulation_time
     %[y,ard_] = ardNoPlot(s1,s2,fs,dopp_bins,delay,i,ard);
     [y,ard_] = ardPlot3(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
-    [targetClusters,RDM] = ca_cfarPlotBW(y.',10e-7,fs,dopp_bins,delay,i,f2,rdm,20);                    
+    [targetClusters,RDM] = ca_cfarPlotBW(y.',10e-6,fs,dopp_bins,delay,i,f2,rdm,40);                    
     
-    [clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlotFigure(targetClusters,10,8,prevCentroids,f2);
+    [clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,1e4,8,prevCentroids);
+    %[clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,10,8,prevCentroids,f2);
 
     ard = ard_;
     %rdm= rdm_;

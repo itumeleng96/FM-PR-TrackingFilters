@@ -80,9 +80,9 @@ function [clustCent, prevCent, xVariances, yVariances, numPoints] = meanShiftPlo
     prevCent = prevCentroids;
     figure(f);
     hold on;
-    %if ~isempty(prevCent)
-    %    plot(prevCent(1, :), prevCent(2, :), '^', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', [0.3, 0.3, 0.3], 'MarkerSize', 4);
-    %end
+    if ~isempty(prevCent)
+        plot(prevCent(1, :), prevCent(2, :), '^', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', [0.3, 0.3, 0.3], 'MarkerSize', 4);
+    end
     plot(clustCent(1, :), clustCent(2, :), 's', 'MarkerEdgeColor', 'white', 'MarkerFaceColor', 'red', 'MarkerSize', 8);
 
     

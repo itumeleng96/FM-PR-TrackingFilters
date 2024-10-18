@@ -18,7 +18,7 @@ addpath('FERS/', ...
 
 %FLIGHT Scenarios
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_1_laneChange.fersxml');
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
@@ -31,7 +31,7 @@ addpath('FERS/', ...
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_2_white_noise.fersxml');
 
 %SCENARIO 1 
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml'); 
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml'); 
 
 
 %%%%%
@@ -93,21 +93,22 @@ rdm =[];
 %Create MTT object
 confirmationThreshold=4;
 deletionThreshold=4;
-gatingThreshold=25; %scalar value for ellipsoidal gate
+gatingThreshold=20; %scalar value for ellipsoidal gate
 
 %FilterType 1: Kalman Filter
-%FilterType 2: Huber Covariance Scaling Kalman Filter
+%FilterType 2: Covariance Scaling Kalman Filter
 %FilterType 3: Particle Filter
-%FilterType 4: UKF  Filter
-%FilterType 5: Covariance Scaling UKF  Filter
-%FilterType 6: RGNF Filter
-%FilterType 7: Covariance scaling RGNF Filter
+%FilterType 4: CS Particle Filter
+%FilterType 5: UKF  Filter
+%FilterType 6: Covariance Scaling UKF  Filter
+%FilterType 7: RGNF Filter
+%FilterType 8: Covariance scaling RGNF Filter
 
 
-multiTargetTracker1 = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,1);
-multiTargetTracker2 = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,3);
-multiTargetTracker3 = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,5);
-multiTargetTracker4 = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,7);
+multiTargetTracker1 = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,2);
+multiTargetTracker2 = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,4);
+multiTargetTracker3 = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,6);
+multiTargetTracker4 = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,8);
 
 %LOG_LIKELIHOODS
 doppler_ll_1=[];
@@ -127,11 +128,11 @@ range_ll_4=[];
 prevCentroids=[];
 
 %True Data for single Target Scenario
-%rangeTrueData = h5read('./true_data.h5', '/bistatic_ranges');
-%dopplerTrueData = h5read('./true_data.h5', '/doppler_shifts');
+rangeTrueData = h5read('./groundTruthCalculations/true_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('./groundTruthCalculations/true_data.h5', '/doppler_shifts');
 
-rangeTrueData = h5read('./measurement_data.h5', '/bistatic_ranges');
-dopplerTrueData = h5read('./measurement_data.h5', '/doppler_shifts');
+%rangeTrueData = h5read('./measurement_data.h5', '/bistatic_ranges');
+%dopplerTrueData = h5read('./measurement_data.h5', '/doppler_shifts');
 
 
 for i = 1:simulation_time
@@ -144,7 +145,7 @@ for i = 1:simulation_time
     [y,ard_] = ardNoPlot(s1,s2,fs,dopp_bins,delay,i,ard);
     
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfar(y.',10^-7,fs,dopp_bins,delay,20);                    
+    [targetClusters,RDM,rdm_] = ca_cfar(y.',10^-9,fs,dopp_bins,delay,10);                    
     
     
     %Get Coordinates from CFAR using meanShift Algorithm
@@ -210,6 +211,7 @@ track_mtt_1 = multiTargetTracker1.getTrack(trackId);
 track_mtt_2 = multiTargetTracker2.getTrack(trackId);
 track_mtt_3 = multiTargetTracker3.getTrack(trackId);
 track_mtt_4 = multiTargetTracker4.getTrack(trackId);
+track_mtt_true = multiTargetTracker1.getMeasuredTrack(trackId);
 
 
 %PLOT TRACKID LOGLIKELIHOOD FOR DIFFERENT FILTERS
@@ -220,17 +222,19 @@ track_mtt_4 = multiTargetTracker4.getTrack(trackId);
 
 % Plot Predicted Tracks from Different filters against Ground Truth
 figure(f2);
-plot(track_mtt_1(1,:), track_mtt_1(2,:), '-^'); 
+plot(track_mtt_1(1,:), track_mtt_1(2,:),'-', 'Color', 'm', 'LineWidth', 1.4);
 hold on;
-plot(track_mtt_2(1,:), track_mtt_2(2,:), 'r--');
-plot(track_mtt_3(1,:), track_mtt_3(2,:), 'go-');
-plot(track_mtt_4(1,:), track_mtt_4(2,:), 'ms-.');
-plot(rangeTrueData, dopplerTrueData, '-*');
+plot(track_mtt_2(1,:), track_mtt_2(2,:), '-', 'Color', 'c', 'LineWidth', 1.4);
+plot(track_mtt_3(1,:), track_mtt_3(2,:), '-', 'Color', 'g', 'LineWidth', 1.4); 
+plot(track_mtt_4(1,:), track_mtt_4(2,:), '-', 'Color', 'b', 'LineWidth', 1.4);
+plot(rangeTrueData, dopplerTrueData, 'o', 'Color', 'r', 'LineWidth', 1.4);
+plot(track_mtt_true(1,:), track_mtt_true(2,:), '*', 'Color', 'b', 'LineWidth', 1.4);
+
 
 title(['Tracking filter outputs vs Ground Truth For Track: ', num2str(trackId)], 'FontSize', 20);
 xlabel('Bistatic range (KM)', 'FontSize', 18);
 ylabel('Doppler (Hz)', 'FontSize', 18);
-legend('Kalman Filter', 'Particle Filter', 'Unscented Kalman Filter', 'Recursive Gauss Newton Filter', 'Ground Truth', 'FontSize', 18);
+legend('Kalman Filter', 'Particle Filter', 'Unscented Kalman Filter', 'Recursive Gauss Newton Filter', 'Ground Truth','Observations','FontSize', 18);
 grid on;
 
 % Create comparison plots for Doppler Log-Likelihoods

@@ -20,14 +20,14 @@ addpath('FERS/', ...
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_1_laneChange.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
 
 %Noise Scenarios
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_1_fm_noise.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_2_white_noise.fersxml');
 
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % h5 Import from FERS simulation
@@ -82,15 +82,15 @@ rdm =[];
 %movegui(f2,'southwest');
 
 %Multi-Target Tracking 
-%f3=figure(3);
-%f3.Position = [4000 10 1050 800]; 
-%movegui(f3,'southeast');
+f3=figure(3);
+f3.Position = [4000 10 1050 800]; 
+movegui(f3,'southeast');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Create MTT object
 confirmationThreshold=4;
-deletionThreshold=4;
+deletionThreshold=3;
 gatingThreshold=15; %scalar value for ellipsoidal gate
 
 %FilterType 1: Kalman Filter
@@ -104,7 +104,7 @@ gatingThreshold=15; %scalar value for ellipsoidal gate
 
 
 %filterType =input('Tracking Filter to use (1-7):');
-filterType =1;
+filterType =4;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -126,10 +126,10 @@ for i = 1:simulation_time
     [y,ard_] = ardNoPlot(s1,s2,fs,dopp_bins,delay,i,ard);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfar(y.',10^-7,fs,dopp_bins,delay,20);                    
+    [targetClusters,RDM,rdm_] = ca_cfar(y.',10^-9,fs,dopp_bins,delay,10);                    
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids,variancesX,variancesY,numPoints] = meanShift(targetClusters,10,8);
+    [clusterCentroids,variancesX,variancesY,numPoints] = meanShift(targetClusters,10,10);
     %[clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,1e4,8,prevCentroids);
     
     %Plot tracks from Tracker - Call Multi-target Tracker
@@ -143,7 +143,7 @@ for i = 1:simulation_time
 
    
     %PLOT Prediction and True Tracks
-    %multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+    multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
     %UPDATE Tracks from measurements
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids,i);
     

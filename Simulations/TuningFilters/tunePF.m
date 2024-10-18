@@ -16,8 +16,8 @@ addpath('../FERS/', ...
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Load Data
-rangeTrueData = h5read('../true_data.h5', '/bistatic_ranges');
-dopplerTrueData = h5read('../true_data.h5', '/doppler_shifts');
+rangeTrueData = h5read('../groundTruthCalculations/true_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('../groundTruthCalculations/true_data.h5', '/doppler_shifts');
 groundTruthData = [rangeTrueData; dopplerTrueData]; % Assuming this is your ground truth
 
 rangeMeasurementData = h5read('../measurement_data.h5', '/bistatic_ranges');
@@ -29,10 +29,10 @@ dopplerMeasurementData = h5read('../measurement_data.h5', '/doppler_shifts');
 
 % Define the search space for optimization (without log transformations)
 optimVars = [
-    optimizableVariable('std_acc1', [0.01, 1]),   % Process noise std (for range)
-    optimizableVariable('std_acc2', [0.01, 1]),   % Process noise std (for doppler)
-    optimizableVariable('std_meas2', [0.1, 2]),        % Measurement noise std (for range)
-    optimizableVariable('std_meas1', [0.1, 5])        % Measurement noise std (for doppler)
+    optimizableVariable('std_acc1', [0.01, 2]),        % Process noise std (for range)
+    optimizableVariable('std_acc2', [0.01, 2]),        % Process noise std (for doppler)
+    optimizableVariable('std_meas2', [0.1, 4]),        % Measurement noise std (for range)
+    optimizableVariable('std_meas1', [0.1, 4])         % Measurement noise std (for doppler)
 ];
 
 % Objective function for Bayesian Optimization

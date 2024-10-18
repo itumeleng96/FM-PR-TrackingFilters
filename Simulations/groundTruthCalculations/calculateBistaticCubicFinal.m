@@ -6,13 +6,22 @@
 
 %The Positions are all in the format Below
 %[x,y,z] where x,y,z are the coordinates in meters in the Cartesian Coordinate System
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Single Target  Scenario
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%{
 % Single Target Scenario: Two points with a 60-unit time interval
-%TargetPos = [
-%    4000, 18000, 3600;  % Start position (x, y, z)
-%    -2000, 3000, 1600;  % End position
-%];
-%TargetWayPoints = [0, 60];  % Time intervals for waypoints (from 0 to 60 units)
+TargetPos = [
+    15000, 22000, 3600;  % Start position (x, y, z)
+    3000, 21000, 3600;  
+    -2000, 21000, 3600;  
+    -6000, 22000, 3600;  
+];
+TargetWayPoints = [0,30,45, 60];  % Time intervals for waypoints (from 0 to 60 units)
+%}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Lane Change Maneouver
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Lane Change Maneuver Scenario: Four points with varying time intervals
 %TargetPos = [
@@ -23,17 +32,25 @@
 %];
 %TargetWayPoints = [0, 20, 30, 60];  % Waypoints indicating time intervals
 % Landing Maneuver: Six points simulating a landing trajectory
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Landing Maneouver
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%{
 TargetPos = [
-    -2400, 22000, 5000;  % Initial point (x, y, z)
-    -23000, 8000, 3000;  % Descent begins
-    -27000, 0, 2000;  % Further descent
-    -21000, -8000, 1000;  % Approaching the landing area
-    -12000, -6000, 0;    % Close to landing
+    -5400, 10000, 5000;  % Initial point (x, y, z)
+    -15000, 6000, 3000;  % Descent begins
+    -18000, 0, 2000;  % Further descent
+    -15000, -6000, 1000;  % Approaching the landing area
+    -8500, -5000, 0;    % Close to landing
 ];
 
 %Adjusted times for 180-second simulation
-TargetWayPoints = [0, 45, 90, 135,180];
+TargetWayPoints = [0, 30, 60, 90,120];
+%}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 360 Maneouver
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % 360 Maneuver: Six points representing a full circle maneuver
 %{
@@ -47,16 +64,21 @@ TargetPos = [
 ];
 TargetWayPoints = [0, 35, 50, 75, 95, 120];  % Time intervals for each segment of the 360 maneuver
 %}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Multi-Target 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Multi-Target Scenario - Target 1: Two points representing a different trajectory
-%TargetPos = [
-%    4000, 18000, 3600;  % Start point (x, y, z)
-%    -2000, 3000, 1600;  % End point
-%];
-%TargetWayPoints = [0, 60];  % Time interval from start to end
+%{
+TargetPos = [
+    4000, 18000, 3600;  % Start point (x, y, z)
+    -2000, 3000, 1600;  % End point
+];
+TargetWayPoints = [0, 60];  % Time interval from start to end
 % Multi-Target Scenario - Target 2: Another two-point trajectory
 % This represents an additional target with a distinct movement pattern
-
-%{
+%}
+%
 TargetPos = [
     15000, 22000, 3600;  % Start point (x, y, z)
     3000,21000, 3600;
@@ -74,17 +96,18 @@ TargetWayPoints = [0,30,45,60];  % Time interval from start to end
 % Updated target positions with smoother XY plane movement
 %{
 TargetPos = [
-    5200, 4000, 1000;    % Start point (nose-up, higher altitude)
-    4800, 6000, 1800;    % Gradual altitude increase, larger lateral movement
-    4400, 7500, 2400;    % Steeper climb with increased y-movement
-    4000, 9000, 3000;   % Continued climb and lateral shift
-    3600, 11000, 3700;   % Increasing altitude with larger lateral shift
-    3200, 13500, 4500;   % Higher altitude, more spaced out path
-    2600, 16000, 5300;   % Further stretched path, smoother altitude change
-    1800, 18000, 6000;    % Final smooth increase in altitude and lateral movement
+    -7800, -2000, 1000;     % Adjusted from first row
+    -8200, 0, 1800;         % Second row
+    -8500, 1500, 2200;      % Third row
+    -9000, 3000, 2800;      % Fourth row
+    -9500, 4500, 3500;      % Fifth row
+    -10000, 6000, 4200;     % Sixth row
+    -10500, 7500, 4800;     % Seventh row
+    -11000, 9000, 5400;     % Eighth row
+    -11500, 10500, 6000;    % Ninth row
 ];
-% Adjust time intervals for realistic speeds and smoother movement
-TargetWayPoints = [0, 15, 45, 60, 75, 90, 105, 120];
+
+TargetWayPoints = [0, 7.5, 15, 22.5, 30, 37.5, 45,52.5, 60];
 %}
 wavelength = 299792458/94e6;
 c = 299792458;
@@ -137,7 +160,22 @@ faces = airplane_model.ConnectivityList;  % Use 'ConnectivityList' to get the fa
 % Plot the 3D target path
 figure(1)
 plot3(interpolated_posx(1, :), interpolated_posx(2, :), interpolated_posx(3, :), 'b.-');
+hold on;
+% Plot the transmitter position
+plot3(Tx_Pos(1), Tx_Pos(2), Tx_Pos(3), 'ro', 'MarkerSize', 10, 'DisplayName', 'Transmitter');
+text(Tx_Pos(1), Tx_Pos(2), Tx_Pos(3), ' Tx', 'FontSize', 12, 'VerticalAlignment', 'bottom');
+
+% Plot the reference receiver position
+plot3(RefRx_Pos(1), RefRx_Pos(2), RefRx_Pos(3), 'go', 'MarkerSize', 10, 'DisplayName', 'Reference Receiver');
+text(RefRx_Pos(1) + 200, RefRx_Pos(2), RefRx_Pos(3), ' RefRx', 'FontSize', 12, 'VerticalAlignment', 'top'); % Shift text right
+
+% Plot the surveillance receiver position
+plot3(SurvRx_Pos(1), SurvRx_Pos(2), SurvRx_Pos(3), 'bo', 'MarkerSize', 10, 'DisplayName', 'Surveillance Receiver');
+text(SurvRx_Pos(1) - 200, SurvRx_Pos(2), SurvRx_Pos(3), ' SurvRx', 'FontSize', 12, 'VerticalAlignment', 'bottom'); % Shift text left
+
+
 hold on;  % Keep the plot open for additional elements
+
 
 % Select the landing position (the last waypoint)
 landing_position = [TargetPos(end, 1), TargetPos(end, 2), TargetPos(end, 3)];
@@ -151,7 +189,9 @@ vertices_translated = vertices * scale_factor; % Scale the vertices
 % Rotation angle in radians (for example, 45 degrees)
 %rotation_angle = pi/0.7;  % 45 degrees
 %rotation_angle = pi/0.95;   % 45 degrees - take-off
-rotation_angle = pi/1.55;   % 45 degrees - landing
+%rotation_angle = pi/1.55;   % 45 degrees - landing
+rotation_angle =  -pi/2;   % 45 degrees - 360
+
 
 % Create a rotation matrix for rotation around the Z-axis
 rotation_matrix = [cos(rotation_angle), -sin(rotation_angle), 0;

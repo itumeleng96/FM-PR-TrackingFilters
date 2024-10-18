@@ -25,7 +25,7 @@ TargetPos = [
 TargetWayPoints = [0, 20, 30, 60];  % Waypoints indicating time intervals
 %}
 % Landing Maneuver: Six points simulating a landing trajectory
-
+%{
 TargetPos = [
     4000, 18000, 2000;  % Initial point (x, y, z)
     -1000, 8000, 1700;  % Descent begins
@@ -67,8 +67,8 @@ TargetPos = [
     -6000,22000, 3600;
 ];
 TargetWayPoints = [0,30,45,60];  % Time interval from start to end
-%}
 
+%}
 wavelength = 299792458/94e6;
 c=299792458;
 

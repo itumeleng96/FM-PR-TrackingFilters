@@ -27,7 +27,7 @@ classdef particleFilter
             obj.std_meas=std_meas;
            
             %Create  Gaussian  distributed particles on Initialization
-            obj.particles = obj.createGaussianParticles(initialCentroid,[5,5],N);
+            obj.particles = obj.createGaussianParticles(initialCentroid,[10,10],N);
             
             %Set Equal weights
             obj.weights = ones(N,1)/N;

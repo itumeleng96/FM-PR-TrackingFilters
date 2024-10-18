@@ -1,11 +1,11 @@
 classdef CSRGNF
 
     properties
-        dt,U,X,F,A,B,H,Q,R,P,S,coeff,measured_x,measured_y,max_iter,wk,count,updater,update1,epsDoppler,epsRange;
+        dt,U,X,F,A,B,H,Q,R,P,S,coeff,measured_x,measured_y,max_iter,wk,count,updater,update1,epsDoppler,epsRange,lambda;
     end
     
     methods
-        function obj = CSRGNF(dt,std_acc,r_std,rdot_std,X_initial,max_iter)
+        function obj = CSRGNF(dt,std_acc,r_std,rdot_std,X_initial,max_iter,lambda)
             % Constructor function to initialize the filter
             
             % Variables for Stopping criterion
@@ -27,10 +27,11 @@ classdef CSRGNF
 
             
 
-            obj.Q = std_acc*[(dt^4)/4,(dt^3)/2,0,0;                % Process Noise Covariance Matrix
-                     (dt^3)/2, dt^2, 0, 0;
-                     0, 0, (dt^4)/4,(dt^3)/2;
-                     0, 0, (dt^3)/2, dt^2];
+            obj.Q = [std_acc(1)*(dt^4)/4,std_acc(1)*(dt^3)/2,0,0;                % Process Noise Covariance Matrix
+                 std_acc(1)*(dt^3)/2, std_acc(1)*dt^2, 0, 0;
+                 0, 0, std_acc(2)*(dt^4)/4,std_acc(2)*(dt^3)/2;
+                 0, 0, std_acc(2)*(dt^3)/2, std_acc(2)*dt^2];
+
 
             %Measurement Error covariance matrix
             obj.R = [r_std,0;
@@ -40,14 +41,9 @@ classdef CSRGNF
                      0, 2.5, 0, 0;
                      0, 0, 2,0;
                      0, 0, 0, 1];  
-
-
-            obj.A = [1, dt, 0, 0;
-                     0, 1, 0, 0;
-                     0, 0, 1, dt;
-                     0, 0, 0, 1;];
             
-            obj.wk = std_acc*[dt^2;dt;dt^2;dt];
+            obj.wk = [std_acc(1)*dt^2;std_acc(1)*dt;std_acc(2)*dt^2;std_acc(2)*dt];
+            obj.lambda = lambda;
 
             obj.epsDoppler =[];
             obj.epsRange =[];
@@ -60,7 +56,7 @@ classdef CSRGNF
             obj.X = obj.F*obj.X;
         
             % Initial covariance matrix
-            obj.P = (obj.A * obj.P * obj.A.') + obj.Q;
+            obj.P = (obj.F * obj.P * obj.F.') + obj.Q;
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
 
             X_pred = obj.X;
@@ -73,9 +69,6 @@ classdef CSRGNF
         
             % Convergence tolerance 
             tolerance = 1e-1; 
-        
-            % The forgetting factor (Lambda) - between 0 and 1
-            lambda = 1;
         
             % Kalman prediction step: S = H*P*H' + R
             obj.S = obj.H * obj.P * obj.H.' + obj.R;
@@ -94,7 +87,7 @@ classdef CSRGNF
         
             % Number of samples to average
             M = 6;
-            alphaFactor = 0.6;
+            alphaFactor = 0.8;
         
             % Initialize adaptive noise covariance
             r_adapt = obj.R; 
@@ -152,7 +145,7 @@ classdef CSRGNF
             end
         
             % Update the covariance matrix
-            obj.P = (I - K_n * obj.H) * obj.P / lambda;
+            obj.P = (I - K_n * obj.H) * obj.P / obj.lambda;
         
             % Update state estimate
             obj.X = x_new;

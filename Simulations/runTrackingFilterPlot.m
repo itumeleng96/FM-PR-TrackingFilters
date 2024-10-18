@@ -23,14 +23,14 @@ addpath('FERS/', ...
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_1_laneChange.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
-%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
+system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_4_360.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
 
 %Noise Scenarios
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_1_fm_noise.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/NoiseScenarios/scenario_2_white_noise.fersxml');
 
-system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
+%system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_1_singleFile_120.fersxml');
 %system('export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH && fers FERS/BackupScenarios/scenario_3_targets_singleFile.fersxml');
 
@@ -90,7 +90,7 @@ movegui(f2,'northwest');
 
 %Multi-Target Tracking 
 f3=figure(3);
-f3.Position = [4000 10 1050 800]; 
+f3.Position = [4000 10 1050 800];
 movegui(f3,'southeast');
 
 f4=figure(4);
@@ -129,7 +129,8 @@ gatingThreshold=15;         %scalar value for ellipsoidal gate
 
 
 %filterType =input('Tracking Filter to use (1-7):');
-filterType = 3;
+
+filterType =6;
 
 multiTargetTracker = multiTargetTracker(confirmationThreshold,deletionThreshold,gatingThreshold,filterType);
 
@@ -141,8 +142,8 @@ doppler_error=[];
 range_error=[];
 prevCentroids=[];
 
-rangeTrueData = h5read('./true_data.h5', '/bistatic_ranges');
-dopplerTrueData = h5read('./true_data.h5', '/doppler_shifts');
+rangeTrueData = h5read('./groundTruthCalculations/true_data.h5', '/bistatic_ranges');
+dopplerTrueData = h5read('./groundTruthCalculations/true_data.h5', '/doppler_shifts');
 
 for i = 1:simulation_time
     tic()
@@ -155,10 +156,10 @@ for i = 1:simulation_time
     [y,ard_] = ardPlot(s1,s2,fs,dopp_bins,delay,i,ard,f);
 
     %Plot CFAR from Cell-Averaging CFAR 
-    [targetClusters,RDM,rdm_] = ca_cfarPlotBW(y.',10e-9,fs,dopp_bins,delay,i,f2,rdm,20);                    
+    [targetClusters,RDM,rdm_] = ca_cfarPlotBW(y.',10e-9,fs,dopp_bins,delay,i,f2,rdm,10);                    
     
     %Get Coordinates from CFAR using meanShift Algorithm
-    [clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,10,8,prevCentroids);
+    [clusterCentroids,prevCentroids,variancesX,variancesY,numPoints] = meanShiftPlot(targetClusters,10,10,prevCentroids);
     
     
     %Plot tracks from Tracker - Call Multi-target Tracker
@@ -174,13 +175,13 @@ for i = 1:simulation_time
     
     %PLOT Prediction and True Tracks
     %multiTargetTracker = multiTargetTracker.plotMultiTargetTrackingGT(fs,dopp_bins,delay,i,f3,RDM,rangeTrueData,dopplerTrueData);
-    multiTargetTracker = multiTargetTracker.plotMultiTargetTracking(fs,dopp_bins,delay,i,f3,RDM);
+    multiTargetTracker = multiTargetTracker.plotMultiTargetTrackingId(fs,dopp_bins,delay,i,f3,RDM);
 
     %UPDATE Tracks from measurements
     multiTargetTracker = multiTargetTracker.updateStage(clusterCentroids,i);
     
     %CALCULATE Likelihoods 
-    [doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihoodSingleP(f4,f5,i,doppler_ll,range_ll,dopplerTrueData,rangeTrueData, true);
+    %[doppler_ll,range_ll]=multiTargetTracker.plotLogLikelihoodSingleP(f4,f5,i,doppler_ll,range_ll,dopplerTrueData,rangeTrueData, true);
    
     %Do functionality to plot logLikelihood on a specific Track Id
     %CALCULATE ERROR 

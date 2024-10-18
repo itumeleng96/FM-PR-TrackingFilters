@@ -109,45 +109,45 @@
   <platform name="Target1"> <!-- Target traveling at 220m/s for x seconds -->
     <motionpath interpolation="cubic">
 	<positionwaypoint>
-        <x>4000</x>
-        <y>18000</y>
-        <altitude>2000</altitude><!-- Starting altitude -->
+        <x>8000</x>
+        <y>31000</y>
+        <altitude>8000</altitude><!-- Starting altitude -->
         <time>0</time>
       </positionwaypoint>
 
       <positionwaypoint>
-        <x>-8528</x>
-        <y>13851</y>
-        <altitude>2000</altitude> <!-- End altitude -->
+        <x>-528</x>
+        <y>30851</y>
+        <altitude>8000</altitude> <!-- End altitude -->
         <time>35</time><!-- Time length of simulation -->
       </positionwaypoint>
 
       <positionwaypoint>
-        <x>-12354</x>
-        <y>15339</y>
-        <altitude>2000</altitude> <!-- End altitude -->
+        <x>-4354</x>
+        <y>34339</y>
+        <altitude>8000</altitude> <!-- End altitude -->
         <time>50</time><!-- Time length of simulation -->
       </positionwaypoint>
 
 
       <positionwaypoint>
-        <x>-7997</x>
-        <y>17783</y>
-        <altitude>2000</altitude> <!-- End altitude -->
+        <x>3</x>
+        <y>34783</y>
+        <altitude>8000</altitude> <!-- End altitude -->
         <time>75</time><!-- Time length of simulation -->
       </positionwaypoint>
 
       <positionwaypoint>
-        <x>-13311</x>
-        <y>11938</y>
-        <altitude>2000</altitude> <!-- End altitude -->
+        <x>-5311</x>
+        <y>29938</y>
+        <altitude>8000</altitude> <!-- End altitude -->
         <time>95</time><!-- Time length of simulation -->
       </positionwaypoint>
 
       <positionwaypoint>
-        <x>-20431</x>
-        <y>9706</y>
-        <altitude>2000</altitude> <!-- End altitude -->
+        <x>-11431</x>
+        <y>27706</y>
+        <altitude>8000</altitude> <!-- End altitude -->
         <time>120</time><!-- Time length of simulation -->
       </positionwaypoint>
 
@@ -160,7 +160,7 @@
     </fixedrotation>
     <target name="Target2">
       <rcs type="isotropic">
-        <value>100</value><!-- Target RCS in square meters -->
+        <value>150</value><!-- Target RCS in square meters -->
       </rcs>
     </target>
   </platform>

@@ -9,8 +9,8 @@ classdef multiTargetTracker
         filterType,            %KalmanFilter:1 , GaussNewton:2
         newtracksCreated,
         idCounter,
-        %M,                      %M-out-of N logic
-        %N,                      %M-out-of N logic
+        M,                      %M-out-of N logic
+        N,                      %M-out-of N logic
 
     end
     
@@ -23,8 +23,8 @@ classdef multiTargetTracker
             obj.filterType = filterType;
             obj.newtracksCreated = 0;
             obj.idCounter =0;
-            %obj.M =3;
-            %obj.N =5;
+            obj.M =3;
+            obj.N =5;
         end
         
         function obj = createNewTracks(obj,detections,index)
@@ -81,18 +81,25 @@ classdef multiTargetTracker
         end
 
         function tracks = deleteTracks(obj)
-            %Delete Tracks based on deletion Treshold
-            %idx_to_delete =[];
-            for i=1:max(size(obj.tracks))
-                %if obj.tracks(i).seenCountDel > obj.M
-                if obj.tracks(i).sampleSinceLastUpdate > obj.deletionThreshold
-                   %idx_to_delete = [idx_to_delete, i];
-                   obj.tracks(i).deleted =1;
+            % Delete Tracks based on deletion threshold
+        
+            % Filter out tracks marked as deleted or exceeding deletion threshold
+            tracks = obj.tracks(~[obj.tracks.deleted]);  % Keep only non-deleted tracks
+            
+            for i = 1:numel(tracks)
+                % Mark tracks for deletion if the threshold is exceeded
+                if tracks(i).sampleSinceLastUpdate > obj.deletionThreshold
+                    tracks(i).deleted = 1;
                 end
             end
+        
+            % Update the object’s track list by excluding deleted ones
+            %obj.tracks = tracks(~[tracks.deleted]);  % Keep only non-deleted ones
+        
+            % Return the cleaned-up tracks list
             tracks = obj.tracks;
         end
-        
+        %{
         function tracks = confirmTracks(obj)
             %Confirm Tracks based on confirmation Threshold
             for i=1:max(size(obj.tracks))                
@@ -103,6 +110,22 @@ classdef multiTargetTracker
             end
 
             tracks =obj.tracks;
+        end
+        %} 
+        function tracks = confirmTracks(obj)
+            %M out of N
+            for i = 1:numel(obj.tracks)  % Use `numel` instead of `max(size(...))` for clarity
+                track = obj.tracks(i);   % Temporary variable for better readability
+        
+                % Check if the track is not yet confirmed and meets the M-out-of-N requirement
+                if track.confirmed == 0 && track.seenCount >= obj.M && size(track.predictedTrack,2) <= obj.N
+                    obj.tracks(i).confirmed = 1;  % Confirm the track
+                end
+            end
+        
+            % Return the updated tracks
+            tracks = obj.tracks;
+
         end
 
         function obj = maintainTracks(obj)
@@ -228,6 +251,95 @@ classdef multiTargetTracker
                 legend([predicted_marker, tentative_marker, confirmed_marker], 'Prediction', 'Tentative', 'Measurement Track', 'Location', 'best');
                 %hold on;
         end
+
+        function tracks = getConfirmedTracks(obj)
+            tracks = {};  % Initialize an empty array
+        
+            % Iterate through all tracks
+            for i = 1:length(obj.tracks)
+                % Check if the track is confirmed
+                if obj.tracks(i).confirmed == 1 && obj.tracks(i).deleted == 0 
+                    tracks{end+1} =obj.tracks(i).trueTrack;
+                end
+            end
+        end
+
+        function tracks = getDeletedTracks(obj)
+            tracks = {};  % Initialize an empty array
+        
+            % Iterate through all tracks
+            for i = 1:length(obj.tracks)
+                % Check if the track is confirmed
+                if obj.tracks(i).deleted ==1 
+                    tracks{end+1} =obj.tracks(i).trueTrack;
+                end
+            end
+        end
+
+        function obj = plotMultiTargetTrackingId(obj, fs, fd_max, td_max, index, f, RDM)
+            figure(f);
+            c = 3e8;  % Speed of light
+            Ndelay = floor(td_max * fs);
+            time = 0:1/fs:Ndelay/fs;
+            range = (time * c) / 1000;  % Convert to kilometers
+            frequency = -fd_max:1:fd_max;
+        
+            % Create an empty range-Doppler map with white background
+            imagesc(range, frequency, RDM * 0);
+            colormap(gca, 'white');  
+            axis xy;  % Flip y-axis for correct orientation
+            grid on;
+            xlabel('Bistatic Range [km]', 'FontSize', 18);
+            ylabel('Bistatic Doppler frequency [Hz]', 'FontSize', 18);
+            title('Targets Centroids and Prediction');
+            text(0, 10, "Time: " + index + "s");
+            
+            hold on;
+            % Initialize markers for legend creation
+            predicted_marker = plot(nan, nan, '^', 'MarkerFaceColor', 'none', 'MarkerEdgeColor', 'blue', 'MarkerSize', 6);
+            tentative_marker = plot(nan, nan, '-', 'LineWidth', 2, 'Color', 'green', 'MarkerSize', 4);
+            confirmed_marker = plot(nan, nan, '-', 'LineWidth', 2, 'Color', 'red', 'MarkerFaceColor', 'red', 'MarkerSize', 4);
+        
+            % Plot each track that isn't deleted
+            for i = 1:length(obj.tracks)
+                track = obj.tracks(i);
+        
+                if track.deleted == 0  % Only plot active tracks
+                    % Plot track ID near its last predicted position
+                    trackID = num2str(track.trackId);
+                    lastX = track.predictedTrack(1, end);
+                    lastY = track.predictedTrack(2, end);
+                    text(lastX + 15, lastY - 5, trackID, 'Color', 'red', 'FontSize', 8);
+                    
+                    % Plot track paths based on confirmation status
+                    if track.confirmed == 0
+                        plot(track.predictedTrack(1, :), track.predictedTrack(2, :), '^', ...
+                            'MarkerFaceColor', 'none', 'MarkerEdgeColor', 'blue', ...
+                            'MarkerSize', 6, 'DisplayName', 'Predicted Track');
+                        plot(track.trueTrack(1, :), track.trueTrack(2, :), '-', ...
+                            'LineWidth', 2, 'Color', 'green', 'DisplayName', 'Tentative Track');
+                    else
+                        plot(track.predictedTrack(1, :), track.predictedTrack(2, :), '^', ...
+                            'MarkerFaceColor', 'none', 'MarkerEdgeColor', 'blue', ...
+                            'MarkerSize', 6, 'DisplayName', 'Predicted Track');
+                        plot(track.trueTrack(1, :), track.trueTrack(2, :), '-', ...
+                            'LineWidth', 2, 'Color', 'red', 'DisplayName', 'Confirmed Track');
+                    end
+                    
+                    % Optional: Annotate with boxed text near track's predicted position
+                    annotationX = lastX + 2;
+                    annotationY = lastY + 2;
+                    
+                    text(annotationX, annotationY, ['T', num2str(i)], 'Color', 'black', 'FontSize', 8);
+                end
+            end
+        
+            % Create a legend with the custom markers
+            legend([predicted_marker, tentative_marker, confirmed_marker], ...
+                   'Prediction', 'Tentative Track', 'Confirmed Track', 'Location', 'best');
+            hold off;
+        end
+
 
         function plotErrors(obj,f,f2,index,rangeGroundTruth,dopplerGroundTruth)
             % Plot Range

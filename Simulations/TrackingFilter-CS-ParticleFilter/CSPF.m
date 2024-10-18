@@ -14,6 +14,7 @@ classdef CSPF
         updater;
         update1;
         epsDoppler;
+        epsRange;
         P;
 
     end
@@ -54,6 +55,8 @@ classdef CSPF
             obj.update1 =0;
 
             obj.epsDoppler =[];
+            obj.epsRange =[];
+
 
 
 
@@ -88,88 +91,90 @@ classdef CSPF
         
         function [X_est, PF_obj] = update(obj, z)
         
-        
-            % Calculate the particle likelihoods based on a Gaussian PDF
-            % p(z t​∣x t(i))=p(zx∣x t(i),σx)⋅p(z y∣y t(i),σy)
-            %Adaptive filtering
-
-            % Calculate the cross-covariance elements (K_ij) using the weighted particles
-            % S = HPH' + R;
-            
-            [meanValueS,~] = obj.estimate(obj.particles, obj.weights);
-            deviations = obj.particles(:, [1 3]) - meanValueS;          % Deviation of particles from mean (Nx2)
-            weighted_deviations = deviations .* sqrt(obj.weights);      % Apply weights (element-wise multiplication)
+            [meanValueS, ~] = obj.estimate(obj.particles, obj.weights);
+            deviations = obj.particles(:, [1 3]) - meanValueS;  % Deviations of particles from the mean (Nx2)
+            weighted_deviations = deviations .* sqrt(obj.weights);  % Apply weights element-wise
             covariance_matrix = (weighted_deviations' * weighted_deviations) / sum(obj.weights);  % Weighted covariance
-            obj.P = [covariance_matrix(1,1),0,0,0;
-                     0,0,0,0;
-                     0,0,covariance_matrix(2,2),0;
-                     0,0,0,0];
-
-            slikelihood= covariance_matrix+ obj.std_meas;
-            obj.S = [mean(slikelihood(:,1)),0;0,mean(slikelihood(:,2));];
             
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%% Detect outliers and reject them
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Update the covariance matrix (P)
+            obj.P = [covariance_matrix(1,1), 0, 0, 0;
+                     0, 0, 0, 0;
+                     0, 0, covariance_matrix(2,2), 0;
+                     0, 0, 0, 0];
+        
+            % Calculate S (measurement noise + covariance)
+            slikelihood = covariance_matrix + obj.std_meas;
+            obj.S = [mean(slikelihood(:, 1)), 0;
+                     0, mean(slikelihood(:, 2))];
+        
+            % Calculate residual (measurement innovation)
+            ek = z - meanValueS';
+            eps_range = ek(1)^2 / obj.S(1,1);  % Mahalanobis distance for Range
+            eps_doppler = ek(2)^2 / obj.S(2,2);  % Mahalanobis distance for Doppler
+        
+            % Moving windows for residuals (Range and Doppler)
+            obj.epsRange = [obj.epsRange, eps_range];
+            obj.epsDoppler = [obj.epsDoppler, eps_doppler];
+            M = 6;  % Number of samples to average
+            alphaFactor =0.8;
+            % Flags to track if outliers were detected
+            outlier_detected_range = false;
+            outlier_detected_doppler = false;
+        
+            % Outlier rejection for Doppler
+            if size(obj.epsDoppler, 2) > M && eps_doppler > 1 && eps_doppler > (std(obj.epsDoppler(end-M:end-1))+mean(obj.epsDoppler(end-M:end-1)))
+                outlier_detected_doppler = true;
+            end
+        
+            % Outlier rejection for Range (x component)
+            if size(obj.epsRange, 2) > M && eps_range > 2 && eps_range > (std(obj.epsRange(end-M:end-1)) +mean(obj.epsRange(end-M:end-1)))
+                outlier_detected_range = true;
+            end
+        
+            % Update likelihood calculations based on outlier detection
+            diffs = (obj.particles(:, [1 3])' - z)';
             
-            ek = z-meanValueS';
-            ek2_doppler = ek(2)^2;
-
-            eps_doppler = ek2_doppler/obj.S(2,2);  
-
-            obj.epsDoppler = [obj.epsDoppler,eps_doppler];
-            M=5; %Number of samples to average
-
-            %{
-            if(size(obj.epsDoppler,2)>M && eps_doppler > 1 && eps_doppler>mean(obj.epsDoppler(end-M:end-1)))
-                %obj.epsDoppler =obj.epsDoppler(end-M:end-1);
-                diffs = (obj.particles(:, [1 3])' - z)';
-                likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
-                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^(2));
-                likelihood = likelihood_x .* likelihood_y;
-                
-                % Normalize the likelihood
-                likelihood = likelihood / sum(likelihood);
-                
-                 weights_adapt =obj.weights .*likelihood;
-
-                % Resample if too few effective particles
-                neff = obj.NEFF(weights_adapt);
-                if neff < obj.N / 2
-                    indexes = obj.resampleSystematic(weights_adapt);
-                    [obj.particles, weights_adapt] = obj.resampleFromIndex(obj.particles, indexes);
-                end
-
-                [meanValue,~] = obj.estimate(obj.particles, weights_adapt);
-                
+            % Handle outliers in the x (Range) axis
+            if outlier_detected_range
+                % If Range outlier detected, soften the likelihood by adjusting the variance using alphaFactor
+                likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / (alphaFactor * obj.std_meas(1)^2 + (1 - alphaFactor) * obj.P(1,1)));
             else
-            %}
-                 
-                diffs = (obj.particles(:, [1 3])' - z)';
+                % Regular likelihood calculation for x (Range)
                 likelihood_x = exp(-0.5 * (diffs(:, 1).^2) / obj.std_meas(1)^2);
+            end
+        
+            % Handle outliers in the y (Doppler) axis
+            if outlier_detected_doppler
+                % If Doppler outlier detected, soften the likelihood by adjusting the variance using alphaFactor
+                likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / (alphaFactor * obj.std_meas(2)^2 + (1 - alphaFactor) * obj.P(3,3)));
+            else
+                % Regular likelihood calculation for y (Doppler)
                 likelihood_y = exp(-0.5 * (diffs(:, 2).^2) / obj.std_meas(2)^2);
-                likelihood = likelihood_x .* likelihood_y;
-                
-                % Normalize the likelihood
-                likelihood = likelihood / sum(likelihood);
-                
-                
-                % Update the particle weights
-                obj.weights = obj.weights .* likelihood;
-                obj.weights = obj.weights + 1.e-300;  % Add small constant to avoid zero weights
-                obj.weights = obj.weights / sum(obj.weights);
-            
-                % Resample if too few effective particles
-                neff = obj.NEFF(obj.weights);
-                if neff < obj.N / 2
-                    indexes = obj.resampleSystematic(obj.weights);
-                    [obj.particles, obj.weights] = obj.resampleFromIndex(obj.particles, indexes);
-                end
-    
-                [meanValue,~] = obj.estimate(obj.particles, obj.weights);
-            %end
-
-            X_est = meanValue;            
+            end
+        
+            % Combine the likelihoods
+            likelihood = likelihood_x .* likelihood_y;
+        
+            % Normalize the likelihood
+            likelihood = likelihood / sum(likelihood);
+        
+            % Update the particle weights
+            obj.weights = obj.weights .* likelihood;
+            obj.weights = obj.weights + 1.e-300;  % Avoid zero weights
+            obj.weights = obj.weights / sum(obj.weights);
+        
+            % Resample if too few effective particles
+            neff = obj.NEFF(obj.weights);
+            if neff < obj.N / 2
+                indexes = obj.resampleSystematic(obj.weights);
+                [obj.particles, obj.weights] = obj.resampleFromIndex(obj.particles, indexes);
+            end
+        
+            % Recalculate the state estimate
+            [meanValue, ~] = obj.estimate(obj.particles, obj.weights);
+        
+            % Output the estimated state
+            X_est = meanValue;
             PF_obj = obj;
         end
     end

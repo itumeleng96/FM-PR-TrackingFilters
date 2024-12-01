@@ -7,20 +7,20 @@ close all;
 
 
 %FLIGHT Scenarios
-%system('wsl fers FERS/flightScenarios/scenario_1_laneChange.fersxml');
-%system('wsl fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
-%system('wsl fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
-%system('wsl fers FERS/flightScenarios/scenario_4_360.fersxml');
-%system('wsl fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
-%system('wsl fers FERS/flightScenarios/scenario_5_3_targets.fersxml');
+%system('fers FERS/flightScenarios/scenario_1_laneChange.fersxml');
+%system('fers FERS/flightScenarios/scenario_2_landingManeuver.fersxml');
+%system('fers FERS/flightScenarios/scenario_3_takeoffManeuver.fersxml');
+%system('fers FERS/flightScenarios/scenario_4_360.fersxml');
+%system('fers FERS/flightScenarios/scenario_5_2_targets.fersxml');
+%system('fers FERS/flightScenarios/scenario_5_3_targets.fersxml');
 
 %Noise Scenarios
-%system('wsl fers FERS/NoiseScenarios/scenario_1_fm_noise.fersxml');
-%system('wsl fers FERS/NoiseScenarios/scenario_2_white_noise.fersxml');
+%system('fers FERS/NoiseScenarios/scenario_1_fm_noise.fersxml');
+%system('fers FERS/NoiseScenarios/scenario_2_white_noise.fersxml');
 
-%system('wsl fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
-%system('wsl fers FERS/BackupScenarios/scenario_1_singleFile_120.fersxml');
-%system('wsl fers FERS/BackupScenarios/scenario_3_targets_singleFile.fersxml');
+system('fers FERS/BackupScenarios/scenario_1_singleFile.fersxml');
+%system('fers FERS/BackupScenarios/scenario_1_singleFile_120.fersxml');
+%system('fers FERS/BackupScenarios/scenario_3_targets_singleFile.fersxml');
 
 addpath('FERS/', ...
         'cfar/', ...

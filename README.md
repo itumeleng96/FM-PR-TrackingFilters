@@ -50,5 +50,5 @@ runTrackingFilterPlot
 ### Running Tracking filter Evaluations
 To execute the Performance evaluation script in MATLAB, use the command:  
 ```matlab
-runEvaluateTrackingFilter
+runEvaluateFilters
 ```

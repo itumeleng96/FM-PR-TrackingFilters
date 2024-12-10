@@ -1,26 +1,54 @@
-# Tracking Filters For a Passive Radar System
+# Tracking Filters for a Passive Radar System
 
-### This Repository will consist Code implementations for Tracking Filters for a FM Passive Radar System.<br>
+## Author
+**[Itumeleng Malemela]**  
+Master's Dissertation Repository  
 
-#### The Repository is divided into code processing chain for Simulations and all the required files and Real world data folder for the Radar Processing Chain For real-data
+---
 
-#### The Following Tracking filters and code have been implemented:
-<li>1.Kalman Filter and Adaptive Kalman Filter</li>
-<li>2.Particle Filter  and Adaptive Particle Filter</li>
-<li>3.Unscented Kalman and Adaptive Unscented Kalman Filter </li>
-<li>4.Recursive Gauss Newton Filter and Adaptive Recursive Gauss Newton Filter</li>
-<li>5.Covariance Scaling Techniques</li>
+## Overview
 
-#### Other algorithms implemented
-<li>Constant False Alarm Rate Filter </li>
-<li>Multi-target Tracker</li>
-<li>MeanshiftCluster</li>
-<li>Log-likelihood as a statistical Benchmark for the Performance of Tracking Filters </li>
-<li>Ground truth calculations for FERS for cubic waypoints</li>
+This repository contains the code implementations of tracking filters designed for an **FM Passive Radar System**. The content is organized into:
+- **Simulation code**: Includes the processing chain and all necessary (Flexible Extensible Radar Simulator) files for simulating radar scenarios.
+- **Tracking Filter Algorithms**: Different Tracking filters used in the simulations.
 
+---
 
-## How to run the tracking Filter in the Matlab Terminal
-<li> runTrackingFilterPlot </li>
+## Implemented Tracking Filters
 
-## Filter Evaluations with Log-Likelihood
-<li> runEvaluateFilters </li>
+The following tracking filters and associated algorithms are implemented:
+
+1. **Kalman Filter** 
+2. **Particle Filter** 
+3. **Unscented Kalman Filter**  
+4. **Recursive Gauss-Newton Filter**  
+5. **Covariance Scaling Techniques**
+
+---
+
+## Other Algorithms and Features
+
+Additionally, this repository includes implementations of:
+
+- **Cell-Averaging Constant False Alarm Rate (CFAR) Filter**  
+- **Multi-Target Tracker**  
+- **Mean Shift Clustering Algorithm**  
+- **Optimization of Extensive Cancellation Algorithm**  
+- **Log-Likelihood as a Statistical Benchmark** for tracking filter performance  
+- **Ground Truth Calculations for FERS** using cubic waypoints  
+
+---
+
+## How to Run the Code
+
+### Running a Tracking Filter
+To execute a tracking filter in MATLAB, use the command:  
+```matlab
+runTrackingFilterPlot
+```
+
+### Running Tracking filter Evaluations
+To execute the Performance evaluation script in MATLAB, use the command:  
+```matlab
+runEvaluateTrackingFilter
+```

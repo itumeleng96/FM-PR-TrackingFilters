@@ -34,10 +34,12 @@ Additionally, this repository includes implementations of:
 
   ![CFAR Results](/Simulation_results/CFAR/cacfar_pfa-8.svg)
 
-- **Multi-Target Tracker**  
+- **Multi-Target Tracker**
+  
   ![MTT Results](/Simulation_results/Picture4.png)
 
-- **Mean Shift Clustering Algorithm**   
+- **Mean Shift Clustering Algorithm**
+   
   ![CFAR Centroid Results](/Simulation_results/CFAR/centroidCFAR.png)
   
 - **Optimization of Extensive Cancellation Algorithm**

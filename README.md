@@ -12,14 +12,28 @@
 <li>5.Covariance Scaling Techniques</li>
 
 #### Other algorithms implemented
-<li>Constant False Alarm Rate Filter </li>
-![Alt text](/Simulation_results/cfar.png)
+- Constant False Alarm Rate Filter  
 
-<li>Multi-target Tracker</li>
-<li>MeanshiftCluster</li>
-<li>Log-likelihood as a statistical Benchmark for the Performance of Tracking Filters </li>
-<li>Ground truth calculations for FERS for cubic waypoints</li>
+  ![CFAR Results](/Simulation_results/CFAR/cacfar_pfa-8.svg)
 
+- Multi-target Tracker
+
+    <video controls width="485">
+        <source src="/Simulation_results/mttOutput.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+- MeanshiftCluster 
+  ![CFAR Centroid Results](/Simulation_results/CFAR/centroidCFAR.png)
+
+- Log-likelihood as a statistical Benchmark for the Performance of Tracking Filters
+
+   ![Log Likelihood](/Simulation_results/FERS_scenarios/360_range_ll_1.svg)
+
+- Ground truth calculations for FERS for cubic waypoints
+
+   ![GT](/Simulation_results/FERS_scenarios/3D_360.svg)
+   ![GT](/Simulation_results/FERS_scenarios/rangeDoppler360.svg)
 
 ## How to run the tracking Filter in the Matlab Terminal
 <li> runTrackingFilterPlot </li>

@@ -35,11 +35,7 @@ Additionally, this repository includes implementations of:
   ![CFAR Results](/Simulation_results/CFAR/cacfar_pfa-8.svg)
 
 - **Multi-Target Tracker**  
-
-    <video controls width="485">
-        <source src="/Simulation_results/mttOutput.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+  ![MTT Results](/Simulation_results/Picture4.png)
 
 - **Mean Shift Clustering Algorithm**   
   ![CFAR Centroid Results](/Simulation_results/CFAR/centroidCFAR.png)

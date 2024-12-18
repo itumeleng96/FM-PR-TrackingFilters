@@ -13,6 +13,8 @@
 
 #### Other algorithms implemented
 <li>Constant False Alarm Rate Filter </li>
+![Alt text](/Simulation_results/cfar.png)
+
 <li>Multi-target Tracker</li>
 <li>MeanshiftCluster</li>
 <li>Log-likelihood as a statistical Benchmark for the Performance of Tracking Filters </li>

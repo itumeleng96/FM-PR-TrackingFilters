@@ -40,7 +40,7 @@ Additionally, this repository includes implementations of:
 
 - **Mean Shift Clustering Algorithm**
    
-  ![CFAR Centroid Results](/Simulation_results/CFAR/centroidCFAR.png)
+  ![CFAR Centroid Results](/Simulation_results/cfar_centroids.png)
   
 - **Optimization of Extensive Cancellation Algorithm**
 

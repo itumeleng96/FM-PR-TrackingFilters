@@ -1,7 +1,7 @@
 
 # Covariance Scaling Kalman Filter
 
-A Matlab implementation of the ovariance Scaling Kalman Filter for tracking in 
+A Matlab implementation of the Covariance Scaling Kalman Filter for tracking in 
 the Bistatic Range and  Doppler Domain.
 
 

@@ -5,4 +5,4 @@ the Bistatic Range and  Doppler Domain.
 
 ## RGNF.m
 
-The above matlab script contains the Matlab Class.
+The above Matlab script contains the Matlab Class.

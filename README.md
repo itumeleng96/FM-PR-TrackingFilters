@@ -8,7 +8,7 @@ Master's Dissertation Repository
 
 ## Overview
 
-This repository contains the code implementations of tracking filters designed for an **FM Passive Radar System**. The content is organized into:
+This repository contains the code implementations of tracking filters designed for a **FM Passive Radar System**. The content is organized into:
 - **Simulation code**: Includes the processing chain and all necessary (Flexible Extensible Radar Simulator) files for simulating radar scenarios.
 - **Tracking Filter Algorithms**: Different Tracking filters used in the simulations.
 

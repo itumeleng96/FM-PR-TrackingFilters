@@ -5,5 +5,5 @@ the Bistatic Range and  Doppler Domain.
 
 ## UnscentedkalmanFilter.m
 
-The above matlab script contains the Matlab Class.
+The above Matlab script contains the Matlab Class.
 

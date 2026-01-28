@@ -56,7 +56,7 @@ multiTargetTracker2 = multiTargetTracker(confirmationThreshold, deletionThreshol
 multiTargetTracker3 = multiTargetTracker(confirmationThreshold, deletionThreshold, gatingThreshold, 5); % UKF
 multiTargetTracker4 = multiTargetTracker(confirmationThreshold, deletionThreshold, gatingThreshold, 7); % RGNF
 
-num_simulations = 100;
+num_simulations = 1000;
 % Initialize arrays to store processing times for each second
 pred_time_kalman = zeros(simulation_time, num_simulations);
 update_time_kalman = zeros(simulation_time, num_simulations);
@@ -136,40 +136,42 @@ end
 simulation_time = 60;
 
 % Calculate average processing times across simulations for each filter at every second
-avg_pred_time_kalman = mean(pred_time_kalman, 2);
-avg_update_time_kalman = mean(update_time_kalman, 2);
-avg_pred_time_particle = mean(pred_time_particle, 2);
-avg_update_time_particle = mean(update_time_particle, 2);
-avg_pred_time_ukf = mean(pred_time_ukf, 2);
-avg_update_time_ukf = mean(update_time_ukf, 2);
-avg_pred_time_rgnf = mean(pred_time_rgnf, 2);
-avg_update_time_rgnf = mean(update_time_rgnf, 2);
+avg_pred_time_kalman = mean(pred_time_kalman, 2)*1e6;
+avg_update_time_kalman = mean(update_time_kalman, 2)*1e6;
+avg_pred_time_particle = mean(pred_time_particle, 2)*1e6;
+avg_update_time_particle = mean(update_time_particle, 2)*1e6;
+avg_pred_time_ukf = mean(pred_time_ukf, 2)*1e6;
+avg_update_time_ukf = mean(update_time_ukf, 2)*1e6;
+avg_pred_time_rgnf = mean(pred_time_rgnf, 2)*1e6;
+avg_update_time_rgnf = mean(update_time_rgnf, 2)*1e6;
 
-% Time axis based on the number of seconds in the simulation
-time = 1:simulation_time;
+% Time axis 
+time = 1:size(avg_pred_time_kalman, 1);
 
-% Plotting the line graph for prediction times across 60 seconds
-figure;
+% Plotting the line graph for prediction times
+figure(1);
 plot(time, avg_pred_time_kalman, 'g', 'LineWidth', 0.5); hold on;
 plot(time, avg_pred_time_particle, 'b', 'LineWidth', 0.5);
 plot(time, avg_pred_time_ukf, 'r', 'LineWidth', 0.5);
 plot(time, avg_pred_time_rgnf, 'k', 'LineWidth', 0.5);
 xlabel('Time (s)', 'FontSize', 18);
-ylabel('Average Prediction Time (s)', 'FontSize', 18);
+ylabel('Average Prediction Time (\mus)', 'FontSize', 20);
 title('Average Prediction Time per Second for Each Filter', 'FontSize', 20);
-legend('Kalman filter', 'Particle filter', 'UKF', 'RGNF', 'Location', 'best', 'FontSize', 16);
+legend('Kalman filter', 'Particle filter', 'UKF', 'RGNF', ...
+       'Location', 'best', 'FontSize', 16);
 grid on;
 hold off;
 
-% Plotting the line graph for update times across 60 seconds
-figure;
+% Plotting the line graph for update times
+figure(2);
 plot(time, avg_update_time_kalman, 'g', 'LineWidth', 0.5); hold on;
 plot(time, avg_update_time_particle, 'b', 'LineWidth', 0.5);
 plot(time, avg_update_time_ukf, 'r', 'LineWidth', 0.5);
 plot(time, avg_update_time_rgnf, 'k', 'LineWidth', 0.5);
 xlabel('Time (s)', 'FontSize', 18);
-ylabel('Average Update Time (s)', 'FontSize', 18);
+ylabel('Average Update Time (\mus)', 'FontSize', 20);
 title('Average Update Time per Second for Each Filter', 'FontSize', 20);
-legend('Kalman filter', 'Particle filter', 'UKF', 'RGNF', 'Location', 'best', 'FontSize', 16);
+legend('Kalman filter', 'Particle filter', 'UKF', 'RGNF', ...
+       'Location', 'best', 'FontSize', 16);
 grid on;
 hold off;

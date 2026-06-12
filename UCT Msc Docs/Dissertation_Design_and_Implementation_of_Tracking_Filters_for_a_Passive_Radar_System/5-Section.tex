@@ -1,0 +1,491 @@
+\newpage
+\chapter{Performance Evaluation of Tracking Filters}
+\section{Introduction}
+In Chapter 4, results from various tracking filters, \ac{MTT} techniques, and algorithms used in the \ac{Radar} processing chain were illustrated. The impact of different parameters for these filters was also observed, demonstrating that the optimal tracking parameters must be obtained to achieve optimal tracking filters for the target of interest.
+
+This chapter focuses on evaluating the tracking filters across various simulated scenarios using \ac{FERS} simulations. The log-likelihood statistic is used as a benchmark for performance evaluation, alongside computational load for comparison between the different filters. The data association technique is also assessed using various data association metrics. 
+
+\section{Range and Doppler Log-Likelihood}
+ The log-likelihood discussed in the theory section is used as a statistical benchmark to evaluate the filter outputs in both the bistatic range and Doppler domains in contrast to using metrics such as \ac{RMSE} that do not account for the tracking filter's level of uncertainty.
+
+The 60s simulation demonstrated in Chapter 4 in Figures \ref{fig:targetpath2} and \ref{fig:groundtruth2} is used here to demonstrate the log-likelihood outputs of the tracking filters. The ground truth data for these simulations is calculated by computing the bistatic range and Doppler shifts from the Cartesian coordinates used in the \ac{FERS} simulator. Since ground truth data is available, the log-likelihood is evaluated using the ground truth and the error covariance matrix \( \mathbf{P} \). The scenario from chapter 4 is considered, Figure \ref{fig:simpleScenarioOutput} illustrates the tracking filter predictions with the ground truth data and measurements.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.7\linewidth,inkscapelatex=false]{Figure/TF_OutputsSimpleScenario.svg}
+    \caption{Tracking filter predictions, ground truth data and observations}
+    \label{fig:simpleScenarioOutput}
+\end{figure}
+
+To meet the tracking requirements and ensure robust, consistent predictions, the covariance scaling technique described in the theory section was implemented. This approach effectively minimizes the influence of outliers associated with the track, enhancing the stability of the tracking filters. Additionally, the filters were tuned to prevent excessive influence of the measurements in the bistatic range, where limited range resolution and range-smearing are prominent challenges. As a result, the tracking filter predictions, shown in Figure \ref{fig:simpleScenarioOutput}, exhibit reduced variability compared to the measurements closely matching the ground truth motion pattern. To statistically quantify the performance of the tracking filters, the log-likelihood is used.
+
+The log-likelihood, using the ground truth and error covariance matrix \(\mathbf{P}\), provides insight into how well the estimated states represent the actual ground truth data while accounting for uncertainty. As the alignment between the estimates and the ground truth improves, the likelihood increases and the natural logarithm of the likelihood approaches zero. Over time, the error covariance matrix \(\mathbf{P}\) is expected to decrease as the model processes more data, reflecting a consistent filter. This decreasing trend in \(\mathbf{P}\) indicates that the filter's uncertainty decreases, resulting in the filter being more confident in it's predictions, effectively blending information from the process model and measurements to recursively refine its estimates \cite{chen2018weak}.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.75\linewidth,inkscapelatex=false]{Figure/loglikeSimpleScenarioRange.svg}
+    \caption{Range Log-Likelihood results}
+    \label{fig:rangeLogLikeP}
+\end{figure}
+
+By observing the range log-likelihood results for the different filters, initially, the log-likelihood has high negative values, indicating high uncertainty and a very low likelihood. The \ac{RGNF} converges just before 10s, suggesting that it processes and adapts to the data more quickly compared to the Kalman Filter. This rapid convergence may indicate that the \ac{RGNF} is more efficient under certain conditions. In contrast, the \ac{PF} and the \ac{UKF} show very low initial values of the log-likelihood. This behaviour is due to their initialization process, where particles or sigma points in the case of the \ac{UKF}  are distributed around the mean which results in the log-likelihood result fluctuating before the filters converge.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.7\linewidth,inkscapelatex=false]{Figure/loglikeSimpleScenarioDoppler.svg}
+    \caption{Doppler Log-Likelihood results}
+    \label{fig:dopplerLogLikeP}
+\end{figure}
+
+The Doppler log-likelihood displays a similar trend, with filters showing consistency until encountering corrupted measurements at around 15s and again at 30s due to zero Doppler cancellation impacting the \ac{CFAR} outputs. This demonstrates the tracking filters' capability to converge and recognize unlikely measurements and adjust as necessary. These findings align with the analysis in \cite{labbe2014kalman}, where the tracking filter log-likelihood approaches zero until disrupted by poor measurements. 
+
+The ability to identify improbable measurements is essential for providing sensible estimates for our target of interest, especially in the bistatic range and Doppler domain, where sudden manoeuvres are unexpected for our target trajectories. Covariance scaling techniques help reject some of these bad measurements, which are incorporated into the tracking filter update process by the data association technique. However, for other design cases, it might be necessary to increase the sensitivity of the tracking filter by adjusting the measurement covariance matrix to ensure the filter estimates follow the measurements closely for highly manoeuvring targets. However, in this case, the filters are designed to reject outliers and any unlikely measurements to ensure robust estimations. The log-likelihood is further used to assess the tracking filter estimations for other tracking scenarios in the subsequent subsections.
+
+\section{Computational Load and Processing Time}
+To further assess the performance of the tracking filters, the computational load is observed to understand the processing constraints and their suitability for real-time applications in \ac{PR} systems for tracking commercial aircraft. In \ac{MTT} systems the focus is typically on achieving the best accuracy, often at the expense of slower runtime performance \cite{bewley2016simple}. Although such trade-offs may be acceptable in offline processing, they are critical for real-time applications. Following some of the methodologies discussed in the literature review, both the computational load and the processing time of each filter are considered for the performance evaluation. The tracking filter benchmarks are performed on a machine with the specifications outlined in Figure \ref{tab:system_specs}.
+\newline
+\begin{table}[H]
+    \centering
+    \begin{tabular}{ l  l }
+        \toprule
+        Hardware Model & Dell Inc. Precision 7760 \\
+        Memory & 32.0 GiB \\
+        Processor & 11th Gen Intel\textsuperscript{\textregistered} Core\textsuperscript{TM} i7-11850H @ 2.50GHz × 16 \\
+        Graphics & NVIDIA Corporation GA104GLM [RTX A3000 Mobile] \\
+        Disk Capacity & 1.0 TB \\
+        \bottomrule
+    \end{tabular}
+    \caption{Specifications of the machine used for Performance Evaluation}
+    \label{tab:system_specs}
+\end{table}
+
+\subsection{Processing Time}
+The processing time was evaluated by measuring the average run time of the filters with 1000 Monte Carlo simulations. Each simulation ran for 60s to track a single target in the bistatic range and Doppler domain. To quantify computational efficiency, the MATLAB `tic` and `toc` functions are used to time the execution of the prediction and update stages for each filter at every second of the simulation, similar to the approach followed in \cite{Boyer2012} and \cite{Salih2011}.
+
+The average runtime focuses on the execution times of the prediction and update stages of the filters, excluding data association and track management, which are handled by the \ac{MTT} algorithm. Figures \ref{fig:timeUpdate} and \ref{fig:timePrediction} show that during the update stage, the filters have similar average runtime, with the \ac{RGNF} and the \ac{UKF} having a slightly faster runtime and the \ac{PF} significantly slower.
+\newline
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.65\linewidth,inkscapelatex=false]{Figure/AveragePredictionTime_microsec.svg}
+    \caption{Average Filter Prediction Stage Processing Time per scan for a 60s simulation}
+    \label{fig:timePrediction}
+\end{figure}
+In typical \ac{PR} systems, \ac{CPI} and update rates are commonly on the order of 0.5–1 s \cite{coloneECA}. This implies that the tracking filter must complete its prediction and update stages within this interval to satisfy real-time constraints. As observed from Figures \ref{fig:timeUpdate} and \ref{fig:timePrediction}, the measured per-scan processing times of the tracking filters are in the microsecond range, which are several orders of magnitude lower than the real-time threshold, which indicates that all the tracking filters satisfy real-time requirements for single-target tracking.
+\newline
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.65\linewidth,inkscapelatex=false]{Figure/AverageUpdateTime_microsec.svg}
+    \caption{Average Filter Update Stage Processing time per scan for a 60s simulation}
+    \label{fig:timeUpdate}
+\end{figure}
+A significant difference is observed in the prediction time of the \ac{PF}, which is considerably higher than that of other tracking filters. This is expected, as the \ac{PF} prediction stage involves generating particles around the state vector mean. The computational cost increases with the number of particles, requiring matrix multiplications, mean calculations, and weight updates. Although matrix multiplication is efficient in MATLAB, the combined complexity of these operations impacts the overall performance of the \ac{PF}. Although the increased computational cost of the \ac{PF} does not violate real-time constraints for the single-target scenario case considered here, its impact becomes more significant in an \ac{MTT} framework, where the filtering process is executed independently for each track, and the overall computational burden increases approximately linearly with the number of targets.
+
+
+\subsection{Computational Load}
+To further assess the computational demands of the tracking filters, the relative computational loads are considered. The relative computational load is used to indicate the computational complexity of each filter similar to the approach followed by \cite{Li2021}.
+
+\[
+\text{Relative computational load} = \frac{\text{Average runtime of the filter}}{\text{Average runtime of the Kalman Filter}}
+\]
+\newline
+The Kalman Filter is used as the baseline due to the simplicity of its prediction and update function structure. The average runtime of the tracking filters for both the update and prediction stages are considered throughout the 60s simulation, this is repeated for 1000 Monte-Carlo simulations to obtain the average values.
+\newline
+\begin{table}[H]
+    \centering
+    \caption{Comparison of Relative Computational Load for the Tracking Filters}
+    \begin{tabular}{l c c}
+        \toprule
+        \textbf{Tracking Filter} & \textbf{Ratio (Update Stage)} & \textbf{Ratio (Prediction Stage)} \\
+        \midrule
+        Kalman Filter & 1 & 1 \\ 
+        UKF & 0.96 & 1.39 \\ 
+        Particle Filter & 6.53 & 3.56 \\ 
+        RGNF & 1.12 & 1.08 \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:filter_comparison}
+\end{table}
+Table \ref{tab:filter_comparison} shows that the \ac{PF}’s prediction stage is about 3.5 times slower than the Kalman Filter, and its update stage is over six times slower due to the complexity of particle generation, weight updating, and matrix operations. The \ac{UKF} has a prediction stage 1.39 times slower due to the \ac{UT} process but a slightly faster update stage (0.96). The \ac{RGNF} is similar to the Kalman Filter, with a prediction stage 1.08 times slower and an update stage 1.12 times slower due to its iterative nature, which requires more computations to converge. These results align with expectations based on the structural differences between the filters, where more complex filters such as the \ac{PF} and \ac{UKF} naturally incur higher computational costs.
+
+\section{FERS Target Trajectory Scenarios}
+Various commercial aircraft trajectories in the bistatic range and Doppler domain are analysed to evaluate the performance of tracking filters on targets exhibiting typical flight manoeuvres. These simulations are conducted using \ac{FERS}, to look at different trajectories for a comprehensive assessment. The logarithmic likelihood metric is used to compare the accuracy of tracking filter estimates against the ground truth.
+
+Some of the most common aircraft manoeuvres include but are not limited to: climbs and climb-turns during take-off, descents and descent-turns during landing, and 360-degree turns. These manoeuvres are distinct from a straight-level flight, which typically occurs during cruising at a constant altitude~\cite{badick2021flight}. These distinct flight patterns translate to varying trajectories in the bistatic range and Doppler domain, making them worth investigating. The straight-level flight trajectory from the simulations section in chapter 4 serves as an example of constant-altitude flight, which appears as a turning pattern in the bistatic range and Doppler analysis. In the following subsections, the tracking filters' performance for these common flight manoeuvres are evaluated.
+
+
+\subsection{Landing Manoeuvre}
+The landing manoeuvre trajectory is illustrated in figure~\ref{fig:landing3D}, showing a descent from 5000 meters to 0 meters while making a turn. This trajectory represents a common pattern observed during landing manoeuvres.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.6\linewidth,inkscapelatex=false]{Figure/3D_descent.svg}
+    \caption{Landing manoeuvre trajectory in cartesian coordinates with the target, transmitter antenna (Tx), and the surveillance (SurvRx) and reference (RefRx) receivers.}
+    \label{fig:landing3D}
+\end{figure}
+
+The corresponding bistatic range and Doppler ground truth is shown in figure~\ref{fig:landingGT}. In the bistatic \ac{Radar} scenario depicted in Figure \ref{fig:landing3D}, the aircraft moves away from the receiving antennas before making a turn. This movement is validated by the ground truth calculations shown in Figure \ref{fig:landingGT}, where the Doppler frequency shift initially exhibits high negative values as the aircraft moves away from the bistatic \ac{Radar} setup and transitions to positive values when the aircraft begins to approach the setup.
+\newline 
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.65\linewidth,inkscapelatex=false]{Figure/groundTruthLanding.svg}
+    \caption{Bistatic range and Doppler ground truth for the 120s landing manoeuvre scenario.}
+    \label{fig:landingGT}
+\end{figure}
+
+The tracking filter predictions are shown in Figure~\ref{fig:LandingFilterOutputs}. Followed by the log-likelihood results. When there are no measurements for consecutive update cycles where the targets perform a critical manoeuvre, the tracking filters continue to extrapolate the current trajectory until the track gets deleted or new measurements are available, allowing the tracking filter to make the necessary adjustments. This is observed in Figure \ref{fig:LandingFilterOutputs}. To further evaluate the tracking filter predictions, the log-likelihood results are discussed in the next segment.
+\newline
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth,inkscapelatex=false]{Figure/landing_filter_outputs.svg}
+    \caption{Tracking filter predictions, measurements, and ground truth for the landing manoeuvre scenario.}
+    \label{fig:LandingFilterOutputs}
+\end{figure}
+
+
+\subsubsection{Log-Likelihood}
+The range and Doppler log-likelihood results for the landing manoeuvre are shown in figures~\ref{fig:rangeLogLikeLanding} and~\ref{fig:dopplerLogLikeLanding}. As shown in Figure \ref{fig:landingGT}, the target trajectory begins with low Doppler shift values and progresses into the positive bistatic Doppler region. The target undergoes two turns in the bistatic range and Doppler domain, shown as two peaks in the range log-likelihood across most of the filters, one occurring before the 20s mark and another around  70s mark.
+\newline
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.85\linewidth,inkscapelatex=false]{Figure/landingRangeLL.svg}
+    \caption{Range log-likelihood for the landing manoeuvre scenario.}
+    \label{fig:rangeLogLikeLanding}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.85\linewidth,inkscapelatex=false]{Figure/dopplerLandingLL.svg}
+    \caption{Doppler log-likelihood for the landing manoeuvre scenario.}
+    \label{fig:dopplerLogLikeLanding}
+\end{figure}
+
+In the Doppler log-likelihood plot shown in Figure \ref{fig:dopplerLogLikeLanding}, the \ac{PF}, Kalman Filter, and \ac{RGNF} demonstrate stable estimations when compared statistically to the ground truth. Despite minor abrupt changes in the Doppler domain, these filters produce outputs that closely align with the ground truth. The \ac{UKF} also shows consistency, however, its estimations vary significantly when outliers are present, indicating sensitivity to such disturbances. Due to the high resolution in the Doppler domain, measurements are generally more accurate, and the tracking filters are tuned with a tighter measurement covariance for the Doppler measurements. The drawback of this process is that it can make the filters more susceptible to outliers, which can influence their estimations. Nonetheless, the impact of these outliers is minimized by the ability of covariance scaling methods to adjust the covariances accordingly, mitigating their impact.
+
+\subsection{360-Degree Manoeuvre}
+A 360-degree manoeuvre, or orbit, is typically observed during holding patterns or emergencies. The \ac{3D} trajectory is illustrated in figure~\ref{fig:360_3D}.
+\newline
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth,inkscapelatex=false]{Figure/3D_360.svg}
+    \caption{360-degree manoeuvre trajectory in cartesian coordinates with the target, transmitter antenna (Tx), and the surveillance (SurvRx) and reference (RefRx) receivers.}
+    \label{fig:360_3D}
+\end{figure}
+
+
+    
+The calculated bistatic range and Doppler ground truth are shown in figure~\ref{fig:360RangeDoppler}.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.7\linewidth,inkscapelatex=false]{Figure/rangeDoppler360.svg}
+    \caption{Bistatic range and Doppler ground truth for the 120s 360-degree manoeuvre scenario.}
+    \label{fig:360RangeDoppler}
+\end{figure}
+
+The tracking filter predictions are shown in Figure~\ref{fig:360FilterOutputs}. Followed by the log-likelihood results.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.7\linewidth,inkscapelatex=false]{Figure/360_filter_output.svg}
+    \caption{Tracking filter predictions, measurements, and ground truth for the 360-degree manoeuvre scenario.}
+    \label{fig:360FilterOutputs}
+\end{figure}
+Direct comparison of tracking filter predictions with the ground truth is not straightforward, which is why the log-likelihood is useful for assessing the results. The range predictions show a slight offset, which can be attributed to the filter's covariance measurement matrices being configured to have lower sensitivity in the range domain to mitigate the impact of the range fluctuations.
+
+\subsubsection{Log-Likelihood}
+The range and Doppler log-likelihood results for the 360-degree manoeuvre are presented in figures~\ref{fig:rangeLogLike360} and~\ref{fig:dopplerLogLike360}. The bistatic range log-likelihood shows deviations from the ground truth around 50s, when the target begins to turn, as seen in figure~\ref{fig:360RangeDoppler}. The second turn, near the end of the trajectory, does not cause significant deviation in the range log-likelihood due to the low rate of change in the bistatic range. Although this turn appears geometrically similar to the first, it occurs at lower Doppler frequency shifts, allowing the filters to adjust their estimates smoothly. The corresponding Doppler log-likelihood is shown in figure~\ref{fig:dopplerLogLike360}.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.7\linewidth,inkscapelatex=false]{Figure/360_range_ll.svg}
+    \caption{Range log-likelihood for the 360-degree manoeuvre scenario.}
+    \label{fig:rangeLogLike360}
+\end{figure}
+
+The Kalman Filter, \ac{RGNF}, and \ac{PF} show more stable results than the \ac{UKF}. This aligns with the performance observed in the landing manoeuvre scenario, where the tracking filter is sensitive to Doppler measurements. Attempts to tune the \ac{UKF} by reducing sensitivity and adjusting the covariance scaling factor led to track divergence, hindering the filter's ability to maintain target tracking throughout the simulation.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.7\linewidth,inkscapelatex=false]{Figure/360_doppler_ll.svg}
+    \caption{Doppler log-likelihood for the 360-degree manoeuvre scenario.}
+    \label{fig:dopplerLogLike360}
+\end{figure}
+
+\subsection{Take-off Manoeuvre}
+The flight trajectory of a typical climb is illustrated in Figure~\ref{fig:takeoff3D}, designed to emulate altitude changes during aircraft take-off. 
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.6\linewidth,inkscapelatex=false]{Figure/3D_climb.svg}
+    \caption{Take-off manoeuvre trajectory in Cartesian coordinates with the target, transmitter antenna (Tx), and the surveillance (SurvRx) and reference (RefRx) receivers.}
+    \label{fig:takeoff3D}
+\end{figure}
+
+The corresponding bistatic range and Doppler ground truth calculation is shown in figure~\ref{fig:takoffRangeDoppler}.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.6\linewidth,inkscapelatex=false]{Figure/RD_climb.svg}
+    \caption{Bistatic range and Doppler ground truth for a 60s take-off manoeuvre scenario.}
+    \label{fig:takoffRangeDoppler}
+\end{figure}
+
+The target trajectory depicted in Figure \ref{fig:takeoff3D} shows that the target initially approaches the bistatic radar setup before moving away as it gains altitude. This movement results in an increasing bistatic range and a negative bistatic Doppler shift as the target continues to move away. This behaviour is further illustrated and confirmed by the range-Doppler plot shown in Figure \ref{fig:takoffRangeDoppler}.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.7\linewidth,inkscapelatex=false]{Figure/takeoffOutputs.svg}
+    \caption{Tracking filter predictions, measurements, and ground truth for the take-off manoeuvre scenario.}
+    \label{fig:takeoffOutputs}
+\end{figure}
+Figure \ref{fig:takeoffOutputs} shows the tracking filter predictions for a 60s scenario with a short trajectory in the bistatic range and Doppler domain, where measurements are noisier than in the other scenarios. Despite slight deviations during abrupt measurements, the filters successfully track the target. The log-likelihood results are discussed in the next section.
+
+\subsubsection{Log-Likelihood}
+The performance of the tracking filters is evaluated using bistatic range and Doppler log-likelihoods, as shown in figures~\ref{fig:rangeLogLikePtakeoff} and~\ref{fig:dopplerLogLikePTakeoff}. In figure~\ref{fig:rangeLogLikePtakeoff}, the deviations observed at 15s are due to zero Doppler cancellation, indicating missed detections where the filter continues to estimate the state without new observations, resulting in slight deviations from the ground truth.  When missed detections or outlier measurements occur during a change in the trajectory, even with covariance scaling methods reducing their impact, tracking filters may continue to extrapolate incorrectly and only re-align once reliable measurements are available.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth,inkscapelatex=false]{Figure/ll_range_climb.svg}
+    \caption{Range log-likelihood for the take-off manoeuvre scenario.}
+    \label{fig:rangeLogLikePtakeoff}
+\end{figure}
+
+Additional deviations are observed just before 50s and continue as the target begins to turn, causing variations in the range measurements and slight deviations in the tracking filter outputs. The \ac{RGNF} shows the highest log-likelihood values and demonstrates robust performance, maintaining stability and exhibiting minimal changes during these disturbances compared to other filters.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth,inkscapelatex=false]{Figure/ll_doppler_climb_corrections_v1.svg}
+    \caption{Doppler log-likelihood for the take-off manoeuvre scenario.}
+    \label{fig:dopplerLogLikePTakeoff}
+\end{figure}
+
+The bistatic Doppler log-likelihood plot shows that, despite some outliers, the filters maintain consistency, with the \ac{RGNF} and \ac{UKF} achieving the highest log-likelihood values. Sporadic outliers do not cause filter performance divergence. Ideally, log-likelihood values should approach zero, indicating estimates closely match the ground truth. However, achieving this requires balancing sensitivity and resilience to outliers. Tuning filters involves managing this trade-off to minimize log-likelihood spikes. The effectiveness of the covariance scaling technique is evident in Figure \ref{fig:dopplerLogLikePTakeoff}, where unlikely measurements do not cause significant spikes or filter divergence.
+
+To consolidate the performance evaluation across all three flight scenarios and computational metrics, Table~\ref{tab:RankingSummary} provides a ranked summary of each tracking filter's performance, with green highlighting the best performing filter and red the worst for each metric. The \ac{RGNF} demonstrates consistently strong log-likelihood performance across all scenarios, while the \ac{UKF} shows sensitivity to outliers, limiting its consistency. The \ac{PF} ranks last in computational performance, making it unsuitable for real-time processing, whereas the Kalman Filter and \ac{RGNF} offer the most favourable balance between accuracy and computational efficiency.
+\newline
+%%Insert Performance of tracking filters vs Different Metrics for feedback[16]
+\begin{table}[H]
+    \centering
+    \colorlet{bestcell}{green!30}
+    \colorlet{worstcell}{red!30}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{5.5cm} c c c c}
+        \toprule
+        \textbf{Metric} & \textbf{Kalman Filter} & \textbf{UKF} & \textbf{PF} & \textbf{RGNF} \\
+        \midrule
+        \multicolumn{5}{l}{Log-likelihood (Landing Scenario)} \\
+        \quad Bistatic Range   & 2 & 3 & \cellcolor{worstcell}4 & \cellcolor{bestcell}1 \\
+        \quad Bistatic Doppler & 3 & \cellcolor{bestcell}1 & \cellcolor{worstcell}4 & 2 \\
+        \cmidrule(lr){1-5}
+        \multicolumn{5}{l}{Log-likelihood (360° Manoeuvre)} \\
+        \quad Bistatic Range   & 3 & \cellcolor{bestcell}1 & \cellcolor{worstcell}4 & 2 \\
+        \quad Bistatic Doppler & 3 & 2                     & \cellcolor{worstcell}4 & \cellcolor{bestcell}1 \\
+        \cmidrule(lr){1-5}
+        \multicolumn{5}{l}{Log-likelihood (Take-off)} \\
+        \quad Bistatic Range   & 2 & 3                     & \cellcolor{worstcell}4 & \cellcolor{bestcell}1 \\
+        \quad Bistatic Doppler & 2 & \cellcolor{bestcell}1 & \cellcolor{worstcell}4 & 3 \\
+        \midrule
+        Prediction Time & 3 & 2                  & \cellcolor{worstcell}4 & \cellcolor{bestcell}1 \\
+        Update Time     & 3 & 2                  & \cellcolor{worstcell}4 & \cellcolor{bestcell}1 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Ranked summary of tracking filter performance across log-likelihood metrics for the three flight scenarios and computational performance. Where green indicates the best performing filter and red indicates the worst for each metric.}
+    \label{tab:RankingSummary}
+\end{table}
+
+
+
+\subsubsection{Tracking Filters Optimal Parameters}
+The parameters for the filters used in the different tracking scenarios are summarized in tables~\ref{tab:kalman_parameters}, \ref{tab:ukf_parameters1}, \ref{tab:particle_filter_parameters}, and \ref{tab:rgnf_parameters}.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{l c}
+        \toprule
+        \textbf{Parameter} & \textbf{Kalman Filter} \\
+        \midrule
+        \(S_{w1}\) & 0.05 \\
+        \(S_{w2}\) & 0.8 \\
+        \(\sigma^2_{range}\) & 4.9 \\
+        \(\sigma^2_{doppler}\) & 0.8 \\
+        covariance scaling \(\alpha\) & 0.6\\
+        \bottomrule
+    \end{tabular}
+    \caption{Parameters for the Kalman Filter.}
+    \label{tab:kalman_parameters}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{l c}
+        \toprule
+        \textbf{Parameter} & \textbf{UKF} \\
+        \midrule
+        \(S_{w1}\) & 0.75 \\
+        \(S_{w2}\) & 0.9 \\
+        \(\sigma^2_{range}\) & 4.9 \\
+        \(\sigma^2_{doppler}\) & 0.5 \\
+        \(n\) & 4 \\
+        \(\alpha\) & 0.01 \\
+        \(\kappa\) & 0 \\
+        \(\beta\) & 2 \\
+        covariance scaling \(\alpha\) & 0.7\\
+        \bottomrule
+    \end{tabular}
+    \caption{Parameters for the UKF.}
+    \label{tab:ukf_parameters1}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{l c}
+        \toprule
+        \textbf{Parameter} & \textbf{PF} \\
+        \midrule
+        \(S_{w1}\) & 0.25 \\
+        \(S_{w2}\) & 1.9 \\
+        \(\sigma^2_{range}\) & 2 \\
+        \(\sigma^2_{doppler}\) & 3.9 \\
+        Number of Particles & 10000 \\
+        covariance scaling \(\alpha\) & 0.6\\
+        \bottomrule
+    \end{tabular}
+    \caption{Parameters for the Particle Filter.}
+    \label{tab:particle_filter_parameters}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{l c}
+        \toprule
+        \textbf{Parameter} & \textbf{RGNF} \\
+        \midrule
+        \(S_{w1}\) & 0.05 \\
+        \(S_{w2}\) & 0.56 \\
+        \(\sigma^2_{range}\) & 4.7 \\
+        \(\sigma^2_{doppler}\) & 0.98 \\
+        \(\lambda\) & 0.9 \\
+        Max Iterations & 100 \\
+        Tolerance & \(1 \times 10^{-3}\) \\
+        covariance scaling \(\alpha\) & 0.8\\
+        \bottomrule
+    \end{tabular}
+    \caption{Parameters for the RGNF filter.}
+    \label{tab:rgnf_parameters}
+\end{table}
+
+From Tables \ref{tab:kalman_parameters} - \ref{tab:rgnf_parameters}, it can be observed that the different filters have different parameters, making direct performance comparisons appear convoluted when using metrics like \ac{RMSE}, which evaluate only the filter outputs. In contrast, the log-likelihood metric incorporates the filter's innovation covariance matrix, providing a more comprehensive measure of the filter’s overall uncertainty and confidence, making the comparison more meaningful with considerations of the filter's level of confidence in its outputs.  
+\newline
+
+\subsection{Data Association Performance}
+
+The performance of \ac{MTT} is critical for comparing the effectiveness of different tracking filters. Although only one data association technique is used, the variations in covariance matrices produced by the different tracking filters lead to different behaviours of the \ac{GNN}. The covariance matrix plays a role in determining the gating threshold and in identifying the closest target to the tracker's prediction, both of which significantly impact the performance of the data association process.
+
+To evaluate the performance, key metrics such as false track confirmation, true track confirmation, and true track deletion are considered. The approach follows the methodology outlined in \cite{kennedy2014powerful}. The false track confirmation metric assesses the number of incorrectly confirmed tracks, while the true track confirmation metric quantifies the number of correctly identified tracks. Lastly, true track deletion assesses the number of correct tracks that are deleted. Different simulations were designed to assess each of the metrics.
+\newline
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\linewidth}
+        \centering
+        \includesvg[height=6cm,inkscapelatex=false]{Figure/mtt_3_cfar_corrections_v1.svg}
+        \caption{MTT CFAR.}
+        \label{mtt_3_cfar}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\linewidth}
+        \centering
+        \includesvg[height=6cm,inkscapelatex=false]{Figure/mtt_3_tracking_corrections_v1.svg}
+        \caption{MTT outputs.}
+        \label{mtt_3_track}
+    \end{subfigure}
+    \caption{The MTT outputs illustrate the formation and maintenance of different tracks, each represented by a unique track ID. The CFAR plot displays both the current position centroids of the targets in red and their tracks, shown in grey.}
+\end{figure}
+
+To evaluate the performance of the data association technique, the \ac{MTT} scenario with 3 targets from Figures \ref{fig:mtt_targetpath} and \ref{fig:mtt_groundtruth}  is also considered here as depicted in the \ac{CFAR} and the output showing the measurements and the \ac{MTT} outputs in Figures \ref{mtt_3_cfar} and \ref{mtt_3_track} respectively.
+
+\subsubsection{True Track Confirmation}
+True track confirmation is determined by counting the number of true tracks confirmed in a \ac{MTT} scenario involving three targets. This is assessed over various false alarm probabilities and 1,000 Monte Carlo simulations, focusing on the first 10 update cycles. The average number of confirmed true tracks is calculated by dividing the total count by the number of Monte-Carlo simulations conducted.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{l c c c c}
+        \toprule
+        \textbf{\(P_{fa}\)} & \textbf{Kalman Filter} & \textbf{UKF} & \textbf{PF} & \textbf{RGNF} \\
+        \midrule
+        \(10^{-5}\) & \cellcolor{bestcell}3  & \cellcolor{bestcell}3  & \cellcolor{bestcell}3 & \cellcolor{bestcell}3 \\
+        \(10^{-6}\) & 2                      & \cellcolor{bestcell}3  & \cellcolor{bestcell}3 & \cellcolor{bestcell}3 \\
+        \(10^{-7}\) & 2                      & 2                      & \cellcolor{bestcell}3 & \cellcolor{bestcell}3 \\
+        \(10^{-8}\) & \cellcolor{bestcell}3  & \cellcolor{bestcell}3  & \cellcolor{bestcell}3 & \cellcolor{bestcell}3 \\
+        \(10^{-9}\) & 2                      & \cellcolor{worstcell}1 & \cellcolor{bestcell}3 & \cellcolor{bestcell}3 \\
+        \bottomrule
+    \end{tabular}
+    \caption{The number of true track confirmations for the various tracking filters across
+             different values of \(P_{fa}\), where green indicates
+             the best result and red indicates the worst result.}
+    \label{tab:Ptt}
+\end{table}
+
+
+The number of true tracks in the \ac{MTT} scenario is observed as 3, because there are 3 defined targets in the \ac{FERS} scenario. The \ac{RGNF} and \ac{PF} shows better performance even at very low values of the \(p_{fa}\) as compared to the Kalman Filter and \ac{UKF} that result in deleted true tracks.
+
+\subsubsection{False Track Confirmation}
+False track confirmation is determined by counting the number of false tracks confirmed in an \ac{MTT} scenario. This is evaluated across different false alarm probabilities over 1,000 Monte Carlo simulations, focusing on the first 10 update cycles.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{l c c c c}
+        \toprule
+        \textbf{\(P_{fa}\)} & \textbf{Kalman Filter} & \textbf{UKF} & \textbf{PF} & \textbf{RGNF} \\
+        \midrule
+        \(10^{-5}\) & 3                     & \cellcolor{worstcell}4 & \cellcolor{worstcell}4 & \cellcolor{worstcell}4 \\
+        \(10^{-6}\) & 2                     & 2                      & 2                      & 1 \\
+        \(10^{-7}\) & 2                     & 2                      & 1                      & 1 \\
+        \(10^{-8}\) & 2                     & 1                      & 2                      & 2 \\
+        \(10^{-9}\) & 1                     & \cellcolor{bestcell}0  & 1                      & 1 \\
+        \bottomrule
+    \end{tabular}
+    \caption{The number of false track confirmations for the various tracking filters across
+             different values of \(P_{fa}\), where green indicates
+             the best result and red indicates the worst result.}
+    \label{tab:Pft}
+\end{table}
+
+At high false alarm probabilities, numerous false alarms occur, leading to the confirmation of many false tracks by the data association technique. However, as the probability of false alarm (PFA) for the \ac{CFAR} decreases, fewer false tracks are confirmed across all tracking filters, as expected.
+
+\subsubsection{True Track Deletion}
+True track deletion is measured by counting the number of true tracks removed in the \ac{MTT} scenario. This is evaluated across different false alarm probabilities over a 60s simulation, focusing on tracks that are prematurely deleted. The number of true track deletions aims to evaluate how easily a track is deleted as a result of missed detection from the \ac{CFAR} or measurements falling outside the track's gate.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{l c c c c}
+        \toprule
+        \textbf{\(P_{fa}\)} & \textbf{Kalman Filter} & \textbf{UKF} & \textbf{PF} & \textbf{RGNF} \\
+        \midrule
+        \(10^{-5}\) & 1                      & \cellcolor{bestcell}0 & \cellcolor{bestcell}0 & \cellcolor{bestcell}0 \\
+        \(10^{-6}\) & 1                      & \cellcolor{bestcell}0 & \cellcolor{bestcell}0 & \cellcolor{bestcell}0 \\
+        \(10^{-7}\) & 1                      & \cellcolor{bestcell}0 & 1                     & 1 \\
+        \(10^{-8}\) & \cellcolor{worstcell}2 & \cellcolor{bestcell}0 & 1                     & 1 \\
+        \(10^{-9}\) & \cellcolor{worstcell}2 & 1                     & 1                     & 1 \\
+        \bottomrule
+    \end{tabular}
+    \caption{The number of true track deletions for the various tracking filters across
+             different values of \(P_{fa}\), where green indicates
+             the best result and red indicates the worst result.}
+    \label{tab:Pttd}
+\end{table}
+
+Ideally, the number of deleted true tracks should be zero for the selected \(P_{fa}\). However, tracks may be deleted when \ac{CFAR} detections are absent for several updates or when a series of poor measurements is associated with a track. With the chosen \(P_{fa}\) of \(10^{-6}\), the Kalman Filter results in one deleted track, while other tracking filters show better performance. As the \(P_{fa}\) value increases, more true tracks are deleted due to a significant reduction in detections from the \ac{CFAR}.
+
+
+%\label{Tracking_filter_performance_on_real_data}
+
+%\section{Multiple Concurrent Filters}
+%\label{multiple_concurrent_filters}
+
+\section{Conclusions}
+This section primarily evaluates the performance of tracking filters and the \ac{MTT} technique introduced in the simulations (chapter 4). The log-likelihood served as a statistical benchmark, assessing tracking filters based on bistatic range and Doppler log-likelihood outcomes across different scenarios. This benchmark highlighted consistent filter performance and underscored the importance of evaluating filters not only by error relative to ground truth but also through a statistical approach that considers filter uncertainty. Tuning was essential to achieving optimal filter performance. In a simple target scenario, log-likelihood results showed that filters could recover from erroneous measurements, with the impact mitigated by the implemented covariance scaling methods.
+
+Computational load and processing time are critical for online processing, revealing that \ac{PF}s add considerable overhead and they are generally unnecessary for linear dynamic target problems where Kalman Filters and \ac{RGNF} provide optimal performance. Based on the results summarised in Table~\ref{tab:RankingSummary}, where tracking accuracy is the primary concern, the \ac{RGNF} is the recommended filter, demonstrating the most consistent performance across all evaluated scenarios. For applications prioritising minimal hardware load for real-time online processing, the Kalman Filter is recommended, as the \ac{RGNF}, despite its comparable computational cost, incurs additional overhead due to its iterative nature, making the Kalman Filter the more suitable choice where a small compromise in accuracy is acceptable.
+
+Performance under various flight scenarios in \ac{FERS} further showed the significance of tracking filter parameters, as suboptimal choices could degrade performance or cause divergence leading to track and target deletion. The key idea was to ensure that the filters could follow target trajectories while maintaining realistic estimations, even in the presence of poor measurements.
+
+Finally, data association results demonstrated that, with \ac{GNN}, both the gating threshold and filter covariance matrix are crucial for effective track management. A larger gate threshold increases the risk of associating incorrect measurements with a track, while an overly restrictive threshold can lead to missed detections. The M-out-of-N track association technique also plays a vital role, as confirming tracks too quickly may result in false tracks, while a larger M value may prevent confirmation of true tracks. Evaluation of data association techniques further showed that a higher probability of false alarms led to more erroneous track confirmations.

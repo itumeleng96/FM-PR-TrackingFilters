@@ -1,0 +1,142 @@
+\newpage
+\pagenumbering{arabic}
+\chapter{Introduction}
+Ever since the emergence of \ac{Radar} technology before World War II, there has been a tremendous evolution in the space of \ac{Radar}, initially, these systems were designed for detection and determining the range of targets. \ac{Radar} systems have now advanced significantly where modern \ac{Radar} systems have evolved far beyond their initial purpose of detecting targets and computing their distance. Modern systems now integrate advanced functionalities, such as tracking, identifying and classifying targets, even in environments filled with interference or clutter \cite{Richards2010}. In today's world, \ac{Radar} systems play a key role across multiple domains beyond electronic warfare and defense, these include but are not restricted to air traffic control, weather forecasting, maritime navigation, medical imaging, geological surveying, space exploration, satellite tracking, industrial automation and robotics, and collision avoidance systems in both autonomous and conventional vehicles.
+
+\ac{Radar} is defined as an electronic system that emits \ac{RF} \ac{EM} waves towards a specific area, it detects and interprets these \ac{EM} waves after they are reflected back from objects in that area \cite{Richards2010}. Although \ac{Radar} systems may vary, their main components typically include a transmitting antenna, a receiving antenna, and a signal processing subsystem among other components. Active \ac{Radar} systems rely on a dedicated transmitter to illuminate the target environment. \ac{PR} systems, by contrast, are termed  "passive" due to their ability to detect and track objects by passively receiving and analyzing signals from external sources known as illuminators of opportunity such as TV broadcasts, radio, communication signals, or other \ac{EM} waves \cite{De2015}. This characteristic of \ac{PR} systems allows them to operate without emitting any signals. This research focuses on tracking targets using a \ac{FM} \ac{PR} system.
+
+%This chapter is structured as follows: In Section 1.1 an overview of %\ac{PR} is discussed; Section 1.2 discusses the motivation for the %research; Section 1.3 describes the problem statement and lastly, the %objectives and scope are presented in Section 1.4.
+
+\section{Overview}
+Throughout the literature, passive receive-only radar systems are referred to by various names such as \ac{PCL}, \ac{CR}, \ac{PR}, and \ac{PBR} \cite{Willis2007}. However, for the purposes of this research, the term \ac{PR} will be used. \ac{PR} systems operate by recording an antenna channel that has \ac{LoS} to an appropriate non-cooperative transmitter, and simultaneously recording at least one additional channel that surveys the region of interest for locating targets. The received signals from the surveillance and reference channels are commonly referred to as the surveillance signal and the reference signal, respectively \cite{tong2014}. The reference signal is a direct \ac{LoS} recording of the illuminator signal, while the surveillance signal contains the target reflections along with the direct path signal and other interference.
+
+%% Target Detection
+For a target moving at a constant velocity, the received signal's carrier frequency in the reference channel experiences a shift due to the Doppler effect. This shift is determined by the relative velocity between the \ac{Radar} and the target. The Doppler frequency shift is given by Equation (\ref{doppleshift_eq}):
+
+\begin{equation}
+    \ensuremath{f_d} = \frac{2V}{\lambda}
+    \label{doppleshift_eq}
+\end{equation}
+
+here \(\lambda = \frac{c}{f}\) is the wavelength, \(f\) is the carrier frequency, \(c\) is the speed of light,  and \(V\) is the relative velocity between the radar and the target. In a \ac{Radar} system where the receiver and transmitter are colocated (monostatic \ac{Radar}), the transmitted signal travels a distance that is double the distance between the target and the transmitter. By cross-correlating snapshots of the surveillance signal and the reference signal, targets of interest can be detected. This is known as matched filtering, which involves determining the correlation shift where the surveillance signal best matches the reference signal.
+
+%%FERS
+The \ac{UCT}'s \ac{RRSG} has a \ac{FERS} software which aims to simulate the behaviour of \ac{SONAR} and next generation \ac{Radar} systems which can be used to simulate \ac{PR} scenarios. This system was developed in \cite{Goodwin2010} as an open-source software designed for simulating \ac{Radar} systems. It allows users to specify \ac{Radar} hardware parameters, scatterer properties, and object layouts in the simulated environment using XML format. An illustration of the output from \ac{FERS} after cross-correlation between the reference and surveillance signals is illustrated in Figure \ref{fig:ard1}.
+
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.49\linewidth}
+        \centering
+        \includesvg[width=\linewidth,inkscapelatex=false]{Figure/ardAfterDPI_Corrections_v1.svg}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\linewidth}
+        \centering
+        \includesvg[width=\linewidth,inkscapelatex=false]{Figure/ardBeforeDPI_Corrections_v1}
+    \end{subfigure}
+    \caption{Amplitude/Range/Doppler plots produced in Matlab from baseband signals produced with FERS. A single target is simulated where the transmitter signal is a recorded FM waveform. Left:  Amplitude/Range/Doppler map with DPI cancellation. Right: Amplitude/Range/Doppler Map with No DPI cancellation.}
+    \label{fig:ard1}
+\end{figure}
+
+The snapshot in Figure \ref{fig:ard1} is taken at a time update where the target crosses the zero bistatic Doppler frequency, and the zero Doppler cancellation line is observed. One of the key challenges in continuous wave bistatic \ac{Radar} is the \ac{DPI}, which can be classified as the signal from the transmitter to the surveillance/receiving antenna without bouncing off targets. The desired signal is often obscured by the \ac{DPI}, which must be suppressed to enhance the probability of detection \cite{Zhu2006}. The \ac{DPI} and the reflected signal are structurally similar and coherent, differing primarily in their mutual delay and Doppler frequency shift \cite{tong2014}. Zero Doppler cancellation can be used to effectively eliminate the \ac{DPI}, its multi-path and ground clutter, all of which exhibit zero Doppler frequency on the  Range  Doppler map.
+
+The cross-correlation function results in \ac{ARD} plots, where targets are represented as peaks with high amplitudes at positions corresponding to the bistatic Doppler frequency and bistatic range, where bistatic range is the total path length from the transmitter to the target and from the target to the receiver, which defines an elliptical contour in physical space with the transmitter and receiver at the foci, and bistatic Doppler frequency is the frequency shift induced by the relative motion of the target with respect to the transmitter and receiver geometry, with the target's velocity component along the bistatic bisector determining the Doppler shift magnitude and sign. The key observable difference in Figure 1.1 is the deep null at zero Doppler in the left plot, resulting from DPI cancellation, which suppresses the strong zero Doppler component in the right plot representing stationary interference from the DPI, multipath, and clutter. The snapshot, taken as the target crosses zero Doppler, reveals the target detection passing through this cancelled region in the left plot.
+
+To effectively identify and track targets from a \ac{ARD} map, implementing a \ac{CFAR} algorithm is crucial to ensure a constant level of probability of false alarm across varying levels of noise and clutter to identify potential targets. The \ac{CFAR} algorithm adaptively sets a detection threshold on the ARD map by comparing each cell's amplitude against its neighbouring cells, adjusting to the local noise and clutter levels, and outputs the cells that exceed this threshold as detections. Furthermore, more signal processing is required to process the detections from the \ac{CFAR} map to tracks where the targets can be visually followed, such as clustering of detections into individual targets, associating detections across successive frames, filtering target states over time, and maintaining target tracks.
+%%Range smearing
+
+%%Range resolution
+%%Direct path interference
+
+%% Target Localization
+
+%% Illuminators of opportunity
+
+\section{Motivation}
+The main objective of \ac{ATC} in many countries is to monitor aircraft, prevent collisions, organize and streamline the flow of air traffic, and offer information and support for pilots \cite{Porcello2014}. In certain countries, \ac{ATC} fulfils a defensive role and is operated by the military. The most common technologies used for this operation include \ac{SSR} and \ac{ADS-B}. \ac{SSR} transmits interrogation signals and listens for replies from cooperating transponders installed on aircraft \cite{Porcello2014}. The transponder decodes the interrogation, decides whether to reply, and responds with requested information such as aircraft identity, speed, position and other information. Signal propagation follows the inverse-square law, with received power proportional to the inverse square of the distance, unlike primary \ac{Radar} where signal power scales with the fourth power of the distance due to the round-trip path, resulting in a greatly increased effective range for a given power level \cite{Porcello2014}. Most commercial aircraft are also equipped with \ac{ADS-B} as an obligation, using transponders to broadcast their position information from their on-board \ac{GPS} to ground stations with ADS-B receivers or other aircraft, where this information is usually visualized on \ac{Radar} maps \cite{Shiomi}. 
+
+%Active radar components and drawbacks
+Although commonly used in \ac{ATC}, the primary drawbacks of using \ac{SSR} and \ac{ADS-B} include their reliance on the aircraft's capability to transmit position information and the requirement for line-of-sight communication with the receiving station. Additionally, there are challenges related to the cost and implementation of these technologies, particularly in developing countries. Detecting and tracking aircraft without requiring the intervention or active participation of the aircraft in question is crucial in many surveillance scenarios. Other technologies that are commonly used for this purpose are Active \ac{Radar} and \ac{PR}. Active \ac{Radar} functions by emitting \ac{EM} signals for the purposes of detecting and tracking targets. This method presents several drawbacks: the effective range being limited by the power of the transmitter, significant costs of implementing and maintaining the transmitter subsystem, its power consideration and there is also vulnerability to jamming because the emitted radar signals can be detected and disrupted by adversaries.
+
+With the rising number of aircraft in the airspace, it is crucial to employ cost-effective and adaptable solutions to detecting and tracking targets. The utilization of \ac{PR} systems which leverage the existing illuminators of opportunity offer a more compelling solution by removing the necessity for dedicated transmitters, therefore lowering operational costs. Using \ac{PR} systems especially \ac{PR} systems that use \ac{FM} signals has great potential in developing countries where there is a widespread availability of powerful \ac{FM} radio transmitters. Although \ac{FM} radio signals provide poor range resolution due to their low bandwidth, they are considered the most capable among other high-powered illuminators of opportunity for long-range detection, making them advantageous for our target tracking problem, with a compromise in target position accuracy \cite{De2015}. Using \ac{FM} \ac{PR} also eliminates the need for spectrum licensing because the \ac{Radar} operates in the frequency range that is already licensed. These advantages make it highly attractive to do target tracking using \ac{FM} \ac{PR} systems which can enable small airports and small runways to conduct \ac{ATC} operations, offering an affordable and effective solution. 
+
+Furthermore, the ability of \ac{PR} systems to operate without emitting any signals allows them to operate covertly against deliberate directional interference which can be useful for military operations, therefore investigating tracking solutions for this \ac{Radar} technology will enable advancements in the \ac{PR} detection and tracking field. Using \ac{PR} allows for extended integration times, thereby enhancing Doppler resolution \cite{De2015}. Doppler resolution refers to the system's ability to distinguish between different frequencies or velocities of moving objects. High Doppler resolution allows for the detection and tracking of targets more effectively even in environments with high clutter or noise. Since illuminators of opportunity used for \ac{PR} are intended for commercial usage, they direct their transmitted signals toward the earth's surface, this is beneficial for illuminating and detecting low-altitude aircraft \cite{Herman2002}.
+
+\ac{FM} signals are in the frequency ranges of \ac{VHF} audio broadcasting which ranges between 87.5\, MHz and 108\, MHz according to the \ac{ITU} plan: Geneva plan of 1984 for Africa and Europe documented in \ac{ICASA}'s table of frequency allocations \cite{Frequency2008}. \ac{FM} radio also operates at wavelengths which are magnitudes larger than airborne precipitation, which ensures robustness to weather-induced degradation.
+
+
+\section{Problem Description}
+%Visually following targets on CFAR
+%Tracking filters that are efficient and work well with aircrafts
+%Need for multi-target tracking
+%Low range resolution of FM Passive radar
+The advantages of using \ac{FM} \ac{PR} for target detection such as high Doppler resolution are discussed in detail in the motivation section. However, visually following trajectories of targets in the bistatic range and Doppler map after performing \ac{CFAR} processing can be challenging. The problem of low range resolution in \ac{FM} \ac{PR} exacerbates the challenge of accurately obtaining range measurements. Additionally, distinguishing closely spaced targets in bistatic range with similar \ac{LoS} radial velocity or bistatic Doppler frequency makes it difficult to follow targets in multi-target scenarios. Estimating the bistatic Doppler frequency shift and range of commercial aircraft presents a different challenge compared to other types of targets. Commercial aircraft follow specific maneuvering protocols designed to ensure smooth and predictable flight paths, where abrupt changes in radial velocity or position are not expected. This necessitates designing tracking filters that can produce realistic trajectory estimates for these flight paths, despite noisy measurements, environmental clutter, and considering real-time processing constraints.
+
+Evaluating whether the tracking filters are providing the most accurate estimate given the levels of noise in the measurements is also a challenge where different performance metrics are usually investigated and employed to evaluate the performance. Lastly, the problem of optimizing the filter performance to balance the filter's responsiveness to target dynamics and its ability to mitigate the effects of measurement noise are central to this research, with a specific focus on investigating adaptive filtering mechanisms for robust trajectory estimation, particularly for commercial aircraft in the bistatic range and Doppler domain.
+
+\section{Objectives and Scope}
+The aim of this project is to investigate, implement and evaluate different tracking filters for the purpose of tracking commercial aircraft using \ac{FM} Passive Radar in the Doppler and bistatic range domain. The focus is strictly on the digital signal processing aspects, limited to \ac{CFAR}, centroiding, multi-target tracking systems, and various tracking filter algorithms. The design and implementation of other subsystems within the radar processing chain are beyond the scope of this project. The scope of the project is discussed in detail in subsection 1.4.1, followed by the project's objectives in 1.4.2.
+\newline
+\subsection{Scope}
+Target tracking using \ac{PR} systems involves several components and methodologies. This subsection outlines the specific domains, components of \ac{Radar} processing, tracking filters, and targets of interest that are central to this research:
+\begin{itemize}
+    \item \textbf{Target Tracking domain:} 
+
+     Only Target tracking in the Doppler and range domain is considered for the purposes of this research.
+     
+    \item \textbf{Radar Processing chain:}
+    
+     In the \ac{Radar} processing chain, only these components are considered: \ac{CFAR}, clustering, centroiding and multi-target tracking.
+    
+    \item \textbf{Tracking filters:}
+
+    The tracking filters that are considered in this project are the Kalman Filter, Unscented Kalman Filter, Particle Filter, the Recursive Gauss Newton Filter and adaptive filtering mechanisms. 
+
+    \item \textbf{Target of interest:}
+
+    The specific targets considered for tracking in this research are commercial aircraft, particularly passenger jets that commonly operate at international airports. Ranging from smaller jets to medium-sized aircraft like the Airbus A320-200 and Boeing 737-800, to larger models such as the Airbus A330 and Boeing 767-300.
+
+    \item \textbf{Input data}
+
+    The data used to evaluate the tracking filters is obtained from the \ac{FERS} simulator. The \ac{FM} waveform signal used in \ac{FERS} as the transmitted signal is a real-world recorded radio \ac{FM} signal from Malmesbury.
+
+\end{itemize}
+
+
+\subsection{Objectives}
+The goal of this project is to design and implement a number of different tracking filters that can be used to track commercial aircraft. The objectives of the project are divided into the following key areas:
+
+\begin{itemize}
+    \item \textbf{Review of the Literature:} 
+    
+    A review of the literature on tracking filter algorithms, multi-target tracking, and different performance metrics for evaluating tracking filters.
+    \item \textbf{Theory Development:}
+    
+    Development of the theoretical framework for various tracking filter algorithms implemented for the target tracking problem. This includes detailed mathematical formulations of the tracking filters and descriptions of the algorithms to be implemented.
+
+    \item \textbf{Implementation of various tracking filters:}
+    
+    To implement the tracking filter algorithms discussed in the theory development, as well as other components of the \ac{Radar} processing chain such as \ac{CFAR}, clustering, and multi-target tracking in MATLAB code.
+
+    \item \textbf{Evaluation of tracking filters with simulations:}
+    
+    Evaluate the tracking filters on FM \ac{PR} scenarios set up in \ac{FERS}, where different flight scenarios are simulated to test the functionality of the tracking filter algorithms and evaluate the tracking filters with various performance metrics.
+
+    \item \textbf{Tracking filter optimization:}
+    
+    Optimization of tracking filters will focus on tuning filter parameters based on the characteristics and trajectories of the target of interest. 
+
+    \begin{comment}
+        
+    \item \textbf{Multiple concurrent trackers:}
+    
+    An investigation into running multiple concurrent multiple tracking filters if there are multiple target of interests that have different target characteristics.
+    
+    \item \textbf{Validation of tracker performance with real world data:} 
+    
+    Evaluate the tracking filters on real world data, detailing  the optimal parameters, advantages, and disadvantages of each filter.
+
+    \end{comment}
+
+\end{itemize}

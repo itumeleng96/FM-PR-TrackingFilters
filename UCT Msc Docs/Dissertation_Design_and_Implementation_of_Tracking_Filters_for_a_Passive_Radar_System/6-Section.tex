@@ -1,0 +1,56 @@
+\newpage
+\chapter{Conclusions and Recommendations}Tracking filters play a pivotal role in developing effective \ac{Radar} based tracking systems. This research explored several filters and their potential to track commercial aircraft within the bistatic range and Doppler domain, comparing their performance and suitability for FM-based \ac{PR} systems. Advanced tracking filter techniques can greatly aid \ac{ATC} by providing reliable tracking at a low cost using existing illuminators of opportunity without reliance on transponders. The tracking filters considered include the Kalman Filter, \ac{UKF}, \ac{PF} and \ac{RGNF}.
+\newline
+\newline
+The processing chain was also implemented to handle range and Doppler data from the \ac{FERS} simulation environments as well as the \ac{MTT} for track management. The filters were evaluated using various performance metrics. The conclusions drawn from the review of the tracking filters, theoretical background and simulation results are outlined here, along with recommendations for future work.
+
+\section{Conclusions}
+The objective of this research was to explore tracking filters suitable for tracking the target of interest,  implement effective multi-target tracking techniques, and also implement an efficient \ac{Radar} processing chain. In addition, a statistical benchmark to evaluate the tracking accuracy of the filters alongside other performance metrics. 
+\newline
+\newline
+This objective was achieved by conducting a literature review on \ac{PR} systems, tracking filters, \ac{MTT}, and performance metrics used for tracking filters. Furthermore, a comprehensive theoretical analysis of the different tracking filters and adaptive filtering mechanisms was carried out. This was followed by the design of the scenarios for the simulation environment, as well as the implementation of the tracking filters, \ac{MTT}, and the \ac{Radar} processing chain. Finally, the performance of the different tracking filters was evaluated. The key findings from these chapters are summarized as follows:
+
+\subsection{Kalman Filter}
+The Kalman Filter is widely utilized for tracking in linear dynamic systems due to its simplicity and its reliance on the assumption of Gaussian noise. In this project, it demonstrated effectiveness in linear target-tracking scenarios and served as a valuable benchmark for evaluating other filters. Under ideal conditions, where both target dynamics and measurement models are linear, the Kalman Filter delivered stable, accurate results with minimal computational load, making it especially suitable for real-time applications with constrained resources.
+
+However, several limitations were observed. The performance of the Kalman Filter declined in environments with high clutter or non-Gaussian noise, as encountered in \ac{MTT} scenarios. From the log-likelihood analysis, the Kalman Filter generally performed well when used with covariance scaling methods, allowing it to adapt to target dynamics. The optimal performance of the Kalman Filter requires careful tuning of parameters, such as the initial error covariance matrix \( P \), the process noise covariance, and the measurement noise covariance. In \ac{MTT} scenarios, the Kalman Filter’s innovation covariance matrix tended to be larger than that of other filters, resulting in an increase in false track confirmations and true track deletions.
+
+Overall, the Kalman Filter remains a robust choice for linear tracking problems, particularly where computational efficiency is prioritized. Nonetheless, its limitations highlight the value of adaptive and non-linear filtering techniques for highly maneuvering targets in complex environments.
+
+\subsection{Unscented Kalman Filter}
+Although according to the literature \ac{UKF} was introduced to address the non-linearity limitations of the Kalman Filter, it was of interest to explore its performance in a linear target tracking problem. One of the key advantages observed with the \ac{UKF} is its adaptability to changing target dynamics. As seen in the \ac{MTT} results, the \ac{UKF} effectively tracks and maintains true tracks even in high-clutter environments. Another advantage is the availability of several tunable parameters for optimizing performance, although this requires additional effort in the optimization process to achieve the best results.
+
+In terms of processing time, the \ac{UKF} provided results comparable to the Kalman Filter. In cases where there is no advantage or requirement to handle non-linear dynamics or measurements, the benefits of the \ac{UKF} over the Kalman Filter are minimal.
+
+\subsection{Particle Filter}
+The accuracy performance of the \ac{PF} was observed to be lower than that of the other filters, which can be attributed to its dependency on the number of particles used. However, the filter performs well in scenarios with high clutter, due to its ability to handle non-Gaussian noise and perform effectively in non-linear models. In the \ac{SIR} \ac{PF}, accuracy is sensitive to both the number of particles and the resampling strategy, increasing the number of particles improves performance but also leads to longer processing time. Although the filter provides comparable results in terms of log-likelihood, the high computational load can be a drawback, especially in linear target tracking systems where the advantages of the \ac{PF} are minimal.
+
+\subsection{Recursive Gauss-Newton Filter}
+The recursive form of the Gauss-Newton filter demonstrated excellent performance in tracking scenarios involving linear dynamic processes and linear observation models, achieving comparable processing times to the Kalman Filter. Its robustness in adapting to sudden changes in target dynamics makes it particularly effective for \ac{MTT}, where it consistently maintains high tracking accuracy even in challenging environments. One of the observed key strengths of the \ac{RGNF} is the recursive estimation process, which allows it to efficiently adjust to dynamic changes in real-time. This adaptability, observed in the log-likelihood results, enables the filter to respond rapidly to abrupt target manoeuvres and maintain accurate tracking, outperforming other filters in responsiveness. 
+
+Additionally, the filter’s design incorporates a forgetting factor that effectively controls the influence of past measurements in the recursive estimation during the update stage. This feature contributes to more reliable \ac{MTT} by weighting recent measurements more heavily, thus enhancing its ability to track dynamic targets. When the forgetting factor is increased to unity, the filter yields results similar to the Kalman filter, but its adaptability to dynamic conditions makes it the preferred choice in high-clutter environments and high-manoeuvring target scenarios.
+
+\subsection{Radar Processing Chain}
+The processing chain plays a critical role in \ac{MTT}, where utilizing an effective \ac{CFAR} technique for the problem can significantly enhance tracking accuracy. It was also demonstrated that the \ac{DPI} cancellation is also essential, as the \ac{DPI} can mask targets of interest, making them difficult to detect. Mean-shift centroiding also proved valuable in determining centroids, particularly in the range domain where resolution is low, to minimize its impact on the tracking filter outputs. Although tracking filters operate on noisy observations to estimate target states, the processing chain remains crucial. A suboptimal \ac{CFAR} technique can result in missed targets leading to deleted tracks or unconfirmed targets of interest, while a suboptimal centroiding algorithm can produce overly noisy measurements that may degrade the tracking filter performance.
+
+\subsection{Multi-Target Tracking}
+Although the focus of this research was on tracking filters, real-world scenarios often involve multiple targets and clutter from \ac{CFAR} detections, where \ac{MTT} becomes essential. Using rectangular gating for associating measurements to detections led to poor track management, as a result, the \ac{GNN} method had to be implemented and proved useful and effective. Although more advanced \ac{MTT} techniques exist, the \ac{GNN} was adequate for the target tracking problem. A key advantage of the \ac{GNN} is in its simplicity and that it offers multiple parameters for tuning to meet specific requirements. One observed drawback is that if targets are too close to each other and fall within the same gate, they may be associated with a single track. For more complex scenarios, exploring alternative techniques could be worthwhile.
+
+\subsection{Adaptive Filtering}
+In the existing literature, the use of covariance scaling methods to address target tracking requirements is limited. However, these methods have demonstrated their value in scenarios where real-time tracking decisions must be made based on target dynamics. It was observed that, by leveraging the innovation covariance matrix of the tracking filter, covariance scaling methods can prevent filter divergence when discrepancies arise between the target model and the actual dynamics of the target. For highly maneuvering targets, these methods can be calibrated to ensure accurate state estimation when the target executes a sudden maneuver. Conversely, in scenarios where the target is expected to follow \ac{NCV} motion with minimal abrupt turns, covariance scaling can be effectively applied to reject outliers.
+
+\section{Recommendations and Future Work}
+Based on the findings in this research, several key insights were gained regarding the performance of tracking filters. To address the identified challenges and improve system effectiveness, the following recommendations for future work are proposed.
+
+\subsection{Parameter Tuning}
+Parameter tuning plays an important role in the performance of the various subsystems used in the \ac{MTT} algorithm, as observed in the research. When there are multiple parameters to be tuned, such as the case for the \ac{UKF} an enormous effort can be required to achieve optimal performance. Automatic tuning of parameters based on requirements and the tracking scenario could be useful. This can be explored by using ground truth and noisy observations with optimization algorithms, such as Bayesian optimization, to tune tracking parameters.
+
+
+\subsection{Deep Learning-Based Tracking Filters}
+Investigation of the potential of using deep learning methods, such as \ac{RNN}s, to model complex target dynamics for improved prediction in non-linear target dynamics scenarios.
+
+\subsection{Multiple Hypothesis Tracking}
+Investigation of the use of \ac{MHT} in \ac{FM} \ac{PR} systems. \ac{MHT}'s strength in handling ambiguous detections with multiple track hypotheses and delayed decision-making can improve tracking continuity and assist in maintaining accuracy.
+
+\subsection{Real-World Data Validation}
+Conduct extensive testing with real-world data from an operational \ac{FM} \ac{PR} system to ensure tracking filters are validated under various conditions in \ac{MTT} scenarios.

@@ -1,0 +1,253 @@
+\documentclass{report}
+\usepackage{algorithm}
+\usepackage{titlesec}
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage{lipsum}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{graphicx}
+\usepackage{tocloft}
+\usepackage{float}
+\usepackage{blindtext} %for enumarations
+\usepackage[hidelinks]{hyperref}
+\usepackage{graphicx}  % For including images
+\usepackage{color}    
+\usepackage{xcolor}    
+\usepackage{fancyhdr}
+\usepackage{acronym}
+\usepackage[a4paper, margin=1.1in]{geometry}
+%\usepackage{sectsty} 
+\usepackage{titlesec}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{nomencl}
+\usepackage{glossaries}
+\pagestyle{fancyplain} 
+\usepackage{comment}
+\usepackage{algpseudocode}
+\usepackage{svg}
+\usepackage{verbatim}
+\usepackage{parskip}
+\usepackage{url}
+\usepackage{cite}
+\usepackage[bottom]{footmisc}
+
+\usepackage[table]{xcolor}
+\definecolor{bestcell}{HTML}{C6EFCE}  
+\definecolor{worstcell}{HTML}{FFC7CE}
+% \definecolor{bestcell}{HTML}{6ABF8E}   % soft sage green
+% \definecolor{worstcell}{HTML}{FFC7CE}  % light red (unchanged)
+\fancyhf{}
+\fancyfoot[C]{
+    \vspace{1em}
+    \hrule width \textwidth height 0.4pt
+    \vspace{0.5em}
+    \thepage
+}
+\setlength{\headheight}{13.6pt} 
+
+
+\titleformat{\subsubsection}[block]
+  {\normalfont\bfseries}
+  {\thesubsubsection}
+  {1em}
+  {}
+  
+\numberwithin{equation}{chapter} 
+\numberwithin{figure}{chapter} 
+\numberwithin{table}{chapter}
+
+\setlength\parskip{12pt}
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+% Custom title page setup
+\makeatletter
+  \def\@title{\textcolor{red}{Title}}
+
+  \def\@subtitle{\textcolor{red}{Subtitle}}
+  \newcommand\subtitle[1]{\def\@subtitle{#1}}
+
+  \def\@author{\textcolor{red}{Author}}
+
+  \def\@studentnumber{\textcolor{red}{Student Number}}
+  \newcommand\studentnumber[1]{\def\@studentnumber{#1}}
+
+  \def\@supervisor{\textcolor{red}{Supervisor(s)}}
+  \newcommand\supervisor[1]{\def\@supervisor{#1}}
+
+  \def\@department{\textcolor{red}{Department}}
+  \newcommand\department[1]{\def\@department{#1}}
+
+  \def\@subjectcode{\textcolor{red}{SUBJECT CODE}}
+  \newcommand\subjectcode[1]{\def\@subjectcode{\MakeUppercase{#1}}}
+
+  \def\@subjectname{\textcolor{red}{Subject Name}}
+  \newcommand\subjectname[1]{\def\@subjectname{#1}}
+
+  \def\@degreename{\textcolor{red}{Degree}}
+  \newcommand\degreename[1]{\def\@degreename{#1}}
+
+  \def\@field{\textcolor{red}{Field}}
+  \newcommand\field[1]{\def\@field{#1}}
+
+  \def\@keywords{\textcolor{red}{Keywords}}
+  \newcommand\keywords[1]{\def\@keywords{#1}}
+
+  \def\@date{\today}
+
+  \renewcommand{\maketitle}{
+    \thispagestyle{empty}
+    \begin{center}
+      {\Huge \@title}
+      \vskip 3mm
+      \hrule
+      {\Large }
+      \vfill
+      
+      \includegraphics[scale= 0.9]{Figure/UCT.jpg}
+      \vfill
+
+      Prepared by:
+       \\[0.5cm]
+       {\LARGE \@author}
+        \\[0.2cm]
+      \@studentnumber
+      \vfill
+
+      Supervised by:
+      \\[0.5cm]
+       {\LARGE \@supervisor}\\  
+       Department of Electrical Engineering
+      \vfill
+
+      \textbf{\@date}
+      \vfill
+      
+      A dissertation submitted to the Department of \@department \\
+         \textbf{University of Cape Town},\\ 
+         in partial fulfilment of the academic requirements \\
+         for the degree of
+         \vfill
+         \textbf{\@degreename\ }
+        
+    \end{center}
+    \clearpage
+  }
+\makeatother
+\renewcommand{\footnoterule}{
+    \vspace{1em} % Space above the line
+    \hrule width \textwidth height 0.4pt
+    \vspace{0.6em} % Space below the line
+}
+
+%\makeglossaries
+
+\begin{document}
+\date{March 18, 2026}                                                                                                     
+
+% Set title, author, and other details
+\title{Design and Implementation of Tracking Filters for a  Passive Radar System}
+\author{I.J. Malemela}
+\studentnumber{MLMITU002}
+\supervisor{W.P.F. Schonken and S.T Paine}
+\department{Electrical Engineering}
+\degreename{MScEng Electrical Engineering Specializing in Radar }
+\field{Engineering}
+\keywords{Passive Radar, Tracking Filters}
+\maketitle 
+\pagenumbering{roman}
+
+\newpage
+\thispagestyle{empty}
+\null
+\setstretch{1.5}
+\newpage
+\input{plagiarism}
+
+\newpage
+\input{abstract}
+
+\newpage
+\input{acknowledgements}
+
+\newpage
+\renewcommand{\cfttoctitlefont}{\Huge \bf}
+\addcontentsline{toc}{section}{Table of Contents}
+\tableofcontents
+
+\clearpage
+
+\newpage
+\setlength{\cftfignumwidth}{3em}
+\input{listOfFigures}
+
+\newpage
+\setlength{\cfttabnumwidth}{3em} 
+\input{listOfTables}
+
+\input{listOfAlgorithms}
+
+
+\newpage
+\input{listOfAbbrev}
+
+%Remove list of symbols
+%\input{listOfSymbols}
+
+
+\fancyhf{}
+\fancyhead{}
+\fancyhead[C]{\MakeUppercase{\rightmark}}
+
+\fancyfoot[C]{
+    \vspace{1em} 
+    \hrule width \textwidth height 0.4pt
+    \vspace{0.5em} 
+    \thepage 
+}
+\renewcommand{\footnoterule}{\vspace{30pt}\hrule height 0.2pt width 0.35\textwidth \vspace{5pt}}
+
+
+%----------------------------------------------------------------------------------------
+%	Section 1
+%----------------------------------------------------------------------------------------
+\input{1-Section.tex}
+
+%----------------------------------------------------------------------------------------
+%	Section 2
+%----------------------------------------------------------------------------------------
+\input{2-Section.tex}
+
+%----------------------------------------------------------------------------------------
+%	Section 3
+%----------------------------------------------------------------------------------------
+\input{3-Section}
+
+%----------------------------------------------------------------------------------------
+%	Section 4
+%----------------------------------------------------------------------------------------
+\input{4-Section}
+
+%----------------------------------------------------------------------------------------
+%	Section 5
+%----------------------------------------------------------------------------------------
+\input{5-Section.tex}
+%----------------------------------------------------------------------------------------
+%	Section 6
+%----------------------------------------------------------------------------------------
+\input{6-Section.tex}
+\newpage
+%----------------------------------------------------------------------------------------
+%	Appendix
+%----------------------------------------------------------------------------------------
+\input{Appendix}
+\newpage
+%bibliograph
+\bibliographystyle{IEEEtran}
+\bibliography{sample}
+
+\end{document}

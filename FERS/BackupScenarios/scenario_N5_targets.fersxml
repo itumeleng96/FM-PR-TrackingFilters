@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!-- Five-target subset of scenario_N10_targets.fersxml.
+     Uses Targets 1, 3, 5, 7, 10 (well-spread: BR 12, 19, 30, 38, 53 km).
+     Nested: N=3 subset {1,5,10} is contained here. -->
+<!DOCTYPE simulation SYSTEM "../../fers-xml.dtd">
+<simulation name="SKA_RSN1_N5">
+
+  <parameters>
+    <starttime>0</starttime>
+    <endtime>60</endtime>
+    <c>299792458</c>
+    <rate>200000</rate>
+    <adc_bits>16</adc_bits>
+    <interprate>1000</interprate>
+    <oversample>1</oversample>
+    <export binary="true" csv="false" xml="false"/>
+  </parameters>
+
+  <pulse name="TxWaveform" type="file" filename="Waveform/FM_waveform.h5">
+    <power>14760</power>
+    <carrier>94e6</carrier>
+  </pulse>
+
+  <timing name="TxClock"><frequency>200000</frequency></timing>
+  <timing name="RxClock"><frequency>200000</frequency></timing>
+
+  <antenna name="RxYagiAntenna" pattern="sinc">
+    <efficiency>1</efficiency><alpha>5.2481</alpha><beta>2</beta><gamma>3.6</gamma>
+  </antenna>
+  <antenna name="TxIsoAntenna" pattern="isotropic"><efficiency>1</efficiency></antenna>
+
+  <platform name="PrieskaTx">
+    <motionpath interpolation="static">
+      <positionwaypoint><x>6440</x><y>10760</y><altitude>1056</altitude><time>0</time></positionwaypoint>
+    </motionpath>
+    <fixedrotation><startazimuth>0</startazimuth><startelevation>0</startelevation><azimuthrate>0</azimuthrate><elevationrate>0</elevationrate></fixedrotation>
+    <transmitter name="Tx" type="continuous" antenna="TxIsoAntenna" pulse="TxWaveform" timing="TxClock"></transmitter>
+  </platform>
+
+  <platform name="RefRx">
+    <motionpath interpolation="static">
+      <positionwaypoint><x>0</x><y>0</y><altitude>1000</altitude><time>0</time></positionwaypoint>
+    </motionpath>
+    <fixedrotation><startazimuth>42</startazimuth><startelevation>0</startelevation><azimuthrate>0</azimuthrate><elevationrate>0</elevationrate></fixedrotation>
+    <receiver name="direct_N5" type="continuous" antenna="RxYagiAntenna" timing="RxClock">
+      <prf>0.016</prf><window_skip>0</window_skip><window_length>60</window_length><noise_temp>100</noise_temp>
+    </receiver>
+  </platform>
+
+  <platform name="SurvRx">
+    <motionpath interpolation="static">
+      <positionwaypoint><x>0</x><y>1</y><altitude>1000</altitude><time>0</time></positionwaypoint>
+    </motionpath>
+    <fixedrotation><startazimuth>180</startazimuth><startelevation>10</startelevation><azimuthrate>0</azimuthrate><elevationrate>0</elevationrate></fixedrotation>
+    <receiver name="echo_N5" type="continuous" antenna="RxYagiAntenna" timing="RxClock" ignoredirectsignals="true">
+      <prf>0.016</prf><window_skip>0</window_skip><window_length>60</window_length><noise_temp>100</noise_temp>
+    </receiver>
+  </platform>
+
+  <platform name="Target1">
+    <motionpath interpolation="cubic">
+      <positionwaypoint><x>13000</x><y>12000</y><altitude>3000</altitude><time>0</time></positionwaypoint>
+      <positionwaypoint><x>13000</x><y>18000</y><altitude>3000</altitude><time>60</time></positionwaypoint>
+    </motionpath>
+    <fixedrotation><startazimuth>0</startazimuth><startelevation>0</startelevation><azimuthrate>0</azimuthrate><elevationrate>0</elevationrate></fixedrotation>
+    <target name="T1"><rcs type="isotropic"><value>300</value></rcs></target>
+  </platform>
+
+  <platform name="Target3">
+    <motionpath interpolation="cubic">
+      <positionwaypoint><x>18000</x><y>8000</y><altitude>3400</altitude><time>0</time></positionwaypoint>
+      <positionwaypoint><x>18000</x><y>14000</y><altitude>3400</altitude><time>60</time></positionwaypoint>
+    </motionpath>
+    <fixedrotation><startazimuth>0</startazimuth><startelevation>0</startelevation><azimuthrate>0</azimuthrate><elevationrate>0</elevationrate></fixedrotation>
+    <target name="T3"><rcs type="isotropic"><value>300</value></rcs></target>
+  </platform>
+
+  <platform name="Target5">
+    <motionpath interpolation="cubic">
+      <positionwaypoint><x>22000</x><y>15000</y><altitude>3600</altitude><time>0</time></positionwaypoint>
+      <positionwaypoint><x>22000</x><y>21000</y><altitude>3600</altitude><time>60</time></positionwaypoint>
+    </motionpath>
+    <fixedrotation><startazimuth>0</startazimuth><startelevation>0</startelevation><azimuthrate>0</azimuthrate><elevationrate>0</elevationrate></fixedrotation>
+    <target name="T5"><rcs type="isotropic"><value>300</value></rcs></target>
+  </platform>
+
+  <platform name="Target7">
+    <motionpath interpolation="cubic">
+      <positionwaypoint><x>28000</x><y>8000</y><altitude>3800</altitude><time>0</time></positionwaypoint>
+      <positionwaypoint><x>28000</x><y>14000</y><altitude>3800</altitude><time>60</time></positionwaypoint>
+    </motionpath>
+    <fixedrotation><startazimuth>0</startazimuth><startelevation>0</startelevation><azimuthrate>0</azimuthrate><elevationrate>0</elevationrate></fixedrotation>
+    <target name="T7"><rcs type="isotropic"><value>300</value></rcs></target>
+  </platform>
+
+  <platform name="Target10">
+    <motionpath interpolation="cubic">
+      <positionwaypoint><x>35000</x><y>12000</y><altitude>3200</altitude><time>0</time></positionwaypoint>
+      <positionwaypoint><x>35000</x><y>6000</y><altitude>3200</altitude><time>60</time></positionwaypoint>
+    </motionpath>
+    <fixedrotation><startazimuth>0</startazimuth><startelevation>0</startelevation><azimuthrate>0</azimuthrate><elevationrate>0</elevationrate></fixedrotation>
+    <target name="T10"><rcs type="isotropic"><value>300</value></rcs></target>
+  </platform>
+
+</simulation>

@@ -1,9 +1,9 @@
 classdef CSUKF
 
     properties
-        dt,X,F,A,H,Q,R,P,Pk,S,
-        coeff,measured_x,measured_y,std_acc,k_d,Wm,Wc,
-        lambda,alpha,kappa,n,beta,sigmaPoints,wk,count,updater,update1,epsDoppler,epsRange;
+        dt, X, F, H, Q, Q_nominal, R, R_nominal, P, Pk, S, std_acc, ...
+        Wm, Wc, lambda, alpha, kappa, n, beta, sigmaPoints, wk, ...
+        cs_alpha, cs_adapt_q;
     end
     
     methods
@@ -40,6 +40,7 @@ classdef CSUKF
             %Measurement Error covariance matrix
             obj.R = [r_std,0;
                      0,rdot_std;];
+            obj.R_nominal = obj.R;                 % Nominal R for fading-memory decay
 
             obj.P = [5,0,0,0;                              % Initial Error Covariance Matrix
                      0, 1, 0, 0;
@@ -62,8 +63,10 @@ classdef CSUKF
             [obj.Wc,obj.Wm] =obj.createWeights();
             obj.wk = [std_acc(1)*dt^2;std_acc(1)*dt;std_acc(2)*dt^2;std_acc(2)*dt];
 
-            obj.epsDoppler =[];
-            obj.epsRange =[];
+            % Akhlaghi (2018) covariance-scaling defaults (settable post-construction).
+            obj.cs_alpha   = 0.95;   % forgetting factor (both R and Q)
+            obj.cs_adapt_q = true;   % master switch for Q adaptation
+            obj.Q_nominal  = obj.Q;  % nominal Q retained as PSD floor
 
 
         end
@@ -90,86 +93,49 @@ classdef CSUKF
         end
         
         function [Xest, KF_obj2] = update(obj, z)
-            %UPDATE STAGE
-        
-            % Store the original R matrix before any modifications
-            original_R = obj.R;
-        
-            % Calculate the mean of sigma points
+            % Akhlaghi (2018) verbatim continuous R + Q. Outlier rejection is
+            % handled upstream at the association step (GNN gate in runner).
+            %   R <- alpha R + (1-alpha)( eps eps' + H P^- H' )       Eq. 11
+            %   Q <- alpha Q + (1-alpha)( K d d' K' )                 Eq. 15
+
+            alphaFactor = obj.cs_alpha;
+
+            % Weighted mean of sigma points (Van der Merwe UKF).
             muZ = sum(obj.sigmaPoints' .* obj.Wm, 1);
-            Xu = sum(obj.sigmaPoints' .* obj.Wm, 1);
-            
-            % Measurement residual
-            y = z - obj.H * muZ';
-        
-            % Unscented transform for measurement covariance and cross-covariance
-            Pz = obj.unscentedTransformZ(muZ);
-            Pxz = obj.unscentedTransformCross(Xu, muZ);
-        
+            Xu  = sum(obj.sigmaPoints' .* obj.Wm, 1);
+
+            % Innovation and unscented-transform covariances (pre-update).
+            y     = z - obj.H * muZ';                   % d_k
+            Pz    = obj.unscentedTransformZ(muZ);       % Pz = H Sigma H' + R
+            Pxz   = obj.unscentedTransformCross(Xu, muZ);
             obj.S = Pz;
-        
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Covariance Scaling Unscented Kalman Filter Step 
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            % Separate range and Doppler residuals
-            eps_range = (y(1)^2) / obj.S(1,1);  % Range residual (x component)
-            eps_doppler = (y(2)^2) / obj.S(2,2);  % Doppler residual (y component)
-        
-            % Store residuals in moving window arrays
-            obj.epsRange = [obj.epsRange, eps_range];
-            obj.epsDoppler = [obj.epsDoppler, eps_doppler];
-        
-            % Number of samples to average for outlier detection
-            M = 6;
-            r_adapt = obj.R;
-            alphaFactor = 0.2;
-        
-            % Outlier rejection for Doppler (y component)
-            if (size(obj.epsDoppler, 2) > M)
-                residual_mean_doppler = mean(obj.epsDoppler(end-M:end-1));
-                residual_std_doppler = std(obj.epsDoppler(end-M:end-1));
-        
-                if eps_doppler > 1 && eps_doppler > (residual_mean_doppler + residual_std_doppler)
-                    r_adapt(2,2) = alphaFactor * r_adapt(2,2) + (1 - alphaFactor) * (eps_doppler + obj.P(3,3));
-                    % Remove old values from moving window
-                    obj.epsDoppler = obj.epsDoppler(end-M:end-1);
-                end
+
+            P_pred = obj.Pk;                            % predicted P for R update
+
+            % Standard UKF update.
+            K     = Pxz * Pz^(-1);
+            obj.X = obj.X' + K * y;
+            obj.P = obj.Pk - K * Pz * K';
+
+            % Akhlaghi Eq. 11 — continuous R update.
+            eps_post = z - obj.H * obj.X;
+            HPH      = obj.H * P_pred * obj.H.';
+            obj.R    = alphaFactor * obj.R + (1 - alphaFactor) * ...
+                       (eps_post * eps_post.' + HPH);
+
+            % Akhlaghi Eq. 15 — continuous Q update (per block).
+            if obj.cs_adapt_q
+                KyyK = K * (y * y.') * K.';
+                obj.Q(1:2,1:2) = alphaFactor * obj.Q(1:2,1:2) + ...
+                                 (1 - alphaFactor) * KyyK(1:2,1:2);
+                obj.Q(3:4,3:4) = alphaFactor * obj.Q(3:4,3:4) + ...
+                                 (1 - alphaFactor) * KyyK(3:4,3:4);
+                obj.Q(1:2,1:2) = max(obj.Q(1:2,1:2), obj.Q_nominal(1:2,1:2));
+                obj.Q(3:4,3:4) = max(obj.Q(3:4,3:4), obj.Q_nominal(3:4,3:4));
             end
-        
-            % Outlier rejection for Range (x component)
-            if (size(obj.epsRange, 2) > M)
-                residual_mean_range = mean(obj.epsRange(end-M:end-1));
-                residual_std_range = std(obj.epsRange(end-M:end-1));
-        
-                if eps_range > 2 && eps_range > (residual_mean_range + residual_std_range)
-                    r_adapt(1,1) = alphaFactor * r_adapt(1,1) + (1 - alphaFactor) * (eps_range + obj.P(1,1));
-                    % Remove old values from moving window
-                    obj.epsRange = obj.epsRange(end-M:end-1);
-                end
-            end
-        
-            % Update the R matrix with the adapted values
-            obj.R = r_adapt;
-        
-            % Recompute Pz after updating R
-            Pz = obj.unscentedTransformZ(muZ);
-        
-            % Calculate Kalman gain
-            K =Pxz * Pz^(-1) ;  
-        
-            % Update state estimate
-            obj.X = obj.X' + K*y;
-        
-            % Update error covariance
-            obj.P = obj.Pk - K*Pz*K';
-        
-            % Restore the original R matrix
-            obj.R = original_R;
-        
-            % Return updated state estimate and object
-            obj.X=obj.X';  
-            Xest = obj.X;
+
+            obj.X   = obj.X';
+            Xest    = obj.X;
             KF_obj2 = obj;
         end
 

@@ -1,7 +1,8 @@
 classdef CSKF
 
     properties
-        dt,U,X,F,A,H,Q,R,P,S,coeff,measured_x,measured_y,std_acc,wk,residuals_x,residuals_y;
+        dt, X, F, H, Q, Q_nominal, R, R_nominal, P, S, std_acc, wk, ...
+        cs_alpha, cs_adapt_q;
     end
     
     methods
@@ -36,6 +37,7 @@ classdef CSKF
 
             obj.R = [r_std,0;
                      0,rdot_std];                  % Measurement Uncertainty
+            obj.R_nominal = obj.R;                 % Nominal R for fading-memory decay
             
             obj.P = [5,0,0,0;                              % Initial Error Covariance Matrix
                      0, 1, 0, 0;
@@ -46,8 +48,10 @@ classdef CSKF
             obj.wk = [std_acc(1)*dt^2;std_acc(1)*dt;std_acc(2)*dt^2;std_acc(2)*dt];
             obj.S = obj.R;
 
-            obj.residuals_x =[];
-            obj.residuals_y =[];
+            % Akhlaghi (2018) covariance-scaling defaults (settable post-construction).
+            obj.cs_alpha   = 0.98;   % forgetting factor (both R and Q)
+            obj.cs_adapt_q = true;   % master switch for Q adaptation
+            obj.Q_nominal  = obj.Q;  % nominal Q retained as PSD floor
 
 
 
@@ -67,78 +71,37 @@ classdef CSKF
         end
         
         function [X_est, KF_obj2] = update(obj, z)
-            %UPDATE STAGE
-        
-            % Adaptive estimation of R matrix
-        
-            % S = H*P*H'+ R
-            obj.S = obj.H * obj.P * obj.H.' + obj.R;
-        
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Covariance Scaling Kalman Step 
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Compute residual (measurement innovation): ek = z - H*X
-            ek = z - obj.H * obj.X;
-        
-            % Separate residuals for x and y components
-            ek_x = ek(1); % Residual for x
-            ek_y = ek(2); % Residual for y
-        
-            % Mahalanobis distance (separate for x and y)
-            mahalanobisDistSquared_x = ek_x' * (obj.S(1,1) \ ek_x);
-            mahalanobisDistSquared_y = ek_y' * (obj.S(2,2) \ ek_y);
-        
-            % Number of samples to average
-            M = 6;
-            r_adapt_x = obj.R(1,1);  % Adaptive R for x
-            r_adapt_y = obj.R(2,2);  % Adaptive R for y
-            alpha = 0.7;  % Smoothing factor
-        
-            % Moving window for residuals (for x and y)
-            obj.residuals_x = [obj.residuals_x, mahalanobisDistSquared_x];
-            obj.residuals_y = [obj.residuals_y, mahalanobisDistSquared_y];
-        
-            % Check for outliers using separate checks for x and y
-            % Outlier rejection for x component
-            if size(obj.residuals_x, 2) > M
-                residual_mean_x = mean(obj.residuals_x(end-M:end-1));
-                residual_std_x = std(obj.residuals_x(end-M:end-1));
-        
-                if mahalanobisDistSquared_x > 1 && mahalanobisDistSquared_x > (residual_mean_x + residual_std_x)
-                    r_adapt_x = alpha * r_adapt_x + (1 - alpha) * (mahalanobisDistSquared_x + obj.H(1,:) * obj.P * obj.H(1,:).');
-                    obj.residuals_x = obj.residuals_x(end-M:end-1);  % Keep the moving window
-                end
+            % Akhlaghi (2018) verbatim continuous R + Q. Outlier rejection is
+            % handled upstream at the association step (GNN gate in runner),
+            % so the filter unconditionally applies the update.
+            %   R <- alpha R + (1-alpha)( eps eps' + H P^- H' )       Eq. 11
+            %   Q <- alpha Q + (1-alpha)( K d d' K' )   per block     Eq. 15
+            alpha  = obj.cs_alpha;
+            P_pred = obj.P;
+
+            % Innovation and standard KF update.
+            obj.S  = obj.H * P_pred * obj.H.' + obj.R;
+            ek     = z - obj.H * obj.X;
+            K      = (P_pred * obj.H.') / obj.S;
+            obj.X  = obj.X + K * ek;
+            I      = eye(size(obj.H, 2));
+            obj.P  = (I - K * obj.H) * P_pred;
+
+            % Akhlaghi Eq. 11 — continuous R update (residual-based).
+            eps_post = z - obj.H * obj.X;
+            HPH      = obj.H * P_pred * obj.H.';
+            obj.R    = alpha * obj.R + (1 - alpha) * (eps_post * eps_post.' + HPH);
+
+            % Akhlaghi Eq. 15 — continuous Q update per block (range 1:2, doppler 3:4).
+            if obj.cs_adapt_q
+                KddK = K * (ek * ek.') * K.';
+                obj.Q(1:2,1:2) = alpha * obj.Q(1:2,1:2) + (1 - alpha) * KddK(1:2,1:2);
+                obj.Q(3:4,3:4) = alpha * obj.Q(3:4,3:4) + (1 - alpha) * KddK(3:4,3:4);
+                obj.Q(1:2,1:2) = max(obj.Q(1:2,1:2), obj.Q_nominal(1:2,1:2));
+                obj.Q(3:4,3:4) = max(obj.Q(3:4,3:4), obj.Q_nominal(3:4,3:4));
             end
-        
-            % Outlier rejection for y component
-            if size(obj.residuals_y, 2) > M
-                residual_mean_y = mean(obj.residuals_y(end-M:end-1));
-                residual_std_y = std(obj.residuals_y(end-M:end-1));
-        
-                if mahalanobisDistSquared_y > 1 && mahalanobisDistSquared_y > (residual_mean_y + residual_std_y)
-                    r_adapt_y = alpha * r_adapt_y + (1 - alpha) * (mahalanobisDistSquared_y + obj.H(2,:) * obj.P * obj.H(2,:).');
-                    obj.residuals_y = obj.residuals_y(end-M:end-1);  % Keep the moving window
-                end
-            end
-        
-            % Update the R matrix with the adapted values for x and y
-            r_adapt = diag([r_adapt_x, r_adapt_y]);
-        
-            % Update Kalman gain with adapted covariance matrix
-            S1 = obj.H * obj.P * obj.H.' + r_adapt;
-            K = (obj.P * obj.H.') / S1;
-        
-            % Update state estimate
-            obj.X = obj.X + K * (z - obj.H * obj.X);
-        
-            % Identity matrix for covariance update
-            I = eye(size(obj.H, 2));
-        
-            % Update error covariance matrix
-            obj.P = (I - K * obj.H) * obj.P;
-            
-            % Output estimated state and updated object
-            X_est = obj.X;
+
+            X_est   = obj.X;
             KF_obj2 = obj;
         end
     end

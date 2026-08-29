@@ -83,5 +83,19 @@ for cN = 1:numClust
     numPoints(cN) = size(clusterPoints,2);
 end
 
+% ---- Fix A: sort clusters by number of member votes, strongest first ----
+% Rationale: the caller reads clustCent(:,1) as "the target". Without
+% ordering, that pick is whatever mean-shift discovered first — often a
+% noise cluster. Sorting by cluster support (member count) makes the
+% strongest cluster (most detected pixels supporting it) come first, which
+% for a bright commercial-jet return corresponds to the target.
+if numClust > 1
+    [~, order]   = sort(numPoints, 'descend');
+    clustCent    = clustCent(:, order);
+    xVariances   = xVariances(order);
+    yVariances   = yVariances(order);
+    numPoints    = numPoints(order);
+end
+
 end
 

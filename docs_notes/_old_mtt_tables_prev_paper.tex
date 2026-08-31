@@ -1,0 +1,64 @@
+% ============================================================
+% ARCHIVED — MTT tables from the previous version of the paper.
+% Preserved for comparison against the new FERS-seeded MC results
+% (mtt_mc.m over N=100 seeds, pfa in {1e-5, 1e-7, 1e-9}).
+%
+% Old scheme: single-run integer counts across five P_fa values.
+% New scheme: mean +/- std over 100 seeded FERS runs; three P_fa
+% values; TTD counts true tracks (ever-matched) deleted at any
+% point (not just missing at final scan).
+% ============================================================
+
+\begin{table}[H]
+    \centering
+    \caption{True track confirmations across $P_{fa}$ values (3 targets present).}
+    \label{tab:Ptt}
+    \setlength{\tabcolsep}{3.5pt}
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        $\mathbf{P_{fa}}$ & \textbf{KF} & \textbf{UKF} & \textbf{PF} & \textbf{RGNF} \\
+        \midrule
+        $10^{-5}$ & \cellcolor{green!20}3 & \cellcolor{green!20}3 & \cellcolor{green!20}3 & \cellcolor{green!20}3 \\
+        $10^{-6}$ & 2 & \cellcolor{green!20}3 & \cellcolor{green!20}3 & \cellcolor{green!20}3 \\
+        $10^{-7}$ & 2 & 2 & \cellcolor{green!20}3 & \cellcolor{green!20}3 \\
+        $10^{-8}$ & \cellcolor{green!20}3 & \cellcolor{green!20}3 & \cellcolor{green!20}3 & \cellcolor{green!20}3 \\
+        $10^{-9}$ & 2 & \cellcolor{red!20}1 & \cellcolor{green!20}3 & \cellcolor{green!20}3 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{False track confirmations across $P_{fa}$ values.}
+    \label{tab:Pft}
+    \setlength{\tabcolsep}{3.5pt}
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        $\mathbf{P_{fa}}$ & \textbf{KF} & \textbf{UKF} & \textbf{PF} & \textbf{RGNF} \\
+        \midrule
+        $10^{-5}$ & 3 & \cellcolor{red!20}4 & \cellcolor{red!20}4 & \cellcolor{red!20}4 \\
+        $10^{-6}$ & 2 & 2 & 2 & 1 \\
+        $10^{-7}$ & 2 & 2 & 1 & 1 \\
+        $10^{-8}$ & 2 & 1 & 2 & 2 \\
+        $10^{-9}$ & 1 & \cellcolor{green!20}0 & 1 & 1 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{True track deletions across $P_{fa}$ values.}
+    \label{tab:Pttd}
+    \setlength{\tabcolsep}{3.5pt}
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        $\mathbf{P_{fa}}$ & \textbf{KF} & \textbf{UKF} & \textbf{PF} & \textbf{RGNF} \\
+        \midrule
+        $10^{-5}$ & 1 & \cellcolor{green!20}0 & \cellcolor{green!20}0 & \cellcolor{green!20}0 \\
+        $10^{-6}$ & 1 & \cellcolor{green!20}0 & \cellcolor{green!20}0 & \cellcolor{green!20}0 \\
+        $10^{-7}$ & 1 & \cellcolor{green!20}0 & 1 & 1 \\
+        $10^{-8}$ & \cellcolor{red!20}2 & \cellcolor{green!20}0 & 1 & 1 \\
+        $10^{-9}$ & \cellcolor{red!20}2 & 1 & 1 & 1 \\
+        \bottomrule
+    \end{tabular}
+\end{table}

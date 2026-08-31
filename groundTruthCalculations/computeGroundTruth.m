@@ -1,4 +1,4 @@
-function [t, bistatic_range_km, doppler_hz] = computeGroundTruth(scenario)
+function [t, bistatic_range_km, doppler_hz, range_rate_kmps, doppler_rate_hzps] = computeGroundTruth(scenario)
 % COMPUTEGROUNDTRUTH  Bistatic range/Doppler ground truth per scenario.
 %
 %   [t, R_km, fd_Hz] = computeGroundTruth('levelFlight')
@@ -62,9 +62,37 @@ function [t, bistatic_range_km, doppler_hz] = computeGroundTruth(scenario)
                              -5311, 29938, 8000;
                             -11431, 27706, 8000];
             TargetTimes = [0, 35, 50, 75, 95, 120];
+        case '3targets'
+            % Three straight-line targets from FERS/BackupScenarios/scenario_N3_targets.fersxml.
+            % Each target is one 2-waypoint linear path over 0-60 s.
+            multi_targets = struct( ...
+                'T1', struct('pos', [13000, 12000, 3000; 13000, 18000, 3000], 'times', [0, 60]), ...
+                'T5', struct('pos', [22000, 15000, 3600; 22000, 21000, 3600], 'times', [0, 60]), ...
+                'T10', struct('pos', [35000, 12000, 3200; 35000,  6000, 3200], 'times', [0, 60]));
+            t = (0:1:60)';
+            names = fieldnames(multi_targets);
+            NT = numel(names);
+            bistatic_range_km = zeros(numel(t), NT);
+            doppler_hz        = zeros(numel(t), NT);
+            for ti = 1:NT
+                mt = multi_targets.(names{ti});
+                pos_t = interp1(mt.times, mt.pos, t, 'linear').';   % 3 x N (linear for 2-point paths)
+                r_tx  = vecnorm(pos_t - Tx_Pos);
+                r_ref = vecnorm(pos_t - RefRx_Pos);
+                total_path_m = r_tx + r_ref;
+                bistatic_range_km(:, ti) = (total_path_m - Baseline_m).' / 1000;
+                d_path = zeros(1, numel(t));
+                d_path(1) = total_path_m(2) - total_path_m(1);
+                d_path(end) = total_path_m(end) - total_path_m(end-1);
+                if numel(t) > 2
+                    d_path(2:end-1) = (total_path_m(3:end) - total_path_m(1:end-2)) / 2;
+                end
+                doppler_hz(:, ti) = (-d_path ./ (1 * lambda)).';
+            end
+            return;
         otherwise
             error('computeGroundTruth:unknownScenario', ...
-                  'Unknown scenario "%s". Use levelFlight | landing | takeoff | orbit360.', scenario);
+                  'Unknown scenario "%s". Use levelFlight | landing | takeoff | orbit360 | 3targets.', scenario);
     end
 
     % ---- Cubic-spline interpolation at 1 s resolution ----

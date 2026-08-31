@@ -1,3 +1,44 @@
-*.rcf
-*.h5
+# ---- MATLAB binary artefacts ----
+*.mat
 *.asv
+*.mex*
+*.slxc
+octave-workspace
+
+# ---- Log / temp files ----
+*.log
+*.tmp
+*.txt.bak
+*_log.txt
+tmp.tex
+
+# ---- FERS raw output (regenerate with fers *.fersxml) ----
+*.h5
+
+# ---- LaTeX build artefacts ----
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.out
+*.toc
+*.nav
+*.snm
+*.vrb
+
+# Keep the paper PDF explicitly? For now, ignore auto-generated ones.
+UCT Msc Docs/**/*.pdf
+
+# LaTeX includesvg cache
+paper/svg-inkscape/
+
+# ---- FERS-seeded MC caches (regeneratable, large) ----
+seeds/
+
+# ---- Editor / OS junk ----
+.DS_Store
+Thumbs.db
+*.swp
+*~

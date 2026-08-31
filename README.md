@@ -116,8 +116,7 @@ FM-PR-TrackingFilters/
 │   ├── UCT_MSc/                  Dissertation-related documents
 │   └── UCT_Admin/                Admin documents
 ├── seeds/                        (gitignored) per-seed FERS thermal-noise realisations
-├── startup.m                     Adds all subfolders to MATLAB path
-├── gated_association.m           Mahalanobis gate + GNN utility
+├── startup.m                     Adds all subfolders to MATLAB path (auto-runs)
 ├── LICENSE                       MIT
 └── README.md
 ```

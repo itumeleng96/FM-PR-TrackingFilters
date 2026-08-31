@@ -21,40 +21,50 @@ Implementation of Tracking Filters for a Passive Radar System"* (paper ID
 
 ## Repository layout
 
+The folders follow the signal-processing pipeline:
+
+```mermaid
+flowchart LR
+    FERS["01_FERS<br/>(scenarios + waveform)"] --> ARD["02_ARD<br/>(range-Doppler map)"]
+    ARD --> DPI["03_DPI_Cancellation<br/>(ECA)"]
+    DPI --> DET["04_Detection<br/>(CA-CFAR)"]
+    DET --> CLU["05_Clustering<br/>(mean-shift)"]
+    CLU --> TRK["06_Tracking<br/>(MTT + Filters)"]
+    TRK --> EVAL["07_Evaluation<br/>(MC / Tuning / Diagnostics)"]
+```
+
 | Folder | Contents |
 | --- | --- |
-| `TrackingFilter-KalmanFilter/` | Baseline Kalman filter class |
-| `TrackingFilter-UKF/` | Unscented Kalman filter class |
-| `TrackingFilter-ParticleFilter/` | Particle filter class |
-| `TrackingFilter-RGNF/` | Recursive Gauss-Newton filter class |
-| `TrackingFilter-CSKF/` `TrackingFilter-CSUKF/` `TrackingFilter-CS-ParticleFilter/` `TrackingFilter-CSRGNF/` | Adaptive covariance-scaling variants of the four filters |
-| `TrackingFilter-IMM/` | Interacting Multiple Model (future work) |
-| `FERS/` | FERS scenario XMLs and HDF5 loaders |
-| `cfar/` | CA-CFAR implementations |
-| `meanShiftCluster/` | Mean-shift clustering for CFAR centroids |
-| `DPI_Suppression/` | Direct-Path-Interference / ECA cancellation |
-| `multiTargetTracking/` | MTT framework (gating, GNN, M-of-N) |
-| `groundTruthCalculations/` | Cubic-waypoint ground truth generation |
-| `Waveform/` | FM waveform synthesis utilities |
-| `mc/` | Monte Carlo evaluation drivers |
-| `tuning/` | Filter parameter sweeps and optimisation |
-| `cache/` | Pre-computed CFAR/cluster caches per seed |
-| `diagnostics/` | One-off checks and per-seed traces |
-| `runners/` | Live-plot single-run scripts |
-| `evaluationScripts/` | Legacy per-metric evaluation scripts |
-| `TuningFilters/` | Legacy tuning outputs |
+| `01_FERS/` | FERS scenario XMLs, HDF5 loaders, and FM waveform inputs |
+| `02_ARD/` | Amplitude Range Doppler cross-correlation |
+| `03_DPI_Cancellation/` | Extensive Cancellation Algorithm (ECA) for direct-path interference |
+| `04_Detection/` | Cell Averaging Constant False Alarm Rate (CA-CFAR) detector |
+| `05_Clustering/` | Mean-shift clustering of CFAR detections |
+| `06_Tracking/Filters/KF/` | Kalman filter + covariance-scaling variant (CSKF) |
+| `06_Tracking/Filters/UKF/` | Unscented Kalman filter + CS variant |
+| `06_Tracking/Filters/PF/` | Particle filter + CS variant |
+| `06_Tracking/Filters/RGNF/` | Recursive Gauss-Newton filter + CS variant |
+| `06_Tracking/Filters/IMM/` | Interacting Multiple Model (future work) |
+| `06_Tracking/MTT/` | MTT framework (gating, GNN, M-of-N confirmation/deletion) |
+| `07_Evaluation/MC/` | Monte Carlo evaluation drivers |
+| `07_Evaluation/Tuning/` | Filter parameter sweeps and optimisation |
+| `07_Evaluation/GroundTruth/` | Cubic-waypoint ground truth generation |
+| `07_Evaluation/Diagnostics/` | Per-seed traces, sanity checks |
+| `07_Evaluation/Legacy/` | Superseded evaluation and tuning scripts (kept for reference) |
+| `Runners/` | Top-level entry-point scripts that stitch the pipeline |
+| `Cache/` | Cluster / measurement caches |
+| `Paper/` | CIE 2026 conference paper source (.tex, .bib, figures, compiled PDF) |
+| `Docs/` | Archived paper snippets, notes |
 | `Simulation_results/` | Static images from prior campaigns |
-| `figures/` | Figures used in the CIE 2026 paper |
+| `figures/` | Root-level figures (superseded by `Paper/figures/`) |
 | `seeds/` | *(gitignored)* per-seed FERS thermal-noise realisations |
-| `docs_notes/` | Archived paper snippets kept for comparison |
-| `paper/` | CIE 2026 conference paper source (.tex, .bib, figures, compiled PDF) |
 | `UCT Msc Docs/` | Dissertation-related documents |
 
 ---
 
 ## Contents by purpose
 
-### Monte Carlo evaluation (`mc/`)
+### Monte Carlo evaluation (`07_Evaluation/MC/`)
 
 | Script | Purpose |
 | --- | --- |
@@ -66,7 +76,7 @@ Implementation of Tracking Filters for a Passive Radar System"* (paper ID
 | `multi_scenario_eval.m` | Legacy multi-scenario evaluation. |
 | `per_scenario_best.m` | Reports best per-scenario tuning across `mc_results.mat`. |
 
-### Tuning sweeps (`tuning/`)
+### Tuning sweeps (`07_Evaluation/Tuning/`)
 
 | Script | Purpose |
 | --- | --- |
@@ -80,7 +90,7 @@ Implementation of Tracking Filters for a Passive Radar System"* (paper ID
 | `run_tuned_all_scenarios.m` | Re-run the tuned filters across all scenarios. |
 | `test_adaptive_q.m` `test_cskf_per_axis_q.m` | Unit-style tests for the adaptive Q update. |
 
-### Cache generation (`cache/`)
+### Cache generation (`Cache/`)
 
 | Script | Purpose |
 | --- | --- |
@@ -89,7 +99,7 @@ Implementation of Tracking Filters for a Passive Radar System"* (paper ID
 | `cache_seeded_clusters.m` | Per-seed centroid cache for single-target scenarios. |
 | `cache_seeded_3targets.m` | Per-seed centroid cache for the three-target MTT scenario, sweepable over CFAR P_fa. |
 
-### Diagnostics (`diagnostics/`)
+### Diagnostics (`07_Evaluation/Diagnostics/`)
 
 | Script | Purpose |
 | --- | --- |
@@ -98,7 +108,7 @@ Implementation of Tracking Filters for a Passive Radar System"* (paper ID
 | `run_cskf_diagnostics.m` | CSKF-internal state dumps for debugging. |
 | `check_measurement_quality.m` | Signal/detection quality checks per scan. |
 
-### Live runners and plotting (`runners/`)
+### Live runners and plotting (`Runners/`)
 
 | Script | Purpose |
 | --- | --- |
@@ -184,12 +194,12 @@ MIT — see [LICENSE](LICENSE).
 
 ## Companion paper
 
-The CIE 2026 conference paper lives in `paper/`. Its Table I, Table IV, and
-computational-load tables are produced by scripts in `mc/` and `tuning/`.
+The CIE 2026 conference paper lives in `Paper/`. Its Table I, Table IV, and
+computational-load tables are produced by scripts in `07_Evaluation/MC/` and `07_Evaluation/Tuning/`.
 
 Build:
 ```bash
-cd paper
+cd Paper
 pdflatex -shell-escape IEEE_ConferencePaperCIE.tex
 bibtex IEEE_ConferencePaperCIE
 pdflatex -shell-escape IEEE_ConferencePaperCIE.tex

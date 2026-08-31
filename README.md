@@ -62,13 +62,13 @@ automatically and no extra `addpath` is needed.
 
 ## Companion paper
 
-The CIE 2026 conference paper lives in `Paper/`. Its Table I, Table IV, and
+The CIE 2026 conference paper lives in `10_Paper/`. Its Table I, Table IV, and
 computational-load tables are produced by scripts in `07_Evaluation/MC/` and
 `07_Evaluation/Tuning/`.
 
 Build:
 ```bash
-cd Paper
+cd 10_Paper
 pdflatex -shell-escape IEEE_ConferencePaperCIE.tex
 bibtex IEEE_ConferencePaperCIE
 pdflatex -shell-escape IEEE_ConferencePaperCIE.tex
@@ -106,14 +106,16 @@ FM-PR-TrackingFilters/
 │   ├── GroundTruth/              Cubic-waypoint ground truth generation
 │   ├── Diagnostics/              Per-seed traces, sanity checks
 │   └── Legacy/                   Superseded evaluation and tuning scripts
-├── Runners/                      Top-level entry-point scripts
-├── Cache/                        Cluster / measurement caches
-├── Paper/                        CIE 2026 conference paper source
-├── Docs/                         Archived paper snippets, notes
-├── Simulation_results/           Static images from prior campaigns
-├── figures/                      Root-level figures (superseded by Paper/figures)
+├── 08_Runners/                   Top-level entry-point scripts
+├── 09_Cache/                     Cluster / measurement caches
+├── 10_Paper/                     CIE 2026 conference paper source
+├── 11_Docs/
+│   ├── Notes/                    Archived paper snippets, notes
+│   ├── Figures/                  Root-level figures (superseded by 10_Paper/figures)
+│   ├── LegacyResults/            Static images from prior campaigns
+│   ├── UCT_MSc/                  Dissertation-related documents
+│   └── UCT_Admin/                Admin documents
 ├── seeds/                        (gitignored) per-seed FERS thermal-noise realisations
-├── UCT Msc Docs/                 Dissertation-related documents
 ├── startup.m                     Adds all subfolders to MATLAB path
 ├── gated_association.m           Mahalanobis gate + GNN utility
 ├── LICENSE                       MIT

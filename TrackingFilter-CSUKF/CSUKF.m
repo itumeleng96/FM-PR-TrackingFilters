@@ -1,3 +1,35 @@
+%CSUKF  Covariance-Scaling Unscented Kalman Filter for bistatic tracking.
+%
+%   State vector:   x = [r, rdot, f, fdot]'
+%   Measurement:    z = [r, f]'
+%   Motion model:   Nearly Constant Velocity (NCV) with sampling interval dt
+%
+%   Propagates the state through 2n+1 = 9 sigma points using the unscented
+%   transform. Adaptive covariance scaling (Akhlaghi 2018) is applied to R
+%   (always) and to Q (when obj.cs_adapt_q = true) on every accepted
+%   measurement, with forgetting factor obj.cs_alpha (default 0.98).
+%
+%   Construction:
+%     f = CSUKF(dt, std_acc, r_std, rdot_std, X_initial, alpha, kappa, beta)
+%       dt         - scan interval (s)
+%       std_acc    - [ax, ay] process-noise std for range and Doppler axes
+%       r_std      - measurement std, range channel
+%       rdot_std   - measurement std, Doppler channel
+%       X_initial  - initial state vector [r0; rdot0; f0; fdot0]
+%       alpha, kappa, beta  - UKF sigma-point spread parameters
+%                              (typical: alpha=0.5, kappa=0, beta=2)
+%
+%   Public methods:
+%     [xhat, obj] = predict(obj)      sigma-point prediction
+%     [xhat, obj] = update(obj, z)    measurement update on z = [r; f]
+%
+%   Adaptive tuning knobs (set after construction):
+%     obj.cs_alpha    - forgetting factor in [0,1]           (default 0.98)
+%     obj.cs_adapt_q  - true = also adapt Q, false = R only  (default false)
+%
+%   Reference:
+%     Julier & Uhlmann (1997) for UKF; Akhlaghi et al. (2018) for covariance
+%     adaptation. See CSKF for the R/Q update formulae.
 classdef CSUKF
 
     properties

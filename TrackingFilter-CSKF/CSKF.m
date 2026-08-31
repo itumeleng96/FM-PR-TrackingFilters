@@ -1,3 +1,33 @@
+%CSKF  Covariance-Scaling Kalman Filter for bistatic range-Doppler tracking.
+%
+%   State vector:   x = [r, rdot, f, fdot]'  (range, range-rate, Doppler, Doppler-rate)
+%   Measurement:    z = [r, f]'              (range and Doppler centroid)
+%   Motion model:   Nearly Constant Velocity (NCV) with sampling interval dt
+%
+%   Adaptive covariance scaling (Akhlaghi, Zhou & Huang, 2018) is applied to
+%   both R and Q on every accepted measurement, with forgetting factor
+%   obj.cs_alpha (default 0.98). Q is adapted when obj.cs_adapt_q is true.
+%
+%   Construction:
+%     f = CSKF(dt, std_acc, r_std, rdot_std, X_initial)
+%       dt          - scan interval (s)
+%       std_acc     - [ax, ay] process-noise std for range and Doppler axes
+%       r_std       - measurement std, range channel
+%       rdot_std    - measurement std, Doppler channel
+%       X_initial   - initial state vector [r0; rdot0; f0; fdot0]
+%
+%   Public methods:
+%     [xhat, obj] = predict(obj)      one-step prediction
+%     [xhat, obj] = update(obj, z)    measurement update on z = [r; f]
+%
+%   Adaptive tuning knobs (set after construction):
+%     obj.cs_alpha    - forgetting factor in [0,1]           (default 0.98)
+%     obj.cs_adapt_q  - true = also adapt Q, false = R only  (default false)
+%
+%   Reference:
+%     Akhlaghi, S., Zhou, N., Huang, Z. (2018). "Adaptive adjustment of noise
+%     covariance in Kalman filter for dynamic state estimation." IEEE PES
+%     General Meeting. arXiv:1702.00884.
 classdef CSKF
 
     properties

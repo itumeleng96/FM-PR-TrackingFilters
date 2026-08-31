@@ -1,3 +1,35 @@
+%CSRGNF  Covariance-Scaling Recursive Gauss-Newton Filter for bistatic tracking.
+%
+%   State vector:   x = [r, rdot, f, fdot]'
+%   Measurement:    z = [r, f]'
+%   Motion model:   Nearly Constant Velocity (NCV) with sampling interval dt
+%
+%   The RGNF refines the state estimate at each scan via a small number of
+%   Gauss-Newton iterations, with Huber-weighted residuals for outlier
+%   robustness. Adaptive covariance scaling (Akhlaghi 2018) is applied to R
+%   (always) and to Q (when obj.cs_adapt_q = true).
+%
+%   Construction:
+%     f = CSRGNF(dt, std_acc, r_std, rdot_std, X_initial, max_iter, lambda)
+%       dt         - scan interval (s)
+%       std_acc    - [ax, ay] process-noise std for range and Doppler axes
+%       r_std      - measurement std, range channel
+%       rdot_std   - measurement std, Doppler channel
+%       X_initial  - initial state vector [r0; rdot0; f0; fdot0]
+%       max_iter   - maximum Gauss-Newton iterations per update  (e.g. 100)
+%       lambda     - Levenberg-Marquardt damping factor           (e.g. 1)
+%
+%   Public methods:
+%     [xhat, obj] = predict(obj)      one-step prediction
+%     [xhat, obj] = update(obj, z)    Gauss-Newton refinement on z = [r; f]
+%
+%   Adaptive tuning knobs (set after construction):
+%     obj.cs_alpha    - forgetting factor in [0,1]           (default 0.98)
+%     obj.cs_adapt_q  - true = also adapt Q, false = R only  (default false)
+%
+%   Reference:
+%     Recursive Gauss-Newton for tracking: Inggs et al., de Wet et al. See
+%     CSKF for the covariance-scaling formulae.
 classdef CSRGNF
 
     properties

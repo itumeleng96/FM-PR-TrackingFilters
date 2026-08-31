@@ -178,6 +178,10 @@ automatically and no extra `addpath` is needed.
 
 ---
 
+## License
+
+MIT — see [LICENSE](LICENSE).
+
 ## Companion paper
 
 The CIE 2026 conference paper lives in `paper/`. Its Table I, Table IV, and

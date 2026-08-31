@@ -1,3 +1,35 @@
+%CSPF  Covariance-Scaling Particle Filter for bistatic range-Doppler tracking.
+%
+%   State vector:   x = [r, rdot, f, fdot]'   (represented by a particle cloud)
+%   Measurement:    z = [r, f]'               (range and Doppler centroid)
+%   Motion model:   Nearly Constant Velocity (NCV) with sampling interval dt
+%
+%   Non-parametric Bayesian filter: represents the posterior as N weighted
+%   particles, with systematic resampling when the effective sample size
+%   drops below N/2. The measurement noise covariance R is adapted online
+%   via the covariance-scaling rule of Akhlaghi (2018), using the empirical
+%   particle-cloud covariance in place of H P- H^T. The process noise Q is
+%   used at prediction but not adapted online (no explicit Kalman gain).
+%
+%   Construction:
+%     f = CSPF(dt, std_acc, std_meas, initialCentroid, N)
+%       dt              - scan interval (s)
+%       std_acc         - [ax, ay] process-noise std (used to build Q for prediction)
+%       std_meas        - [r_std, f_std] measurement std
+%       initialCentroid - [r; f] initial measurement to seed the particle cloud
+%       N               - number of particles (e.g. 10000)
+%
+%   Public methods:
+%     [xhat, obj] = predict(obj)      propagate particles through F + process noise
+%     [xhat, obj] = update(obj, z)    weight update, systematic resampling,
+%                                     R adapted via cloud covariance
+%
+%   Adaptive tuning knobs (set after construction):
+%     obj.cs_alpha  - forgetting factor for R adaptation in [0,1] (default 0.90)
+%
+%   Reference:
+%     Arulampalam et al. (2002) for particle-filter fundamentals; Akhlaghi
+%     (2018) for R covariance scaling (applied with cloud-covariance surrogate).
 classdef CSPF
 
     properties

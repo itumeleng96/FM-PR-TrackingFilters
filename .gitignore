@@ -8,6 +8,7 @@ octave-workspace
 # ---- Log / temp files ----
 *.log
 *.tmp
+/*.txt
 *.txt.bak
 *_log.txt
 tmp.tex
@@ -36,6 +37,9 @@ paper/svg-inkscape/
 
 # ---- FERS-seeded MC caches (regeneratable, large) ----
 seeds/
+
+# ---- MATLAB figure binaries (regenerate from scripts) ----
+*.fig
 
 # ---- Editor / OS junk ----
 .DS_Store
